@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""Verify consumer key/secret by requesting a token. Stdlib only.
+
+Usage: MPESA_CONSUMER_KEY=... MPESA_CONSUMER_SECRET=... [MPESA_ENV=sandbox|production] python check_token.py
+Prints OK with the expiry, or the Daraja error and what it means. Never prints the token.
+"""
+import base64
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+HINTS = {
+    "400.008.01": "Invalid authentication: key/secret wrong, has whitespace, or belongs to the other environment.",
+    "400.008.02": "Invalid grant type: the query must be grant_type=client_credentials.",
+}
+key = os.environ.get("MPESA_CONSUMER_KEY", "").strip()
+secret = os.environ.get("MPESA_CONSUMER_SECRET", "").strip()
+if not key or not secret:
+    sys.exit("Set MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET")
+env = os.environ.get("MPESA_ENV", "sandbox").strip().lower()
+base = {"sandbox": "https://sandbox.safaricom.co.ke", "production": "https://api.safaricom.co.ke"}[env]
+req = urllib.request.Request(
+    f"{base}/oauth/v1/generate?grant_type=client_credentials",
+    headers={"Authorization": "Basic " + base64.b64encode(f"{key}:{secret}".encode()).decode()},
+)
+try:
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        body = json.load(resp)
+    print(f"OK ({env}): token issued, expires_in={body.get('expires_in')}s")
+except urllib.error.HTTPError as err:
+    text = err.read().decode(errors="replace")
+    try:
+        code = json.loads(text).get("errorCode", "")
+    except ValueError:
+        code = ""
+    print(f"FAILED HTTP {err.code}: {text[:300]}")
+    if code in HINTS:
+        print("Hint:", HINTS[code])
+    elif err.code == 400 and not text.strip():
+        print("Hint: an empty 400 usually means wrong key/secret or the wrong environment.")
+    sys.exit(1)

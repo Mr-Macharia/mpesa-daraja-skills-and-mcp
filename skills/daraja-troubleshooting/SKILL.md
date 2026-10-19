@@ -1,71 +1,59 @@
 ---
 name: daraja-troubleshooting
-description: Diagnose Safaricom Daraja / M-Pesa API errors — HTTP status codes, Daraja errorCode values (400.002.02, 404.001.03, 500.001.1001...), STK and B2C ResultCodes, missing callbacks, sandbox vs production mismatches. Use when an M-Pesa request fails, returns an unexpected code, or a callback never arrives.
+description: Diagnoses Safaricom Daraja and M-Pesa API failures. Decodes errorCodes (400.002.02, 404.001.03, 500.001.1001, 500.003.02...), async ResultCodes (1, 17, 1032, 1037, 2001, 2028, 2040, 8006...), C2B and reversal codes, missing callbacks and sandbox/production mix-ups, with a lookup script and a step-by-step debug procedure. Use when an M-Pesa request fails, returns an unexpected code, or a payment or callback never shows up.
 ---
 
-# Daraja Troubleshooting
+# Daraja troubleshooting
 
-## Read the error first
+## Look up the code first
 
-Synchronous errors look like:
-```json
-{"requestId":"1234-5678","errorCode":"400.002.02","errorMessage":"Bad Request - Invalid PhoneNumber"}
+```bash
+python scripts/explain_code.py 500.001.1001 2001
+python scripts/explain_code.py --search "timestamp"
 ```
-Always log `requestId` — Safaricom support needs it.
 
-## HTTP / gateway errors
+Synchronous errors look like `{"requestId": "…", "errorCode": "400.002.02", "errorMessage": "Bad Request - Invalid PhoneNumber"}`.
+- Always log the `requestId`: Safaricom support needs it.
+- `500.001.1001` covers several different errors; the **errorMessage** tells you which one.
 
-| Code | Meaning | Fix |
-|---|---|---|
-| `400.002.02` | Bad Request – invalid field (message names it: Timestamp, Amount, PhoneNumber, CallBackURL, BusinessShortCode) | Fix the named field's format |
-| `400.008.01` | Invalid authentication | Check key/secret, whitespace, environment |
-| `400.008.02` | Invalid grant type | `grant_type=client_credentials` |
-| `401` / `404.001.03` | Invalid / expired access token | Refresh token, retry once |
-| `404.001.01` | Resource not found | Wrong URL/path or version |
-| `405` | Method not allowed | Use POST for product APIs, GET for token |
-| `429` | Rate limited / spike arrest | Back off, cache tokens, queue requests |
-| `500.001.1001` | Various: "Unable to lock subscriber, a transaction is already in process", "Wrong credentials", "Merchant does not exist", "transaction is being processed" (STK query) | Read message; wait/retry or fix shortcode/passkey |
-| `500.003.02` | System busy | Retry with backoff |
-| `503` | Service unavailable | Retry with backoff, circuit breaker |
-
-## Async ResultCodes
-
-| Code | API | Meaning |
-|---|---|---|
-| 0 | all | Success |
-| 1 | STK/B2C/B2B | Insufficient funds |
-| 1001 | STK | Subscriber busy / another transaction in progress |
-| 1019 | STK | Transaction expired |
-| 1025 / 9999 | STK | Error pushing request |
-| 1032 | STK | Cancelled by user |
-| 1037 | STK | Timeout — user unreachable/no response |
-| 2001 | STK | Wrong PIN; B2C/B2B: invalid initiator info (password/credential/cert) |
-| 2040 | B2C | Recipient not a registered M-Pesa customer |
-| 8006 | B2C/B2B | Security credential locked |
-| 17 | B2C | Rule limit / system internal error |
-| 26 | any | Traffic blocking / system busy |
+The full code tables are in [reference.md](reference.md).
 
 ## Symptom → cause
 
 | Symptom | Likely cause |
 |---|---|
-| "Invalid Timestamp"/password errors on STK | UTC instead of EAT; Timestamp in body ≠ one used in Password; wrong passkey for shortcode |
-| Works sandbox, fails production | Sandbox keys/passkey/cert used live; product not enabled on prod app; till vs store number mixup |
-| STK prompt never appears | Phone off/no network, SIM toolkit outdated, number not Safaricom, wrong format |
-| No callback received | URL not public HTTPS, bad TLS cert, redirect, slow/non-200 handler, firewall; recover via STK Query / Transaction Status |
-| Duplicate orders marked paid | No idempotency on receipt / CheckoutRequestID |
-| C2B callbacks never arrive | URLs not registered on that shortcode, forbidden words in URL, prod registration needs Safaricom |
-| B2C `2001` | SecurityCredential encrypted with wrong-environment cert or wrong initiator password |
+| STK "Wrong credentials" or invalid Timestamp | UTC used instead of EAT; the body Timestamp differs from the one in the Password; wrong passkey for the shortcode |
+| STK `2028` on a Till | `BusinessShortCode` must be the store number and `PartyB` the Till; TransactionType must be `CustomerBuyGoodsOnline` |
+| STK prompt never shows | Phone off or no signal, another session in progress (wait 1 minute), number not on Safaricom, AccountReference too long (`1025`) |
+| Works in sandbox, fails in production | Sandbox key/passkey/certificate used live; product not on the production app; till/store mix-up |
+| B2C/B2B `2001` or `18` | SecurityCredential made with the wrong-environment certificate or the wrong password |
+| `21` | The initiator lacks the role for this API or shortcode |
+| `15` / `500.002.1001` | OriginatorConversationID reused for a *new* payout |
+| `17` | Same amount to the same party within about 2 minutes: wait |
+| `500.003.02` / `500.003.03` | Too many requests: cache tokens, queue and throttle |
+| No callback | See the checklist in `daraja-callbacks`, then recover with stk query, transaction_status or pull |
+| C2B callbacks never arrive | URLs not registered on this shortcode, forbidden words in the URL, or production URLs already registered (`500.003.1001`) |
+| Duplicate fulfilment | No idempotency on the receipt / CheckoutRequestID |
 
 ## Debug procedure
 
-1. Confirm environment: base URL, keys, shortcode, passkey, cert all from the same env.
-2. Reproduce with `curl` and the raw JSON — removes SDK/framework variables.
-3. Validate formats: phone `2547…`, integer amount, EAT timestamp, HTTPS callback.
-4. Check the token separately.
-5. For async issues inspect your callback server logs, then query status.
-6. Still stuck: contact Daraja support (apisupport@safaricom.co.ke / portal chat) with `requestId`, timestamps, shortcode — never send secrets.
+Copy this and work through it:
+
+```
+- [ ] 1. Same environment everywhere? base URL, keys, passkey, shortcode, certificate
+- [ ] 2. Token alone works? (../daraja-auth/scripts/check_token.py)
+- [ ] 3. Body passes ../mpesa-daraja/scripts/validate_request.py <api>? fix → rerun until OK
+- [ ] 4. Reproduce with raw curl + the same JSON (removes SDK/framework variables)
+- [ ] 5. Read errorMessage / ResultDesc, not only the code; explain_code.py
+- [ ] 6. Async issue? check callback server logs, then query status
+- [ ] 7. Still stuck → apisupport@safaricom.co.ke with requestId, timestamp, shortcode, API (never secrets)
+```
 
 ## Retry policy
 
-Retry only idempotent-safe operations (token, queries) and transient errors (5xx, 429, network) with exponential backoff + jitter. **Never** auto-retry a B2C/B2B payment whose outcome is unknown — check Transaction Status first.
+- **Safe to retry** with exponential backoff and jitter: token requests, queries, and transient errors (5xx, 429, network).
+- **Never auto-retry** a money-moving request (B2C, B2B, tax, reversal, Ratiba) whose outcome is unknown. Run `transaction_status` first, and retry with the **same** OriginatorConversationID.
+
+## MCP
+
+`mpesa:mpesa_explain_code(code)` returns the same knowledge as the script.

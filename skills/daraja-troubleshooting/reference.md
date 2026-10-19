@@ -1,0 +1,91 @@
+# Daraja code reference
+
+Generated from `scripts/codes.json` (which the MCP server shares). Source: the Daraja 3.0 portal error tables for each API.
+
+## Contents
+- Gateway / synchronous errorCodes
+- C2B validation reject codes
+- Reversal codes
+- Async ResultCodes (callbacks, queries)
+
+## Gateway / synchronous errorCodes
+
+| Code | Meaning / fix |
+|---|---|
+| `400.002.02` | Bad Request - a field is invalid; the message names it (Timestamp, Amount, PhoneNumber, CallBackURL...). |
+| `400.002.05` | Invalid request payload - malformed JSON body. |
+| `400.003.01` | Invalid access token. |
+| `400.008.01` | Invalid authentication type - use HTTP Basic with consumer key:secret. |
+| `400.008.02` | Invalid grant type - use grant_type=client_credentials. |
+| `401.002.01` | Invalid access token - regenerate (tokens last ~1 hour). |
+| `404.001.01` | Resource not found - wrong endpoint URL or version. |
+| `404.001.03` | Invalid access token - regenerate; check the key/secret belong to this environment. |
+| `404.001.04` | Invalid authenticator header - product APIs are POST with a Bearer token; only the token API is GET. |
+| `405.001` | Method not allowed - use POST. |
+| `500.001.1001` | Generic M-Pesa error - read errorMessage: 'Merchant does not exist', 'Wrong credentials' (bad Password/passkey), 'Unable to lock subscriber' (wait 1 min), or STK query 'being processed'. |
+| `500.002.1001` | Duplicate OriginatorConversationID. |
+| `500.003.02` | System busy or Spike Arrest Violation - too many requests per second; back off. |
+| `500.003.03` | Quota violation - request limit exceeded. |
+| `500.003.1001` | Internal server error, or C2B 'URLs are already registered' (production needs Safaricom to delete them first). |
+
+## C2B validation reject codes
+
+| Code | Meaning / fix |
+|---|---|
+| `C2B00011` | C2B validation reject: invalid MSISDN. |
+| `C2B00012` | C2B validation reject: invalid account number. |
+| `C2B00013` | C2B validation reject: invalid amount. |
+| `C2B00014` | C2B validation reject: invalid KYC details. |
+| `C2B00015` | C2B validation reject: invalid shortcode. |
+| `C2B00016` | C2B validation reject: other error. |
+
+## Reversal codes
+
+| Code | Meaning / fix |
+|---|---|
+| `R000002` | Reversal: the OriginalTransactionID is invalid. |
+
+## Async ResultCodes (callbacks, queries)
+
+| Code | Meaning / fix |
+|---|---|
+| `0` | Success. |
+| `1` | Insufficient balance (customer for STK, utility account for B2C/B2B). |
+| `2` | Declined: amount below the minimum allowed. |
+| `3` | Declined: amount above the maximum allowed per transaction. |
+| `4` | Declined: would exceed the daily transfer limit. |
+| `8` | Declined: would exceed the maximum account balance. |
+| `11` | DebitParty in an invalid state (shortcode not active). |
+| `15` | Duplicate OriginatorConversationID detected - generate a new unique ID. |
+| `17` | Rule limited: same amount to same party within ~2 minutes, or internal failure. Wait and retry. |
+| `18` | Initiator credential check failed - wrong password or bad SecurityCredential encryption. |
+| `20` | Unresolved initiator - the initiator username does not exist. |
+| `21` | Initiator lacks the role/permission for this shortcode or API. |
+| `24` | Missing mandatory fields. |
+| `25` | Invalid request parameters. |
+| `26` | Traffic blocking / system too busy - back off and retry. |
+| `29` | Invalid CommandID. |
+| `1001` | Subscriber busy / another transaction in progress. Wait ~1 minute. |
+| `1019` | Transaction expired before being processed. |
+| `1025` | Error sending push - often the USSD prompt is too long (keep AccountReference short). |
+| `1032` | Request cancelled by user. |
+| `1037` | DS timeout - user's phone unreachable or did not respond. |
+| `2001` | Initiator information invalid. STK: customer entered the wrong PIN. B2C/B2B: wrong initiator name/password or certificate. |
+| `2006` | Account status does not allow this transaction (shortcode inactive). |
+| `2028` | Not permitted by product assignment - wrong TransactionType/PartyB, or shortcode lacks this product. |
+| `2040` | Recipient is not a registered M-Pesa customer. |
+| `4001` | User cancelled the USSD push (B2B Express Checkout). |
+| `8006` | Security credential locked - unlock the API user in the M-Pesa org portal. |
+| `9999` | Error sending push request - retry later. |
+
+## HTTP status quick map
+
+| HTTP | Typical cause |
+|---|---|
+| 400 | Malformed or invalid field: read errorMessage |
+| 401 / 404.001.03 | Token expired or from the other environment |
+| 404 | Wrong URL/version |
+| 405 | Wrong method (product APIs are POST) |
+| 429 / 500.003.02 | Rate limit / spike arrest |
+| 500 | M-Pesa business error (500.001.1001) or internal |
+| 503 | Maintenance: retry with backoff |

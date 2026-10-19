@@ -1,70 +1,75 @@
 ---
 name: daraja-sandbox-setup
-description: Set up a Safaricom Daraja sandbox — create a developer account and sandbox app, obtain test Consumer Key/Secret, test shortcodes, passkey, initiator and SecurityCredential, expose callbacks with ngrok, use the simulator, and plan the go-live to production. Use when starting a new M-Pesa integration or preparing for production.
+description: Sets up a Safaricom Daraja sandbox from scratch: creating the developer account and app with the right products, finding test credentials (shortcodes, passkey, initiator, certificate), writing the .env file, exposing callbacks through a tunnel, smoke testing each API, and running the production go-live checklist. Use when starting a new M-Pesa integration, when a sandbox setup is broken, or when preparing to go live.
 ---
 
-# Daraja Sandbox Setup & Go-Live
+# Daraja sandbox setup and go-live
 
-## 1. Create the sandbox app
+## 1. Create the app
 
-1. Sign up / log in at `https://developer.safaricom.co.ke/`.
-2. **My Apps → Create new app**, name it, tick the products you need (Lipa na M-Pesa Sandbox, M-Pesa Sandbox for C2B/B2C/B2B/etc.).
-3. Open the app → copy **Consumer Key** and **Consumer Secret** into `.env` (never into code).
+1. Sign in at `https://developer.safaricom.co.ke/`.
+2. Open **My Apps → Create new app** and select every product you need: M-Pesa Express, C2B, B2C, B2B, Transaction Status, Account Balance, Reversal, Dynamic QR, M-Pesa Ratiba, Bill Manager, Tax Remittance and so on. Calling an API whose product is not selected fails, even with a valid token.
+3. Copy the **Consumer Key** and **Consumer Secret** into `.env`.
 
 ## 2. Test credentials
 
-From the portal's **Test Credentials** / simulator pages:
+These are on the portal's **Test Credentials** and simulator pages. Read them from the portal: they change from time to time, so don't hardcode them in docs.
 
-| Item | Typical sandbox value |
+| Item | Where / typical value |
 |---|---|
-| STK shortcode | `174379` |
-| Lipa na M-Pesa passkey | shown on the portal (public test passkey) |
-| C2B / B2C / B2B shortcodes | e.g. `600xxx` values listed on the portal |
-| Test MSISDN | `254708374149` (or your own Safaricom number for STK) |
-| Initiator name | `testapi` |
-| Initiator password / SecurityCredential | portal provides password; generate credential or copy pre-encrypted value |
-
-Values change occasionally — always read them from the portal rather than hardcoding.
+| M-Pesa Express shortcode | `174379` |
+| M-Pesa Express passkey | Simulator page (a public test passkey) |
+| C2B / B2C / B2B shortcodes | Test Credentials page (`600xxx`) |
+| Test MSISDN | `254708374149`, or your own Safaricom line to receive a real STK prompt |
+| Initiator name and password | Test Credentials page |
+| SecurityCredential | Generate it with the test credentials page tool or `../daraja-credentials-security/scripts/security_credential.py` and the **sandbox** certificate |
 
 ## 3. `.env` template
 
 ```dotenv
 MPESA_ENV=sandbox
-MPESA_BASE_URL=https://sandbox.safaricom.co.ke
 MPESA_CONSUMER_KEY=
 MPESA_CONSUMER_SECRET=
 MPESA_SHORTCODE=174379
 MPESA_PASSKEY=
-MPESA_INITIATOR_NAME=testapi
+MPESA_INITIATOR_NAME=
 MPESA_SECURITY_CREDENTIAL=
-MPESA_CALLBACK_BASE=https://<your-tunnel>.ngrok-free.app
+MPESA_CALLBACK_BASE_URL=https://<tunnel-host>
 ```
-Add `.env` to `.gitignore` and commit a `.env.example` without values.
 
-## 4. Expose callbacks
+Add `.env` to `.gitignore`, and commit a `.env.example` with no values. The same variables configure the repo's MCP server.
 
-```bash
-python app.py            # listens on :5000
-ngrok http 5000          # gives https://xxxx.ngrok-free.app
+## 4. Smoke tests, in order
+
+Copy this checklist:
+
 ```
-Set callback URLs to `${MPESA_CALLBACK_BASE}/callbacks/...`. The ngrok URL changes on restart (free tier) → update `.env` and re-register C2B URLs.
+- [ ] Token:   python ../daraja-auth/scripts/check_token.py            → OK
+- [ ] Tunnel:  ngrok http 5000; curl -X POST https://<tunnel>/health   → 200 from outside
+- [ ] STK:     push KES 1 to your phone; approve; callback ResultCode 0
+- [ ] STK failures: cancel (1032), ignore (1037), wrong PIN (2001) → all recorded as FAILED
+- [ ] C2B:     register URLs → simulate → confirmation received
+- [ ] B2C/B2B: payout with sandbox initiator → Result on ResultURL
+- [ ] Status/Balance: results arrive and parse
+```
 
-## 5. Smoke-test order
+If a step fails, fix it with `daraja-troubleshooting` and **rerun the same step** before moving on.
 
-1. Token: `curl -u "$KEY:$SECRET" "$BASE/oauth/v1/generate?grant_type=client_credentials"`
-2. STK Push to your own phone with `Amount: 1` → check callback arrives.
-3. C2B: register URLs → `/mpesa/c2b/v1/simulate` → check validation/confirmation hits.
-4. B2C/B2B with sandbox initiator → check `ResultURL`.
-5. Force failures: cancel the STK prompt (1032), ignore it (1037), wrong PIN (2001).
+## 5. Go-live checklist
 
-## 6. Go-live checklist
+```
+- [ ] Business has a real Paybill/Till, KYC complete, and an M-Pesa org-portal admin
+- [ ] Production API operator (initiator) created with the roles each API needs
+- [ ] Daraja portal → Go Live: verify shortcode by OTP, choose products, accept terms
+- [ ] Production Consumer Key/Secret + production passkey (emailed for M-Pesa Express)
+- [ ] SecurityCredential regenerated with the PRODUCTION certificate
+- [ ] Separate secrets per environment, in a secret manager
+- [ ] Callback URLs on your own domain with valid TLS (no tunnels); C2B URLs registered once on the prod shortcode
+- [ ] Products needing extra approval requested by email (e.g. C2B external validation, Ratiba, Bill Manager, Pull)
+- [ ] Live test with small amounts; reconcile against the org-portal statement
+- [ ] Monitoring: PENDING age, ResultCode distribution, utility balance alerts
+```
 
-- [ ] Real Paybill/Till with M-Pesa business account (KYC complete) and an org-portal admin
-- [ ] Create production initiator (API operator) with required roles
-- [ ] In Daraja portal: **Go Live** → verify shortcode via OTP, select products, accept terms
-- [ ] Receive production Consumer Key/Secret + production passkey (emailed for Lipa na M-Pesa)
-- [ ] Generate SecurityCredential with the **production** certificate
-- [ ] Switch `MPESA_BASE_URL=https://api.safaricom.co.ke`; separate secrets per environment
-- [ ] Callback URLs on your own domain with valid TLS (no ngrok)
-- [ ] Register C2B URLs on the production shortcode
-- [ ] Test with small live amounts; reconcile against the org-portal statement
+## MCP
+
+Set the same `.env` values on the `mpesa` MCP server, then run `mpesa:mpesa_check_credentials` followed by `mpesa:mpesa_stk_push` for an end-to-end sandbox test without writing any code.

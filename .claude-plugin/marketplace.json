@@ -1,0 +1,35 @@
+{
+  "name": "mpesa-daraja",
+  "owner": {
+    "name": "mr-macharia"
+  },
+  "metadata": {
+    "description": "Skills for Safaricom M-Pesa Daraja API integrations",
+    "version": "0.2.0"
+  },
+  "plugins": [
+    {
+      "name": "mpesa-daraja-skills",
+      "description": "M-Pesa Daraja integration skills: STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/daraja-account-ops",
+        "./skills/daraja-auth",
+        "./skills/daraja-b2b",
+        "./skills/daraja-b2c",
+        "./skills/daraja-bill-manager",
+        "./skills/daraja-c2b",
+        "./skills/daraja-callbacks",
+        "./skills/daraja-credentials-security",
+        "./skills/daraja-dynamic-qr",
+        "./skills/daraja-ratiba",
+        "./skills/daraja-sandbox-setup",
+        "./skills/daraja-stk-push",
+        "./skills/daraja-tax-remittance",
+        "./skills/daraja-troubleshooting",
+        "./skills/mpesa-daraja"
+      ]
+    }
+  ]
+}

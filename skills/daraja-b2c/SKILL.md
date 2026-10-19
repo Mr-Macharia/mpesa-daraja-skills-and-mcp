@@ -1,24 +1,27 @@
 ---
 name: daraja-b2c
-description: Implement Safaricom Daraja B2C (Business-to-Customer) payouts — salaries, refunds, promotions, withdrawals — including the Initiator, SecurityCredential, CommandIDs, result/timeout callbacks and idempotency. Use when the business sends money from a B2C shortcode to a customer's M-Pesa wallet.
+description: Implements Safaricom Daraja B2C payouts from a business shortcode to customers' M-Pesa wallets (BusinessPayment, SalaryPayment, PromotionPayment) and to Pochi la Biashara (B2Pochi). Covers the initiator and SecurityCredential, OriginatorConversationID idempotency, Result and QueueTimeOut callbacks, and result codes 2001, 2040, 8006 and 21. Use for refunds, salaries, withdrawals, winnings, commissions or any business-to-person disbursement.
 ---
 
-# B2C — Business to Customer Payouts
+# B2C: Business to Customer
+
+Money leaves your account, so **the outcome must be known before any retry.**
 
 ## Prerequisites
 
-- A **B2C (disbursement) shortcode** with funds in its utility account.
-- An **Initiator** (API operator user) created in the M-Pesa Org portal, with its password.
-- **SecurityCredential** = initiator password encrypted with Safaricom's public certificate (see `daraja-credentials-security`). Sandbox gives a ready-made one in the simulator.
+- A B2C (disbursement) shortcode with funds in its **utility account**. Top it up with `BusinessPayToBulk` (see `daraja-b2b`).
+- An API operator (**initiator**) created in the M-Pesa org portal with the **ORG B2C API Initiator** role.
+- A `SecurityCredential`: the initiator password encrypted with the environment's certificate (see `daraja-credentials-security`).
 
 ## Request
 
-`POST /mpesa/b2c/v3/paymentrequest` (v1 at `/mpesa/b2c/v1/paymentrequest` is older)
+`POST /mpesa/b2c/v3/paymentrequest`. For Pochi la Biashara use `POST /mpesa/b2pochi/v1/paymentrequest` with `CommandID: BusinessPayToPochi`.
+
 ```json
 {
-  "OriginatorConversationID": "a8f3c1e2-payout-000123",
+  "OriginatorConversationID": "payout-000123",
   "InitiatorName": "testapi",
-  "SecurityCredential": "<encrypted base64>",
+  "SecurityCredential": "<encrypted>",
   "CommandID": "BusinessPayment",
   "Amount": 100,
   "PartyA": "600996",
@@ -26,50 +29,58 @@ description: Implement Safaricom Daraja B2C (Business-to-Customer) payouts — s
   "Remarks": "Refund order 1042",
   "QueueTimeOutURL": "https://example.com/payments/b2c/timeout",
   "ResultURL": "https://example.com/payments/b2c/result",
-  "Occasion": "Refund"
+  "Occassion": "Refund"
 }
 ```
 
-`CommandID`:
-| Value | Use |
+| CommandID | Use |
 |---|---|
-| `SalaryPayment` | Salaries (may require registered-customer / specific product) |
-| `BusinessPayment` | Normal payouts, refunds (unsecured) |
-| `PromotionPayment` | Bonuses, promotional payouts |
+| BusinessPayment | Refunds and general payouts |
+| SalaryPayment | Salaries |
+| PromotionPayment | Bonuses and promotions |
+| BusinessPayToPochi | To a customer's Pochi la Biashara wallet (b2pochi endpoint) |
 
-`OriginatorConversationID` is **your** unique ID — generate it once per payout and reuse it on retry so you can dedupe.
+- `OriginatorConversationID` is **yours**. Generate it once per payout, store it, and reuse it on any retry: Daraja rejects duplicates (`15`, `500.002.1001`).
+- `Occassion` (sic) and `Remarks` are 1–100 characters each.
+- The minimum amount is about 10 KES. Validate first: `python ../mpesa-daraja/scripts/validate_request.py b2c body.json`
 
-## Sync response
+## Payout workflow
 
-```json
-{"ConversationID":"AG_20261019_...","OriginatorConversationID":"a8f3...","ResponseCode":"0","ResponseDescription":"Accept the service request successfully."}
 ```
-Store as `PENDING`. Funds have not moved yet.
-
-## Result callback (ResultURL)
-
-```json
-{"Result":{
-  "ResultType":0,"ResultCode":0,"ResultDesc":"The service request is processed successfully.",
-  "OriginatorConversationID":"a8f3...","ConversationID":"AG_...","TransactionID":"NLJ41HAY6Q",
-  "ResultParameters":{"ResultParameter":[
-    {"Key":"TransactionAmount","Value":100},
-    {"Key":"TransactionReceipt","Value":"NLJ41HAY6Q"},
-    {"Key":"ReceiverPartyPublicName","Value":"254712345678 - John Doe"},
-    {"Key":"TransactionCompletedDateTime","Value":"19.10.2026 15:30:45"},
-    {"Key":"B2CUtilityAccountAvailableFunds","Value":10116.00},
-    {"Key":"B2CWorkingAccountAvailableFunds","Value":900000.00},
-    {"Key":"B2CRecipientIsRegisteredCustomer","Value":"Y"},
-    {"Key":"B2CChargesPaidAccountAvailableFunds","Value":-4510.00}]},
-  "ReferenceData":{"ReferenceItem":{"Key":"QueueTimeoutURL","Value":"..."}}}}
+- [ ] 1. Business rules pass (limits, approvals, beneficiary verified)
+- [ ] 2. INSERT payout(ocid UNIQUE, status=PENDING) — before calling Daraja
+- [ ] 3. POST request → store ConversationID
+- [ ] 4. ResultURL: ResultCode 0 → PAID (store TransactionReceipt); else → FAILED with code
+- [ ] 5. QueueTimeOutURL or no result after N min → status UNKNOWN → transaction_status(original_conversation_id)
+- [ ] 6. Only re-send when status query proves it failed — with the SAME ocid
 ```
-Failure: non-zero `ResultCode`, e.g. `2001` (initiator credential invalid), `1` (insufficient funds), `2040` (recipient not registered), `8006` (security credential locked), `17` (system/limit rule).
 
-**QueueTimeOutURL** fires if the request sat in the queue too long — outcome is *unknown*: do NOT retry blindly; run **Transaction Status** (`daraja-account-ops`) first.
+## Result (ResultURL)
 
-## Safety rules (money leaves your account)
+`Result.ResultCode == 0` means success.
 
-- Idempotency: unique constraint on your payout ID; never resend a payout whose status is `PENDING`/unknown without a status check.
-- Approval / limits in your app (max per transaction, daily caps) before calling the API.
-- Validate phone format and amount (min 10 KES for B2C typically; respect M-Pesa wallet limits).
-- Monitor utility-account balance (Account Balance API) and alert before it runs out.
+- `ResultParameters.ResultParameter[]` contains `TransactionAmount`, `TransactionReceipt`, `ReceiverPartyPublicName`, `TransactionCompletedDateTime`, `B2CUtilityAccountAvailableFunds`, `B2CWorkingAccountAvailableFunds` and `B2CRecipientIsRegisteredCustomer`.
+- A failure carries only `ReferenceData`.
+- Parse it with `python ../daraja-callbacks/scripts/parse_callback.py payload.json`.
+
+| Code | Meaning | Fix |
+|---|---|---|
+| 1 | Utility account balance insufficient | Top up |
+| 2 / 3 | Below the minimum / above the maximum amount | Adjust the amount |
+| 8 | Customer would exceed the maximum wallet balance | Pay less |
+| 11 / 2006 | B2C shortcode not active | Contact Safaricom |
+| 21 | Initiator lacks the ORG B2C API Initiator role | Assign the role in the org portal |
+| 2001 | Invalid initiator info: wrong username or password, or wrong-environment cert | Regenerate the SecurityCredential |
+| 2028 | Shortcode not permitted for B2C | Product assignment |
+| 2040 | Recipient is not a registered M-Pesa customer | Pay another way |
+| 8006 | Initiator credential locked | Unlock or reset in the org portal |
+
+## Safety
+
+- Never auto-retry a timeout. Treat `QueueTimeOutURL` as **unknown**, not failed.
+- Cap per-transaction and daily totals in your app. Require approval for large amounts.
+- Monitor the utility balance with `mpesa:mpesa_account_balance` and alert early.
+
+## MCP
+
+`mpesa:mpesa_b2c_payment(phone, amount, remarks, command=…)` generates and returns the `OriginatorConversationID`. Pass it back as `originator_conversation_id` on a retry. `mpesa:mpesa_transaction_status(original_conversation_id=…)` resolves unknown outcomes.

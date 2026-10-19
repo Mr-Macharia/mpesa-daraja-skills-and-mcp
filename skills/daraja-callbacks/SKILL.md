@@ -1,85 +1,91 @@
 ---
 name: daraja-callbacks
-description: Build resilient Safaricom Daraja callback/webhook receivers (STK Push CallBackURL, C2B Validation/Confirmation, B2C/B2B/Status/Reversal/Balance ResultURL and QueueTimeOutURL) — fast acknowledgment, async processing, idempotency, payload parsing, security and monitoring. Use whenever writing or debugging an endpoint that M-Pesa posts results to.
+description: Builds resilient Safaricom Daraja callback and webhook receivers: STK CallBackURL; C2B Validation and Confirmation; ResultURL and QueueTimeOutURL for B2C, B2B, tax, status, reversal and balance; Ratiba, Bill Manager and B2B Express callbacks. Covers fast acknowledgment, async processing, idempotency, payload parsing, endpoint security and the "callback never arrived" checklist. Use when writing or debugging any endpoint that M-Pesa posts results to.
 ---
 
-# Daraja Callback Receivers
+# Daraja callback receivers
 
-Daraja is asynchronous: the synchronous reply means "accepted", the callback carries the truth. Callbacks are fire-and-forget with limited/no retries, so a dropped callback = a lost result (recover via `daraja-account-ops`).
+The synchronous reply only means "accepted". **The callback carries the outcome.**
+- Most callbacks are fire-and-forget with few or no retries. Bill Manager retries up to 5 times.
+- A dropped callback means a lost result unless you query it (see `daraja-account-ops`).
 
 ## Endpoint requirements
 
-- Public **HTTPS** with a valid CA-signed certificate (TLS 1.2+). Self-signed certs fail.
-- Accept `POST` `application/json`; respond **HTTP 200 quickly** (< ~5s; C2B validation even tighter).
-- No auth headers are sent by Safaricom — you can't require a bearer token. Instead:
-  - put an unguessable secret in the path (`/callbacks/stk/<random-token>`),
-  - optionally allow-list Safaricom's published callback IPs at the firewall,
-  - **verify** every callback against your stored request (IDs, amount, phone) — or confirm via a status query for high value.
-- Never put "mpesa"/"safaricom" in C2B URLs.
+- **Public HTTPS** with a CA-signed certificate (TLS 1.2+). No self-signed certificates, no redirects, no localhost or private IPs.
+- **Fast response**: return HTTP 200 within a few seconds. C2B validation is the tightest. Do the heavy work asynchronously.
+- **Authentication**: Safaricom sends no auth headers. Defend the endpoint in three ways:
+  - Put an unguessable token in the path (`/callbacks/stk/<random>`).
+  - Optionally allow-list Safaricom's callback IPs at the firewall.
+  - **Verify** every callback against your stored request (ID, amount, phone). For high-value transactions, re-confirm with a status query.
 
-## Pattern: acknowledge → enqueue → process
+## Pattern: store raw → acknowledge → process asynchronously → idempotent update
 
 ```python
-from flask import Flask, request, jsonify
-import json, logging
-
-app = Flask(__name__)
-log = logging.getLogger("mpesa.callbacks")
-
-@app.post("/callbacks/stk/<token>")
-def stk_callback(token):
-    if token != CALLBACK_TOKEN:
-        return jsonify({"ResultCode": 1, "ResultDesc": "Rejected"}), 403
+@app.post("/callbacks/<kind>/<token>")
+def callback(kind, token):
+    if not hmac.compare_digest(token, CALLBACK_TOKEN):
+        return {"ResultCode": 1, "ResultDesc": "Rejected"}, 403
     payload = request.get_json(force=True, silent=True) or {}
-    log.info("stk callback raw=%s", json.dumps(payload))   # keep raw for audit
-    store_raw_event("stk", payload)                         # durable first
-    queue.enqueue(process_stk_callback, payload)            # heavy work async
-    return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"})
+    event_id = store_raw_event(kind, payload)      # durable first: replayable audit trail
+    queue.enqueue(process_event, event_id)          # heavy work off the request thread
+    return {"ResultCode": 0, "ResultDesc": "Accepted"}
 
-def process_stk_callback(payload):
-    cb = payload["Body"]["stkCallback"]
-    items = {i["Name"]: i.get("Value") for i in cb.get("CallbackMetadata", {}).get("Item", [])}
+def process_event(event_id):
+    event = load_event(event_id)
+    parsed = parse(event.payload)                   # see scripts/parse_callback.py
     with db.transaction():
-        txn = db.lock_txn_by_checkout_id(cb["CheckoutRequestID"])
+        txn = db.lock_txn(parsed["correlation_id"])
         if txn is None or txn.status != "PENDING":
-            return                                           # unknown or already handled → idempotent
-        if cb["ResultCode"] == 0:
-            if int(items.get("Amount", 0)) != txn.amount:
-                return txn.flag("AMOUNT_MISMATCH")
-            txn.mark_paid(receipt=items["MpesaReceiptNumber"], paid_at=items.get("TransactionDate"))
-        else:
-            txn.mark_failed(code=cb["ResultCode"], desc=cb["ResultDesc"])
+            return                                  # unknown or already final → no-op (idempotent)
+        txn.apply(parsed)                           # PAID / FAILED; check amount matches
 ```
 
-## Payload shapes (where the IDs live)
+For **C2B validation**, answer synchronously with accept or reject. It is the only callback whose reply changes the outcome.
 
-| API | Correlate on | Success field |
+## Correlation keys
+
+| Callback | Correlate on | Success signal |
 |---|---|---|
-| STK Push | `Body.stkCallback.CheckoutRequestID` | `ResultCode == 0`, `MpesaReceiptNumber` |
-| C2B Confirmation | `TransID`, `BillRefNumber` | arrival = completed |
-| B2C / B2B / Status / Reversal / Balance | `Result.OriginatorConversationID` / `ConversationID` | `Result.ResultCode == 0`, `Result.TransactionID` |
-| QueueTimeOut | same IDs | outcome unknown → query status |
+| STK | `Body.stkCallback.CheckoutRequestID` | `ResultCode == 0`, `MpesaReceiptNumber` |
+| C2B confirmation | `TransID` (unique), `BillRefNumber` | Arrival means completed |
+| B2C, Pochi, B2B, tax, status, reversal, balance | `Result.OriginatorConversationID` / `ConversationID` | `Result.ResultCode == 0`, `TransactionID` |
+| QueueTimeOutURL | Same IDs | **Unknown**: query status |
+| Ratiba | `responseHeader.requestRefID` | `responseCode == "0"`, `TransactionID` in `responseData` |
+| B2B Express | `requestId` | `resultCode == "0"`, `transactionId` |
+| Bill Manager payment | `transactionId`, `accountReference` | Arrival; then send the acknowledgment (see `daraja-bill-manager`) |
 
-## Idempotency & integrity
+Parse any of the Daraja payloads locally:
 
-- Unique index on receipt (`MpesaReceiptNumber` / `TransID` / `TransactionID`).
-- State machine: `PENDING → PAID | FAILED | UNKNOWN`; only transition from `PENDING`.
-- Row lock / transaction around the update to survive concurrent duplicates.
-- Be tolerant of schema changes: missing optional items, numbers as strings, new fields.
+```bash
+python scripts/parse_callback.py payload.json      # or - for stdin
+```
+
+## Data rules
+
+- Use a unique index on the M-Pesa receipt (`MpesaReceiptNumber`, `TransID` or `TransactionID`).
+- Use a state machine `PENDING → PAID | FAILED | UNKNOWN`, and only allow transitions out of PENDING.
+- Be tolerant when parsing:
+  - Items can be missing.
+  - Numbers can arrive as strings.
+  - `ResultParameter` may be a single object instead of a list.
+  - New fields can appear.
+- Log raw payloads for audit (mask MSISDNs if policy requires), never secrets.
+
+## "Callback never arrived" checklist
+
+```
+- [ ] curl -X POST https://<url> from OUTSIDE your network returns 200
+- [ ] Certificate chain valid (ssllabs / curl -v), no 301/302
+- [ ] URL is the one sent in the request (typos, old tunnel URL)
+- [ ] Handler logs show the hit? If yes, did it time out or return non-200?
+- [ ] C2B: URLs registered on THIS shortcode; external validation enabled if expecting validation
+- [ ] Fallback used: stk query / transaction_status / pull transactions
+```
 
 ## Local development
 
-Expose your server with a tunnel (ngrok, cloudflared): `ngrok http 5000` → use the `https://...` URL as callback in **sandbox only**.
+Tunnel with `ngrok http 5000` or `cloudflared tunnel --url http://localhost:5000`, and use the HTTPS URL **in the sandbox only**. Free ngrok URLs change on restart; re-register C2B URLs when they do.
 
-## Monitoring
+## MCP
 
-- Alert when `PENDING` rows older than X minutes grow (callbacks failing).
-- Log raw payloads (mask MSISDN if required) with request IDs for audit.
-- Track ResultCode distribution (spike in 1037/1032 indicates UX or network issues).
-
-## Troubleshooting "no callback"
-
-1. Is the URL reachable from the internet over HTTPS (`curl -X POST` from outside)?
-2. Valid certificate chain? Correct path, no redirects (301/302 are not followed reliably)?
-3. Did the handler time out or return non-200? Check server logs.
-4. Sandbox can be flaky — fall back to STK Query / Transaction Status.
+`mpesa:mpesa_parse_callback(payload)` parses any of these payloads and explains the result code.

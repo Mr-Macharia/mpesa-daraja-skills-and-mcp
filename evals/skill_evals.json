@@ -1,0 +1,63 @@
+[
+  {"skills": ["mpesa-daraja", "daraja-stk-push"],
+   "query": "Add M-Pesa checkout to my Flask shop: when the user clicks Pay, prompt their phone 0712345678 for KES 1500 and mark the order paid.",
+   "expected_behavior": [
+     "Builds the Password as base64(shortcode+passkey+timestamp) with an EAT timestamp reused in the body",
+     "Normalises the phone to 254712345678",
+     "Stores CheckoutRequestID as PENDING and only marks the order paid from the callback with ResultCode 0 (or STK query), never from ResponseCode 0",
+     "Callback handler is idempotent and checks the paid amount",
+     "Keeps AccountReference <= 12 and TransactionDesc <= 13 characters"]},
+  {"skills": ["daraja-stk-push", "daraja-troubleshooting"],
+   "query": "My STK push to our Till 5123456 returns ResultCode 2028. What's wrong?",
+   "expected_behavior": [
+     "Explains 2028 = not permitted by product assignment",
+     "Says BusinessShortCode must be the store/head-office number and PartyB the Till number",
+     "Says TransactionType must be CustomerBuyGoodsOnline"]},
+  {"skills": ["daraja-b2c"],
+   "query": "Write a refund job that pays customers back via B2C. Sometimes we get a QueueTimeOut - should we just resend?",
+   "expected_behavior": [
+     "Generates and persists a unique OriginatorConversationID before calling the API",
+     "Treats QueueTimeOut as UNKNOWN, not failed",
+     "Calls Transaction Status before any resend and reuses the same OriginatorConversationID",
+     "Uses Daraja's 'Occassion' spelling and the v3 endpoint"]},
+  {"skills": ["daraja-c2b"],
+   "query": "Register our paybill callback URLs https://pay.example.com/mpesa/confirm and /mpesa/validate in production",
+   "expected_behavior": [
+     "Flags that URLs containing 'mpesa' are rejected and proposes alternatives",
+     "Warns production registration is effectively one-time and validation needs external validation enabled by Safaricom"]},
+  {"skills": ["daraja-credentials-security"],
+   "query": "Generate the SecurityCredential for our production initiator.",
+   "expected_behavior": [
+     "Uses the PRODUCTION certificate, RSA PKCS#1 v1.5, base64",
+     "Reads the password from the environment rather than command-line arguments",
+     "Explains output differs per run and how to verify it (e.g. account balance call)"]},
+  {"skills": ["daraja-tax-remittance"],
+   "query": "Pay KES 12,000 VAT to KRA with PRN 2026ABC123 from shortcode 888880",
+   "expected_behavior": [
+     "Uses /mpesa/b2b/v1/remittax with CommandID PayTaxToKRA",
+     "Sets PartyB 572572, both identifier types '4', AccountReference = PRN",
+     "Guards against paying a PRN twice"]},
+  {"skills": ["daraja-ratiba"],
+   "query": "Set up monthly KES 2,000 repayments for 6 months starting next month for customer 254708374149 to paybill 174379",
+   "expected_behavior": [
+     "Uses Frequency '4' and YYYYMMDD dates with EndDate after StartDate",
+     "Uses 'Standing Order Customer Pay Bill' with ReceiverPartyIdentifierType '4'",
+     "Makes StandingOrderName unique per customer and explains the PIN consent + callback"]},
+  {"skills": ["daraja-dynamic-qr"],
+   "query": "Show a QR on our POS screen for till 373132 so customers can pay KES 250",
+   "expected_behavior": [
+     "Uses TrxCode BG with CPI 373132 and integer Amount",
+     "Decodes QRCode base64 PNG for display",
+     "Explains payment is confirmed via C2B confirmation, not a QR callback"]},
+  {"skills": ["daraja-bill-manager"],
+   "query": "Send October rent invoices to our 300 tenants via M-Pesa and give them receipts when they pay",
+   "expected_behavior": [
+     "Opts in first, then uses bulk-invoicing (<=1000 per call) with unique externalReference",
+     "Uses 07XXXXXXXX phone format",
+     "Acknowledges payments via the reconciliation endpoint so receipts are sent"]},
+  {"skills": ["daraja-callbacks", "daraja-troubleshooting"],
+   "query": "STK push succeeds on my phone but my server never gets the callback. I'm using http://192.168.1.10:5000/callback",
+   "expected_behavior": [
+     "Identifies private IP + http as unreachable; requires public HTTPS (tunnel in sandbox)",
+     "Recommends STK query as fallback and the callback checklist"]}
+]
