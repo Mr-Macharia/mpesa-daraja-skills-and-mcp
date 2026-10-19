@@ -1,76 +1,73 @@
 ---
 name: daraja-credentials-security
-description: Securely manage Safaricom Daraja secrets — Consumer Key/Secret, Lipa na M-Pesa passkey, initiator password — and generate the SecurityCredential by RSA-encrypting the initiator password with Safaricom's certificate. Covers .env usage, secret managers, rotation, fail-fast config, log masking and leak response. Use when wiring configuration or when any SecurityCredential/initiator error occurs.
+description: Manages Safaricom Daraja secrets safely (Consumer Key and Secret, M-Pesa Express passkey, initiator password, SecurityCredential) and generates the SecurityCredential by RSA-encrypting the initiator password with Safaricom's sandbox or production certificate. Covers .env files versus secret managers, fail-fast config, log masking, rotation and leak response. Use when wiring M-Pesa configuration, generating a SecurityCredential, or handling 2001, 18 or 8006 initiator errors.
 ---
 
-# Daraja Credentials & Security
+# Daraja credentials and security
 
 ## Secret inventory
 
-| Secret | Used for | Sensitivity |
+| Secret | Grants | Sensitivity |
 |---|---|---|
-| Consumer Key + Secret | OAuth tokens | High — anyone can call APIs as you |
-| Passkey | STK Password | High |
-| Initiator name + password | B2C/B2B/Status/Reversal/Balance | **Critical** — can move money out |
-| SecurityCredential | Encrypted initiator password | Critical (replayable) |
-| Access token | 1 hour bearer | Medium; memory/cache only |
+| Consumer Key and Secret | Tokens: calling every API on the app | High |
+| Passkey | Signing STK requests for the shortcode | High |
+| Initiator name and password | B2C, B2B, tax, reversal, status, balance | **Critical** (moves money out) |
+| SecurityCredential | Encrypted initiator password. Replayable | **Critical** |
+| Access token | One hour of API access | Medium. Keep it in memory or cache only |
 
-## Storage hierarchy
+## Storage
 
-1. **Never hardcode** — git history keeps leaked secrets forever, even after deletion.
-2. **Development**: `.env` + `python-dotenv` / `dotenv`, `.env` in `.gitignore`, file mode `600`.
-3. **Production**: a secret manager (AWS Secrets Manager / SSM, GCP Secret Manager, Azure Key Vault, HashiCorp Vault, Docker/K8s secrets) injected at runtime; least-privilege IAM; audit logs.
-4. Separate credentials per environment; never a "fallback" default value in code.
+1. **Never hardcode secrets.** Git history keeps them even after deletion.
+2. **Development**: a `.env` file plus `python-dotenv`/`dotenv`. The file is in `.gitignore`, has `chmod 600`, and a `.env.example` without values is committed.
+3. **Production**: a secret manager (AWS Secrets Manager/SSM, GCP Secret Manager, Azure Key Vault, Vault, K8s/Docker secrets), injected at runtime with least-privilege access and audit logs.
+4. Keep separate credentials per environment, and **no default fallback values in code**.
 
-## Fail fast
+Fail fast at startup:
 
 ```python
 REQUIRED = ["MPESA_CONSUMER_KEY", "MPESA_CONSUMER_SECRET", "MPESA_SHORTCODE", "MPESA_PASSKEY"]
-missing = [k for k in REQUIRED if not os.getenv(k, "").strip()]
+missing = [k for k in REQUIRED if not os.getenv(k, "").strip()]   # .strip() catches trailing newlines
 if missing:
     raise RuntimeError(f"Missing M-Pesa config: {', '.join(missing)}")
 ```
-`.strip()` also catches the common trailing-newline bug.
 
 ## Generating the SecurityCredential
 
-`SecurityCredential = base64( RSA_encrypt_PKCS1v1.5( initiator_password, safaricom_cert_public_key ) )`
+`SecurityCredential = base64(RSA_PKCS1v1.5_encrypt(initiator_password, certificate_public_key))`
 
-Download the certificate from the Daraja portal: **SandboxCertificate.cer** for sandbox, **ProductionCertificate.cer** for production — using the wrong one gives `2001`/"initiator information is invalid".
+1. Download the **sandbox** or **production** certificate from the Daraja portal. It must match the environment you will call.
+2. Run the script. It reads the password from the environment so it never lands in shell history:
+   ```bash
+   MPESA_INITIATOR_PASSWORD='...' python scripts/security_credential.py ProductionCertificate.cer
+   ```
+   It uses `cryptography` if installed (`pip install cryptography`), otherwise the `openssl` CLI. The output differs on every run because of random padding; that is expected.
+3. Store the output as `MPESA_SECURITY_CREDENTIAL` in the secret store.
+4. Verify it with one sandbox `account_balance` call. A `2001` or `18` result means the wrong password or the wrong certificate: go back to step 1.
 
-Python (`cryptography`):
-```python
-import base64
-from cryptography import x509
-from cryptography.hazmat.primitives.asymmetric import padding
+Node.js equivalent:
 
-def security_credential(password: str, cert_path: str) -> str:
-    with open(cert_path, "rb") as f:
-        data = f.read()
-    try:
-        cert = x509.load_pem_x509_certificate(data)
-    except ValueError:
-        cert = x509.load_der_x509_certificate(data)
-    encrypted = cert.public_key().encrypt(password.encode(), padding.PKCS1v15())
-    return base64.b64encode(encrypted).decode()
-```
-
-Node.js:
 ```js
-const crypto = require("crypto"), fs = require("fs");
-const cert = fs.readFileSync("ProductionCertificate.cer");
-const cred = crypto.publicEncrypt(
-  { key: cert, padding: crypto.constants.RSA_PKCS1_PADDING },
-  Buffer.from(process.env.MPESA_INITIATOR_PASSWORD)
-).toString("base64");
+crypto.publicEncrypt({ key: fs.readFileSync(certPath), padding: crypto.constants.RSA_PKCS1_PADDING },
+                     Buffer.from(process.env.MPESA_INITIATOR_PASSWORD)).toString("base64");
 ```
-OpenSSL: `printf '%s' "$PASS" | openssl pkeyutl -encrypt -certin -inkey ProductionCertificate.cer -pkeyopt rsa_padding_mode:pkcs1 | base64 -w0`
-
-Output differs each run (random padding) — that's expected. Initiator passwords expire/lock after failed attempts (`8006`); rotate in the org portal and regenerate.
 
 ## Operational hygiene
 
-- Mask secrets and `Authorization` headers in logs, error trackers, CI output.
-- Rotate Consumer Secret (portal regenerate) and initiator password on schedule and on staff exit.
-- Leak response: revoke/regenerate in the portal immediately → update secret manager → redeploy → audit transactions → purge from git history (`git filter-repo`) — rotation first, cleanup second.
-- Restrict who can run payout code paths; require approvals for reversals and large B2C.
+- Mask secrets and `Authorization` headers in logs, APM tools and CI output. Masking is not a substitute for not printing them.
+- Rotate the consumer secret (regenerate it in the portal) and the initiator password on a schedule and when staff leave. Regenerate the SecurityCredential after each password change.
+- Repeated wrong passwords lock the initiator (`8006`). An org-portal admin unlocks it.
+- Restrict who can deploy or run payout code. Require approval for reversals and large B2C payments.
+
+## Leak response (rotation first, cleanup second)
+
+```
+- [ ] Regenerate consumer secret / reset initiator password in the portals NOW
+- [ ] Update the secret manager; redeploy
+- [ ] Review recent transactions and token usage for abuse
+- [ ] Purge from git history (git filter-repo) and force-rotate anything else in the same file
+- [ ] Post-mortem: add secret scanning (gitleaks / GitHub push protection)
+```
+
+## MCP
+
+The `mpesa` server accepts either `MPESA_SECURITY_CREDENTIAL`, or `MPESA_INITIATOR_PASSWORD` plus `MPESA_CERT_PATH`, in which case it encrypts at startup. It never returns secrets in tool output.
