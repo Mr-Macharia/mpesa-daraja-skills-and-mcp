@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-20
+
+### Changed
+
+- New README for the public launch: quick start, per-agent commands, supported-API table, FAQ. PyPI now shows it.
+- Removed the pre-release "run from GitHub" notes, and corrected the tool count to 24.
+- CI uses `actions/checkout@v5` and `actions/setup-python@v6`.
+
 ## [0.1.0] - 2026-10-20
 
 First public release.
@@ -48,5 +56,6 @@ First public release.
   - Rejected keys get a plain explanation instead of a bare `HTTP 400`.
   - `mpesa_stk_query` keeps Safaricom's reply while a payment is processing, and answers from recorded results (including a callback's receipt) when it has them.
 
-[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/releases/tag/v0.1.0
