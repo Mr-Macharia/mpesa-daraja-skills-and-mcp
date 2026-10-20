@@ -37,7 +37,7 @@ description: Implements Safaricom Daraja B2B payments between shortcodes: Busine
 | PayTaxToKRA | 572572 | 4 | KRA PRN, sent to a different endpoint (see `daraja-tax-remittance`) |
 
 - `Requester` is optional: the customer's phone, for the record.
-- Validate the body: `python ../mpesa-daraja/scripts/validate_request.py b2b body.json`
+- Validate the body: `python scripts/validate_request.py b2b body.json`
 
 ## Responses
 

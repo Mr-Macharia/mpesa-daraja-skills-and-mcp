@@ -22,7 +22,7 @@ The customer starts the payment from their phone (Lipa na M-Pesa → Paybill / B
 - **Sandbox**: re-register as often as you like. **Production**: registration is effectively one-time. A second attempt returns `500.003.1001 "Urls are already registered"`, and changing them needs Safaricom to delete the old ones.
 - The URLs must be HTTPS and public, must not contain `mpesa`, `m-pesa`, `safaricom`, `exec`, `cmd`, `sql` or `query`, and must not be tunnel URLs in production.
 
-Validate first and repeat until it prints `OK`: `python ../mpesa-daraja/scripts/validate_request.py c2b_register body.json`
+Validate first and repeat until it prints `OK`: `python scripts/validate_request.py c2b_register body.json`
 
 ## 2. Validation (optional, before the debit)
 

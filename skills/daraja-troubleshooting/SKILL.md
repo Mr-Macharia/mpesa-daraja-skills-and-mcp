@@ -41,8 +41,8 @@ Copy this and work through it:
 
 ```
 - [ ] 1. Same environment everywhere? base URL, keys, passkey, shortcode, certificate
-- [ ] 2. Token alone works? (../daraja-auth/scripts/check_token.py)
-- [ ] 3. Body passes ../mpesa-daraja/scripts/validate_request.py <api>? fix → rerun until OK
+- [ ] 2. Token alone works? (scripts/check_token.py)
+- [ ] 3. Body passes scripts/validate_request.py <api>? fix → rerun until OK
 - [ ] 4. Reproduce with raw curl + the same JSON (removes SDK/framework variables)
 - [ ] 5. Read errorMessage / ResultDesc, not only the code; explain_code.py
 - [ ] 6. Async issue? check callback server logs, then query status

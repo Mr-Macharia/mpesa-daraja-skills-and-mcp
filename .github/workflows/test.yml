@@ -9,4 +9,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e "mcp-server[dev]"
+      - run: python tools/sync_skills.py --check
       - run: pytest mcp-server

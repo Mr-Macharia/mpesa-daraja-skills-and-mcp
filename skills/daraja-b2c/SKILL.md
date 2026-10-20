@@ -42,7 +42,7 @@ Money leaves your account, so **the outcome must be known before any retry.**
 
 - `OriginatorConversationID` is **yours**. Generate it once per payout, store it, and reuse it on any retry: Daraja rejects duplicates (`15`, `500.002.1001`).
 - `Occassion` (sic) and `Remarks` are 1–100 characters each.
-- The minimum amount is about 10 KES. Validate first: `python ../mpesa-daraja/scripts/validate_request.py b2c body.json`
+- The minimum amount is about 10 KES. Validate first: `python scripts/validate_request.py b2c body.json`
 
 ## Payout workflow
 
@@ -61,7 +61,7 @@ Money leaves your account, so **the outcome must be known before any retry.**
 
 - `ResultParameters.ResultParameter[]` contains `TransactionAmount`, `TransactionReceipt`, `ReceiverPartyPublicName`, `TransactionCompletedDateTime`, `B2CUtilityAccountAvailableFunds`, `B2CWorkingAccountAvailableFunds` and `B2CRecipientIsRegisteredCustomer`.
 - A failure carries only `ReferenceData`.
-- Parse it with `python ../daraja-callbacks/scripts/parse_callback.py payload.json`.
+- Parse it with `python scripts/parse_callback.py payload.json`.
 
 | Code | Meaning | Fix |
 |---|---|---|

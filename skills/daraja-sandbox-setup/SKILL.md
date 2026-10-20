@@ -22,7 +22,7 @@ These are on the portal's **Test Credentials** and simulator pages. Read them fr
 | C2B / B2C / B2B shortcodes | Test Credentials page (`600xxx`) |
 | Test MSISDN | `254708374149`, or your own Safaricom line to receive a real STK prompt |
 | Initiator name and password | Test Credentials page |
-| SecurityCredential | Generate it with the test credentials page tool or `../daraja-credentials-security/scripts/security_credential.py` and the **sandbox** certificate |
+| SecurityCredential | Generate it with the test credentials page tool or `scripts/security_credential.py` and the **sandbox** certificate |
 
 ## 3. `.env` template
 
@@ -44,7 +44,7 @@ Add `.env` to `.gitignore`, and commit a `.env.example` with no values. The same
 Copy this checklist:
 
 ```
-- [ ] Token:   python ../daraja-auth/scripts/check_token.py            → OK
+- [ ] Token:   python scripts/check_token.py            → OK
 - [ ] Tunnel:  ngrok http 5000; curl -X POST https://<tunnel>/health   → 200 from outside
 - [ ] STK:     push KES 1 to your phone; approve; callback ResultCode 0
 - [ ] STK failures: cancel (1032), ignore (1037), wrong PIN (2001) → all recorded as FAILED

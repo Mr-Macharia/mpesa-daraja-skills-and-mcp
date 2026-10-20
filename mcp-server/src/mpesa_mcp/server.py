@@ -27,7 +27,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 from pydantic import BaseModel, ConfigDict
 
-from . import helpers
+from . import helpers, validation
 from .client import Config, DarajaClient, DarajaError
 from .store import ACCEPTED, FAILED, OPEN_STATUSES, SUCCESS, UNKNOWN, RequestRecord, Store
 
@@ -157,6 +157,34 @@ def state() -> Store:
         default = Path.home() / ".mpesa-mcp" / "state.db"
         _state = Store(os.environ.get("MPESA_STATE_DB") or default)
     return _state
+
+
+# Request bodies are checked with the same rules as the skills' validate_request.py,
+# so a malformed request fails here instead of costing a Daraja round trip.
+VALIDATE_AS = {
+    "/mpesa/stkpush/v1/processrequest": "stk",
+    "/mpesa/stkpushquery/v1/query": "stk_query",
+    "/mpesa/c2b/v2/registerurl": "c2b_register",
+    "/mpesa/c2b/v2/simulate": "c2b_simulate",
+    "/mpesa/b2c/v3/paymentrequest": "b2c",
+    "/mpesa/b2pochi/v1/paymentrequest": "b2pochi",
+    "/mpesa/b2b/v1/paymentrequest": "b2b",
+    "/mpesa/b2b/v1/remittax": "tax",
+    "/mpesa/transactionstatus/v1/query": "status",
+    "/mpesa/accountbalance/v1/query": "balance",
+    "/mpesa/reversal/v1/request": "reversal",
+    "/mpesa/qrcode/v1/generate": "qr",
+    "/standingorder/v1/createStandingOrderExternal": "ratiba",
+}
+
+
+async def _post(c: DarajaClient, path: str, body: Any) -> Any:
+    api = VALIDATE_AS.get(path)
+    if api:
+        problems = validation.validate(api, body)
+        if problems:
+            raise ValueError("Request failed local validation (nothing was sent): " + "; ".join(problems))
+    return await c.post(path, body)
 
 
 def _guard_money(c: DarajaClient) -> None:
@@ -341,7 +369,7 @@ async def _stk_query_once(checkout_request_id: str) -> dict[str, Any] | None:
     """Ask Daraja for an STK result; store and return it if final, else None."""
     c = client()
     try:
-        resp = await c.post("/mpesa/stkpushquery/v1/query",
+        resp = await _post(c, "/mpesa/stkpushquery/v1/query",
                             {**_stk_auth(c), "CheckoutRequestID": checkout_request_id})
     except DarajaError as exc:
         if isinstance(exc.body, dict) and exc.body.get("errorCode") == "500.001.1001":
@@ -374,7 +402,7 @@ async def _stk_push(phone, amount, account_reference, description, transaction_t
         "AccountReference": account_reference[:12],
         "TransactionDesc": description[:13],
     }
-    return await _send_once("stk", key, lambda: c.post("/mpesa/stkpush/v1/processrequest", body))
+    return await _send_once("stk", key, lambda: _post(c, "/mpesa/stkpush/v1/processrequest", body))
 
 
 @tool(MOVES_MONEY, "stk")
@@ -465,7 +493,7 @@ async def c2b_register_urls(
         c.config.callback(url, "")
         if any(word in url.lower() for word in ("mpesa", "m-pesa", "safaricom")):
             raise ValueError(f"C2B URLs must not contain 'mpesa'/'safaricom': {url}")
-    return await c.post("/mpesa/c2b/v2/registerurl", {
+    return await _post(c, "/mpesa/c2b/v2/registerurl", {
         "ShortCode": shortcode or c.config.shortcode,
         "ResponseType": response_type,
         "ConfirmationURL": confirmation_url,
@@ -485,7 +513,7 @@ async def c2b_simulate(
     c = client()
     if c.config.env != "sandbox":
         raise PermissionError("c2b_simulate only works in the sandbox")
-    return await c.post("/mpesa/c2b/v2/simulate", {
+    return await _post(c, "/mpesa/c2b/v2/simulate", {
         "ShortCode": shortcode or c.config.shortcode,
         "CommandID": command,
         "Amount": helpers.validate_amount(amount),
@@ -498,7 +526,7 @@ async def c2b_simulate(
 async def pull_transactions(start: str, end: str, offset: int = 0, shortcode: str | None = None) -> Any:
     """Fetch C2B transactions for a window ('YYYY-MM-DD HH:MM:SS') via Pull Transactions to recover missed confirmations (production, registered shortcodes)."""
     c = client()
-    return await c.post("/pulltransactions/v1/query", {
+    return await _post(c, "/pulltransactions/v1/query", {
         "ShortCode": shortcode or c.config.shortcode,
         "StartDate": start,
         "EndDate": end,
@@ -545,7 +573,7 @@ async def b2c_payment(
         "ResultURL": c.config.callback(result_url, "/mpesa/b2c/result"),
         "Occassion": occasion[:100],  # Daraja's spelling
     }
-    return await _send_once("b2c", idempotency_key, lambda: c.post(path, body),
+    return await _send_once("b2c", idempotency_key, lambda: _post(c, path, body),
                             {"originator_conversation_id": ocid})
 
 
@@ -594,7 +622,7 @@ async def b2b_payment(
     if requester_phone:
         body["Requester"] = helpers.normalize_phone(requester_phone)
     return await _send_once("tax" if command == "PayTaxToKRA" else "b2b", idempotency_key,
-                            lambda: c.post(path, body))
+                            lambda: _post(c, path, body))
 
 
 @tool(MOVES_MONEY, "payouts")
@@ -620,7 +648,7 @@ async def b2b_express_checkout(
         "partnerName": partner_name,
         "RequestRefID": request_ref,
     }
-    return await _send_once("b2b_express", idempotency_key, lambda: c.post("/v1/ussdpush/get-msisdn", body),
+    return await _send_once("b2b_express", idempotency_key, lambda: _post(c, "/v1/ussdpush/get-msisdn", body),
                             {"request_id": request_ref})
 
 
@@ -644,7 +672,7 @@ async def transaction_status(
         raise ValueError("Provide transaction_id or original_conversation_id")
     c = client()
     name, cred = _initiator(c)
-    resp = await c.post("/mpesa/transactionstatus/v1/query", {
+    resp = await _post(c, "/mpesa/transactionstatus/v1/query", {
         "Initiator": name,
         "SecurityCredential": cred,
         "CommandID": "TransactionStatusQuery",
@@ -668,7 +696,7 @@ async def account_balance(party_a: str | None = None, result_url: str | None = N
     """Request shortcode balances. The parsed balances arrive via mpesa_get_result using the returned ID."""
     c = client()
     name, cred = _initiator(c)
-    resp = await c.post("/mpesa/accountbalance/v1/query", {
+    resp = await _post(c, "/mpesa/accountbalance/v1/query", {
         "Initiator": name,
         "SecurityCredential": cred,
         "CommandID": "AccountBalance",
@@ -710,7 +738,7 @@ async def reverse_transaction(
         "Remarks": remarks[:100],
     }
     return await _send_once("reversal", f"reversal:{transaction_id}",
-                            lambda: c.post("/mpesa/reversal/v1/request", body))
+                            lambda: _post(c, "/mpesa/reversal/v1/request", body))
 
 
 # --------------------------------------------------------------------------- #
@@ -731,7 +759,7 @@ async def generate_dynamic_qr(
     """Generate an M-Pesa Dynamic QR and save it as a PNG; returns the file path (not the image, to save context).
     trx_code: BG Buy Goods, PB Paybill, WA agent withdraw, SM send money, SB send to business. cpi = till/paybill/phone."""
     c = client()
-    resp = await c.post("/mpesa/qrcode/v1/generate", {
+    resp = await _post(c, "/mpesa/qrcode/v1/generate", {
         "MerchantName": merchant_name,
         "RefNo": ref_no,
         "Amount": helpers.validate_amount(amount),
@@ -788,7 +816,7 @@ async def ratiba_create_standing_order(
         "Frequency": frequency,
     }
     return await _send_once("ratiba", f"ratiba:{msisdn}:{name}",
-                            lambda: c.post("/standingorder/v1/createStandingOrderExternal", body))
+                            lambda: _post(c, "/standingorder/v1/createStandingOrderExternal", body))
 
 
 @tool(WRITES, "billmanager")
@@ -796,7 +824,7 @@ async def bill_manager_optin(email: str, official_contact: str, send_reminders: 
     """Onboard the shortcode to M-Pesa Bill Manager (required once before sending invoices). Returns an app_key."""
     c = client()
     c.config.require("shortcode")
-    return await c.post("/v1/billmanager-invoice/optin", {
+    return await _post(c, "/v1/billmanager-invoice/optin", {
         "shortcode": c.config.shortcode,
         "email": email,
         "officialContact": official_contact,
@@ -832,14 +860,14 @@ async def bill_manager_send_invoice(
     }
     if items:
         payload["invoiceItems"] = items
-    return await c.post("/v1/billmanager-invoice/single-invoicing", payload)
+    return await _post(c, "/v1/billmanager-invoice/single-invoicing", payload)
 
 
 @tool(WRITES, "billmanager")
 async def bill_manager_cancel_invoice(external_reference: str) -> Any:
     """Cancel an unpaid Bill Manager invoice (partially/fully paid invoices cannot be cancelled)."""
     c = client()
-    return await c.post("/v1/billmanager-invoice/cancel-single-invoice", {"externalReference": external_reference})
+    return await _post(c, "/v1/billmanager-invoice/cancel-single-invoice", {"externalReference": external_reference})
 
 
 # --------------------------------------------------------------------------- #

@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+"""Explain Daraja error/result codes.
+
+Usage: python scripts/explain_code.py <code> [<code> ...]
+       python scripts/explain_code.py --search <text>
+Codes: errorCode values (400.002.02, 500.001.1001...), ResultCodes (0, 1032,
+2001...), C2B validation codes (C2B00012) and reversal codes (R000002).
+"""
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from daraja_helpers import RESULT_CODES, explain_code  # noqa: E402  (copied next to this script)
+
+args = sys.argv[1:]
+if not args:
+    sys.exit(__doc__)
+if args[0] == "--search":
+    needle = " ".join(args[1:]).lower()
+    for code, meaning in RESULT_CODES.items():
+        if needle in meaning.lower() or needle in code.lower():
+            print(f"{code}: {meaning}")
+    sys.exit(0)
+for code in args:
+    print(f"{code}: {explain_code(code)}")

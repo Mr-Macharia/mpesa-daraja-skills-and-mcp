@@ -1,6 +1,6 @@
 # M-Pesa Daraja Skills
 
-Agent Skills for building Safaricom M-Pesa Daraja integrations. Each folder holds a `SKILL.md` with YAML `name` and `description` frontmatter, plus optional `reference.md` and `scripts/`. They are designed to be installed **as a set**: skills link to each other's scripts with `../<skill>/scripts/...`.
+Agent Skills for building Safaricom M-Pesa Daraja integrations. Each folder holds a `SKILL.md` with YAML `name` and `description` frontmatter, plus optional `reference.md` and `scripts/`. Every skill is **self-contained**: it ships the scripts it runs in its own `scripts/` folder, so it works when installed alone or uploaded to claude.ai as a single zip.
 
 | Skill | Covers | Extras |
 |---|---|---|
@@ -56,8 +56,25 @@ The structure follows [Anthropic's skill-authoring best practices](https://platf
 pip install -e "mcp-server[dev]" && pytest mcp-server   # spec lint + script tests + server tests
 ```
 
-When adding a skill:
+### Single source of truth
+
+Scripts inside `skills/*/scripts/` are **generated copies**. Each one starts with a `GENERATED` header naming its source. Edit the source, then run `python tools/sync_skills.py`:
+
+| Edit this | Copied to |
+|---|---|
+| `mcp-server/src/mpesa_mcp/helpers.py` (parsing, `RESULT_CODES`) | `scripts/daraja_helpers.py`, and `daraja-troubleshooting/reference.md` |
+| `mcp-server/src/mpesa_mcp/validation.py` (request rules) | `scripts/daraja_validation.py` |
+| `shared/scripts/*.py` (command-line wrappers) | each skill listed for it in `tools/sync_skills.py` `MANIFEST` |
+
+The MCP server imports the same `helpers` and `validation` modules, so a rule fixed once applies to the agent's scripts and to the server's pre-send check. CI runs `sync_skills.py --check`. Tests also fail if:
+- a skill links outside its own folder;
+- a script can't run from an isolated copy of its skill;
+- an inline code table mentions a code missing from `RESULT_CODES`.
+
+### Adding a skill
+
 1. Write 2–3 evals in `evals/skill_evals.json` first.
 2. Keep the description third person with "Use when…".
-3. Link references one level deep.
-4. Add any new error codes to `mcp-server/src/mpesa_mcp/helpers.py` `RESULT_CODES`, then regenerate `daraja-troubleshooting/scripts/codes.json`. A test enforces that the two match.
+3. Link references one level deep, and only inside the skill folder.
+4. Add the scripts the skill runs to `MANIFEST` and run `tools/sync_skills.py`.
+5. Add new error codes to `RESULT_CODES` only.
