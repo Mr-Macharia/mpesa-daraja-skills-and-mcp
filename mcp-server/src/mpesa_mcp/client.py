@@ -10,7 +10,7 @@ from typing import Any
 
 import httpx
 
-from . import helpers
+from . import helpers, settings
 
 BASE_URLS = {
     "sandbox": "https://sandbox.safaricom.co.ke",
@@ -60,7 +60,7 @@ class Config:
 
         missing = [n for n in ("MPESA_CONSUMER_KEY", "MPESA_CONSUMER_SECRET") if not get(n)]
         if missing:
-            raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
+            raise RuntimeError(settings.missing_message(missing))
 
         credential = get("MPESA_SECURITY_CREDENTIAL")
         password, cert_path = get("MPESA_INITIATOR_PASSWORD"), get("MPESA_CERT_PATH")
@@ -85,7 +85,7 @@ class Config:
         missing = [n for n in names if not getattr(self, n)]
         if missing:
             env_names = ", ".join("MPESA_" + n.upper() for n in missing)
-            raise RuntimeError(f"This tool needs configuration: {env_names}")
+            raise RuntimeError(settings.missing_message(env_names.split(", ")))
 
     def callback(self, explicit: str | None, path: str) -> str:
         if explicit:
@@ -123,6 +123,11 @@ class DarajaClient:
             )
             body = _json(resp)
             if resp.status_code != 200 or "access_token" not in body:
+                if resp.status_code in (400, 401) and not (isinstance(body, dict) and body.get("errorCode")):
+                    # Daraja answers bad keys with an empty body; say what that almost always means.
+                    body = {"errorMessage": (
+                        f"Daraja rejected the Consumer Key/Secret for the {self.config.env} environment. "
+                        "Check both values (no spaces) and that they come from an app in the same environment.")}
                 raise DarajaError(resp.status_code, body)
             self._token = body["access_token"]
             self._expires_at = time.time() + int(body.get("expires_in", 3599))

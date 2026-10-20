@@ -4,6 +4,7 @@ import json
 import httpx
 import pytest
 import respx
+
 from mpesa_mcp import server
 from mpesa_mcp.client import Config, DarajaClient
 from mpesa_mcp.receiver import CallbackReceiver
@@ -327,3 +328,12 @@ async def test_invalid_request_rejected_before_sending(daraja):
     with pytest.raises(ValueError, match="nothing was sent.*EndDate is before StartDate"):
         await server.ratiba_create_standing_order("Loan", "0712345678", 100, "20270101", "20260101", "4", "LOAN1")
     assert route.call_count == 0
+
+
+async def test_bad_keys_get_a_clear_message():
+    import respx as _respx
+    c = make_client()
+    with _respx.mock(base_url=SANDBOX) as mock:
+        mock.get("/oauth/v1/generate").respond(400, text="")
+        with pytest.raises(Exception, match="rejected the Consumer Key/Secret for the sandbox"):
+            await c.token(force=True)

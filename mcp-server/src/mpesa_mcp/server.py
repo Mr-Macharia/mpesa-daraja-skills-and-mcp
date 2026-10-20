@@ -28,9 +28,11 @@ from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 from pydantic import BaseModel, ConfigDict
 
-from . import helpers, validation
+from . import helpers, settings, validation
 from .client import Config, DarajaClient, DarajaError
 from .store import ACCEPTED, FAILED, OPEN_STATUSES, SUCCESS, UNKNOWN, RequestRecord, Store
+
+settings.load()
 
 INSTRUCTIONS = (
     "Tools for Safaricom M-Pesa Daraja. status=ACCEPTED only means Daraja accepted the request; "
@@ -318,6 +320,39 @@ def generate_stk_password(shortcode: str, passkey: str, timestamp: str | None = 
 def parse_callback(payload: dict[str, Any]) -> dict[str, Any]:
     """Parse any Daraja callback (STK, C2B, Result envelopes, Ratiba, B2B Express, Bill Manager) into flat fields."""
     return helpers.parse_callback(payload)
+
+
+# What each toolset needs beyond the consumer key and secret.
+TOOLSET_NEEDS = {
+    "stk": ["MPESA_SHORTCODE", "MPESA_PASSKEY"],
+    "c2b": ["MPESA_SHORTCODE"],
+    "payouts": ["MPESA_SHORTCODE", "MPESA_INITIATOR_NAME", "MPESA_SECURITY_CREDENTIAL", "MPESA_CALLBACK_BASE_URL"],
+    "ops": ["MPESA_SHORTCODE", "MPESA_INITIATOR_NAME", "MPESA_SECURITY_CREDENTIAL", "MPESA_CALLBACK_BASE_URL"],
+    "qr": [],
+    "ratiba": ["MPESA_SHORTCODE", "MPESA_CALLBACK_BASE_URL"],
+    "billmanager": ["MPESA_SHORTCODE"],
+}
+
+
+@tool(READ_ONLY)
+def setup_status() -> dict[str, Any]:
+    """Show what is configured (names and sources only, never values), what each toolset is missing,
+    and how the user can fix it. Call this first when a tool reports missing configuration."""
+    def present(name: str) -> bool:
+        return bool(os.environ.get(name, "").strip())
+
+    core = [n for n in ("MPESA_CONSUMER_KEY", "MPESA_CONSUMER_SECRET") if not present(n)]
+    return {
+        "environment": (os.environ.get("MPESA_ENV") or "sandbox").strip().lower(),
+        "configured": sorted(k for k in settings.SOURCES if present(k) and k not in settings.LOCATION_VARS),
+        "sources": {k: v for k, v in settings.SOURCES.items() if present(k) and k not in settings.LOCATION_VARS},
+        "missing_core": core,
+        "missing_by_toolset": {t: [n for n in needs if not present(n)] for t, needs in TOOLSET_NEEDS.items()},
+        "config_file": str(settings.user_config_file()),
+        "how_to_fix": ("Ask the user to run `uvx mpesa-daraja-mcp setup` in a terminal (it prompts for the keys, "
+                       f"checks them and saves them), or to add the values to {settings.user_config_file()}, "
+                       "then restart the MCP server. Never ask the user to paste secrets into the chat."),
+    }
 
 
 @tool(QUERY)

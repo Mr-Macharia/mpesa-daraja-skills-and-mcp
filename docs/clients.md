@@ -36,83 +36,66 @@ Each skill is self-contained, so you can install just the ones you need.
 
 ## 2. MCP server
 
-The server runs with [`uvx`](https://docs.astral.sh/uv/), which downloads and runs it with no separate install. Install uv once: `curl -LsSf https://astral.sh/uv/install.sh | sh`.
+You need [uv](https://docs.astral.sh/uv/) (one-time install: `curl -LsSf https://astral.sh/uv/install.sh | sh`). It runs the server straight from PyPI.
 
-The minimum configuration is `MPESA_CONSUMER_KEY` and `MPESA_CONSUMER_SECRET`. Add `MPESA_SHORTCODE` and `MPESA_PASSKEY` for STK Push. The full variable list is in [`mcp-server/README.md`](../mcp-server/README.md#configuration).
+> **Not on PyPI yet?** Until the first release is published, `uvx mpesa-daraja-mcp` fails with "not found", and your agent shows "Connection closed". Use the GitHub form everywhere below instead:
+>
+> ```bash
+> uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp setup
+> claude mcp add --scope user mpesa -- uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp
+> ```
 
-Keep keys out of git: put them in your shell environment or the client's secret prompt, not in a committed config file.
-
-### Claude Code
+### Easiest: the setup wizard
 
 ```bash
-claude mcp add mpesa \
-  -e MPESA_CONSUMER_KEY=... -e MPESA_CONSUMER_SECRET=... \
-  -e MPESA_SHORTCODE=174379 -e MPESA_PASSKEY=... \
-  -- uvx mpesa-daraja-mcp
+uvx mpesa-daraja-mcp setup
 ```
 
-### Codex (`~/.codex/config.toml`)
+It asks for your Daraja keys (secrets are typed hidden) and checks them live with Safaricom, then saves them to a private config file. It then offers to add the server to every agent it finds: Claude Code, Codex, Gemini CLI and Cursor. Restart your agent and you're done.
+
+- Re-run it any time to change a value; pressing Enter keeps the current one.
+- `uvx mpesa-daraja-mcp status` shows what's configured, with values masked, and re-tests the keys.
+
+### Or: add the server, then fill in the config file
+
+The `add` command needs no keys:
+
+| Agent | Command |
+|---|---|
+| Claude Code | `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp` |
+| Codex | `codex mcp add mpesa -- uvx mpesa-daraja-mcp` |
+| Gemini CLI | `gemini mcp add --scope user mpesa uvx mpesa-daraja-mcp` |
+| Cursor (`~/.cursor/mcp.json`) | `{"mcpServers": {"mpesa": {"type": "stdio", "command": "uvx", "args": ["mpesa-daraja-mcp"]}}}` |
+| VS Code (`.vscode/mcp.json`) | `{"servers": {"mpesa": {"type": "stdio", "command": "uvx", "args": ["mpesa-daraja-mcp"]}}}` |
+| Others (`mcpServers` JSON) | `{"mcpServers": {"mpesa": {"command": "uvx", "args": ["mpesa-daraja-mcp"]}}}` |
+
+Then put your keys in one of these. The server reads them on start; restart it after editing.
+
+| File | Use it for |
+|---|---|
+| `~/.config/mpesa-daraja-mcp/config.env` (Windows: `%APPDATA%\mpesa-daraja-mcp\config.env`) | Your keys for every project. This is the file `setup` writes |
+| `.env` in the project folder | Keys for one project. Only `MPESA_*` lines are read |
+
+```dotenv
+MPESA_CONSUMER_KEY=...
+MPESA_CONSUMER_SECRET=...
+MPESA_SHORTCODE=174379
+MPESA_PASSKEY=...
+```
+
+[`.env.example`](../.env.example) lists every setting. If something is missing, the agent can call `mpesa_setup_status`. It reports what's missing for each feature, without ever showing values.
+
+### Advanced: keys in the client's own config
+
+Real environment variables take priority over both files. Use them if your client manages secrets for you:
 
 ```bash
+claude mcp add mpesa -e MPESA_CONSUMER_KEY=... -e MPESA_CONSUMER_SECRET=... -- uvx mpesa-daraja-mcp
 codex mcp add mpesa --env MPESA_CONSUMER_KEY=... --env MPESA_CONSUMER_SECRET=... -- uvx mpesa-daraja-mcp
-```
-
-or, in the config file:
-
-```toml
-[mcp_servers.mpesa]
-command = "uvx"
-args = ["mpesa-daraja-mcp"]
-
-[mcp_servers.mpesa.env]
-MPESA_CONSUMER_KEY = "..."
-MPESA_CONSUMER_SECRET = "..."
-MPESA_SHORTCODE = "174379"
-MPESA_PASSKEY = "..."
-```
-
-A per-project `.codex/config.toml` is only used in trusted projects.
-
-### Gemini CLI (`~/.gemini/settings.json` or `.gemini/settings.json`)
-
-```bash
 gemini mcp add -e MPESA_CONSUMER_KEY=... -e MPESA_CONSUMER_SECRET=... mpesa uvx mpesa-daraja-mcp
 ```
 
-```json
-{
-  "mcpServers": {
-    "mpesa": {
-      "command": "uvx",
-      "args": ["mpesa-daraja-mcp"],
-      "env": { "MPESA_CONSUMER_KEY": "$MPESA_CONSUMER_KEY", "MPESA_CONSUMER_SECRET": "$MPESA_CONSUMER_SECRET" }
-    }
-  }
-}
-```
-
-Gemini CLI docs say it was replaced by Antigravity CLI for free-tier accounts on June 18, 2026. Check which CLI your account uses.
-
-### Cursor (`.cursor/mcp.json` or `~/.cursor/mcp.json`)
-
-```json
-{
-  "mcpServers": {
-    "mpesa": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["mpesa-daraja-mcp"],
-      "envFile": "${workspaceFolder}/.env"
-    }
-  }
-}
-```
-
-`envFile` reads the keys from your project's (git-ignored) `.env`.
-
-### VS Code / GitHub Copilot (`.vscode/mcp.json`)
-
-VS Code uses `servers`, not `mcpServers`, and can prompt for secrets and store them securely:
+VS Code can prompt for secrets and store them securely:
 
 ```json
 {
@@ -125,30 +108,16 @@ VS Code uses `servers`, not `mcpServers`, and can prompt for secrets and store t
       "type": "stdio",
       "command": "uvx",
       "args": ["mpesa-daraja-mcp"],
-      "env": {
-        "MPESA_CONSUMER_KEY": "${input:mpesa-key}",
-        "MPESA_CONSUMER_SECRET": "${input:mpesa-secret}"
-      }
+      "env": { "MPESA_CONSUMER_KEY": "${input:mpesa-key}", "MPESA_CONSUMER_SECRET": "${input:mpesa-secret}" }
     }
   }
 }
 ```
 
-### Claude Desktop, Windsurf, Cline and other `mcpServers` clients
-
-These use the common `mcpServers` JSON shape. See your client's docs for the file location.
-
-```json
-{
-  "mcpServers": {
-    "mpesa": {
-      "command": "uvx",
-      "args": ["mpesa-daraja-mcp"],
-      "env": { "MPESA_CONSUMER_KEY": "...", "MPESA_CONSUMER_SECRET": "..." }
-    }
-  }
-}
-```
+Notes:
+- **Codex:** a per-project `.codex/config.toml` is only used in trusted projects.
+- **Gemini CLI:** its docs say it was replaced by Antigravity CLI for free-tier accounts on June 18, 2026. Check which CLI your account uses.
+- **Keep keys out of git:** never commit a file that contains them.
 
 ## 3. Keep context small
 

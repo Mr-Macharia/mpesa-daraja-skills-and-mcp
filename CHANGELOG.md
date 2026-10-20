@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `mpesa-daraja-mcp setup`: a guided setup.
+  - Prompts for the Daraja keys, with hidden input for secrets.
+  - Checks them live and saves them to a private config file (mode 600).
+  - Offers to register the server with each agent it finds: Claude Code, Codex, Gemini CLI, Cursor.
+- `mpesa-daraja-mcp status`: shows the configuration with values masked, and re-tests the keys.
+- **Config files:** `mcp add` no longer needs keys in the command. The server reads, highest priority first:
+  1. environment variables;
+  2. a project `.env` (`MPESA_*` lines only), or the file named by `MPESA_DOTENV`;
+  3. the user config file.
+- `mpesa_setup_status` tool: tells the agent what is missing for each toolset, and how the user can fix it, without revealing values.
+
+### Changed
+
+- The server starts even when unconfigured. Missing-key errors now point to `setup` and the config file path.
+- Rejected keys now get a clear explanation instead of a bare `HTTP 400`.
+
 ## [0.1.0] - 2026-10-20
 
 First public release.

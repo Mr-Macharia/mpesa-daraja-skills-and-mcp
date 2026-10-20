@@ -12,6 +12,7 @@ An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja
 | `mpesa_normalize_phone` | — offline `07…` → `2547…` | |
 | `mpesa_generate_stk_password` | — offline Password + EAT Timestamp | |
 | `mpesa_parse_callback` | — offline parse of any callback payload | |
+| `mpesa_setup_status` | — offline: what's configured and missing per toolset (no values) | |
 | `mpesa_check_credentials` | OAuth token (never returned) | |
 | `mpesa_get_result` | Final status by idempotency key or any Daraja ID (from captured callbacks; STK falls back to STK Query) | |
 | `mpesa_stk_push_and_wait` | M-Pesa Express: push, then wait for callback / poll query; returns SUCCESS, FAILED or UNKNOWN | ✅ |
@@ -63,41 +64,22 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 ## Install & run
 
 ```bash
-uvx mpesa-daraja-mcp        # from PyPI, no install step (stdio transport)
+uvx mpesa-daraja-mcp setup     # guided: keys (hidden input), live check, save, register with your agents
+uvx mpesa-daraja-mcp status    # what's configured (masked) + a live key check
+uvx mpesa-daraja-mcp           # the MCP server itself, on stdio: what your agent runs
 ```
 
-From a checkout: `pip install -e mcp-server`, then run `mpesa-daraja-mcp`. The older `mpesa-mcp` command still works.
+Until the first PyPI release, run from GitHub instead: `uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp`.
 
-Setup for Claude Code, Codex, Gemini CLI, Cursor, VS Code and others is in [docs/clients.md](https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/docs/clients.md).
+The server needs no flags or environment variables in your agent's config. Settings are read in this order, highest first:
 
-### Claude Code
+1. **Environment variables**, e.g. from the client's `env` block.
+2. **A project `.env`** in the folder the agent starts the server in, or the file named by `MPESA_DOTENV`. Only `MPESA_*` lines are read.
+3. **The user config file** that `setup` writes: `~/.config/mpesa-daraja-mcp/config.env` (Windows: `%APPDATA%\mpesa-daraja-mcp\config.env`; override the folder with `MPESA_CONFIG_DIR`). It is readable only by you.
 
-```bash
-claude mcp add mpesa --env MPESA_CONSUMER_KEY=... --env MPESA_CONSUMER_SECRET=... \
-  --env MPESA_SHORTCODE=174379 --env MPESA_PASSKEY=... \
-  --env MPESA_CALLBACK_BASE_URL=https://<tunnel> -- uvx mpesa-daraja-mcp
-```
+The server starts even when unconfigured. Tools then explain what's missing, and `mpesa_setup_status` lists the gaps for each toolset without revealing any values.
 
-### `mcpServers` JSON (Claude Desktop, Cursor, Gemini CLI, …)
-
-```json
-{
-  "mcpServers": {
-    "mpesa": {
-      "command": "uvx",
-      "args": ["mpesa-daraja-mcp"],
-      "env": {
-        "MPESA_ENV": "sandbox",
-        "MPESA_CONSUMER_KEY": "...",
-        "MPESA_CONSUMER_SECRET": "...",
-        "MPESA_SHORTCODE": "174379",
-        "MPESA_PASSKEY": "...",
-        "MPESA_CALLBACK_BASE_URL": "https://<tunnel>"
-      }
-    }
-  }
-}
-```
+To register by hand: `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp`. Every other agent is covered in [docs/clients.md](https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/docs/clients.md). The older `mpesa-mcp` command still works.
 
 ## Results and callbacks
 
