@@ -55,16 +55,13 @@ flowchart LR
 npx skills add Mr-Macharia/Mpesa-MCP
 ```
 
-**2. MCP server.** Needs [uv](https://docs.astral.sh/uv/). This example is for Claude Code:
+**2. MCP server.** Needs [uv](https://docs.astral.sh/uv/). Run the setup wizard:
 
 ```bash
-claude mcp add mpesa \
-  -e MPESA_CONSUMER_KEY=... -e MPESA_CONSUMER_SECRET=... \
-  -e MPESA_SHORTCODE=174379 -e MPESA_PASSKEY=... \
-  -- uvx mpesa-daraja-mcp
+uvx mpesa-daraja-mcp setup
 ```
 
-Codex, Gemini CLI, Cursor, VS Code/Copilot and other clients: see **[docs/clients.md](docs/clients.md)**. Get sandbox keys from the [Daraja portal](https://developer.safaricom.co.ke/); [`.env.example`](.env.example) lists every setting.
+It asks for your [Daraja](https://developer.safaricom.co.ke/) keys, checks them live, saves them privately, and adds the server to Claude Code, Codex, Gemini CLI or Cursor for you. Prefer doing it by hand? Run `claude mcp add mpesa -- uvx mpesa-daraja-mcp` (no keys in the command) and put the keys in a config file. Every agent is covered in **[docs/clients.md](docs/clients.md)**.
 
 **3. Ask your agent:**
 
