@@ -1,6 +1,6 @@
 ---
 name: daraja-b2b
-description: Implements Safaricom Daraja B2B payments between shortcodes: BusinessPayBill (to a Paybill and account), BusinessBuyGoods (to a Till), BusinessPayToBulk (top up a B2C utility account) and B2B Express Checkout (a USSD push asking a merchant's till operator to pay your Paybill). Covers identifier types, the initiator and SecurityCredential, and Result handling. Use when one business pays another business, a supplier, or its own disbursement account.
+description: "Implements Safaricom Daraja B2B payments between shortcodes: BusinessPayBill (to a Paybill and account), BusinessBuyGoods (to a Till), BusinessPayToBulk (top up a B2C utility account) and B2B Express Checkout (a USSD push asking a merchant's till operator to pay your Paybill). Covers identifier types, the initiator and SecurityCredential, and Result handling. Use when one business pays another business, a supplier, or its own disbursement account."
 ---
 
 # B2B: Business to Business

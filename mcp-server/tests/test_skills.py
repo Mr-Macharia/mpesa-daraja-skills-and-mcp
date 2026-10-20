@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 from mpesa_mcp import helpers
 
@@ -19,7 +20,9 @@ def frontmatter(path: Path) -> tuple[dict[str, str], str]:
     text = path.read_text(encoding="utf-8")
     match = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.S)
     assert match, f"{path}: missing YAML frontmatter"
-    meta = dict(line.split(": ", 1) for line in match.group(1).splitlines() if ": " in line)
+    # A real YAML parser: strict tools (e.g. `npx skills`) skip skills whose frontmatter isn't valid YAML.
+    meta = yaml.safe_load(match.group(1))
+    assert isinstance(meta, dict), f"{path}: frontmatter is not a mapping"
     return meta, match.group(2)
 
 
