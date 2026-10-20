@@ -2,7 +2,7 @@
 
 <!-- mcp-name: io.github.Mr-Macharia/mpesa-daraja-mcp -->
 
-An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [`../skills`](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/tree/main/skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
+An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [Agent Skills in this repository](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/tree/main/skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
 
 ## Tools
 
@@ -69,8 +69,6 @@ uvx mpesa-daraja-mcp status    # what's configured (masked) + a live key check
 uvx mpesa-daraja-mcp           # the MCP server itself, on stdio: what your agent runs
 ```
 
-Until the first PyPI release, run from GitHub instead: `uvx --from "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#subdirectory=mcp-server" mpesa-daraja-mcp`.
-
 The server needs no flags or environment variables in your agent's config. Settings are read in this order, highest first:
 
 1. **Environment variables**, e.g. from the client's `env` block.
@@ -112,7 +110,7 @@ Without the receiver, `mpesa_stk_push_and_wait` still works through STK Query. F
 
 | Toolsets | Tools | Schema tokens (approx.) |
 |---|---|---|
-| all (default) | 23 | ~6,300 |
+| all (default) | 24 | ~6,300 |
 | `stk` | 9 | ~2,100 |
 | `stk,c2b` | 12 | ~2,600 |
 
