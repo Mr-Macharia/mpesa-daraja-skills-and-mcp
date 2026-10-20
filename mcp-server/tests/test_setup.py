@@ -2,6 +2,7 @@ import json
 import os
 import stat
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -92,8 +93,8 @@ def test_setup_rerun_keeps_existing_values(cfg):
 def test_setup_registers_with_detected_agents(cfg, monkeypatch, capsys):
     added = []
     monkeypatch.setattr(cli, "agents", lambda cmd: [
-        ("Claude Code", True, lambda: added.append("claude") or "added"),
-        ("Codex", False, lambda: added.append("codex") or "added"),
+        cli.Agent("Claude Code", True, lambda: added.append("claude") or "added", lambda: None),
+        cli.Agent("Codex", False, lambda: added.append("codex") or "added", lambda: None),
     ])
     cli.setup(ask=answers("", KEY, "", "n", ""), ask_secret=answers(SECRET, ""),
               verify=lambda *a: (True, "ok"))
@@ -105,9 +106,9 @@ def test_agent_commands_never_contain_secrets(cfg, monkeypatch):
     ran = []
     monkeypatch.setattr(cli.shutil, "which", lambda name: f"/bin/{name}")
     monkeypatch.setattr(cli, "_run", lambda cmd: ran.append(cmd) or "added")
-    for name, _found, add in cli.agents(["uvx", "mpesa-daraja-mcp"]):
-        if name != "Cursor":
-            add()
+    for agent in cli.agents(["uvx", "mpesa-daraja-mcp"]):
+        if agent.name != "Cursor":
+            agent.add()
     assert ran[0] == ["claude", "mcp", "add", "--scope", "user", "mpesa", "--", "uvx", "mpesa-daraja-mcp"]
     assert all(SECRET not in " ".join(cmd) for cmd in ran)
 
@@ -155,3 +156,67 @@ def test_dotenv_override(cfg, monkeypatch):
     monkeypatch.setenv("MPESA_DOTENV", str(other))
     settings.load()
     assert os.environ["MPESA_SHORTCODE"] == "600999"
+
+
+# --- launch_command: register exactly what setup was started with ------------------------
+# direct_url values below are the real ones uv/pip wrote for each install method.
+
+CACHE = Path("/home/u/.cache/uv/archive-v0/AbC123")
+GIT = {"url": "https://github.com/Mr-Macharia/Mpesa-MCP", "subdirectory": "mcp-server",
+       "vcs_info": {"vcs": "git", "commit_id": "9e40684"}}
+
+
+def test_uvx_from_github_registers_the_github_source():
+    cmd = cli.launch_command(GIT, CACHE, CACHE / "bin/python", has_uvx=True)
+    assert cmd == ["uvx", "--from", "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server",
+                   "mpesa-daraja-mcp"]
+
+
+def test_github_branch_is_kept_but_commit_is_not():
+    branch = {**GIT, "vcs_info": {**GIT["vcs_info"], "requested_revision": "feature/easy-setup"}}
+    cmd = cli.launch_command(branch, CACHE, CACHE / "bin/python", has_uvx=True)
+    assert cmd[2] == "git+https://github.com/Mr-Macharia/Mpesa-MCP@feature/easy-setup#subdirectory=mcp-server"
+    assert "9e40684" not in " ".join(cmd)
+
+
+def test_uvx_from_pypi_registers_short_command():
+    assert cli.launch_command({}, CACHE, CACHE / "bin/python", has_uvx=True) == ["uvx", "mpesa-daraja-mcp"]
+
+
+def test_uvx_from_local_wheel_registers_that_file():
+    url = {"url": "file:///home/u/dist/mpesa_daraja_mcp-0.1.0-py3-none-any.whl", "archive_info": {}}
+    cmd = cli.launch_command(url, CACHE, CACHE / "bin/python", has_uvx=True)
+    assert cmd == ["uvx", "--from", "/home/u/dist/mpesa_daraja_mcp-0.1.0-py3-none-any.whl", "mpesa-daraja-mcp"]
+
+
+def test_lasting_install_registers_its_own_script_not_a_cache_path(tmp_path):
+    venv = tmp_path / "venv"
+    (venv / "bin").mkdir(parents=True)
+    script = venv / "bin" / ("mpesa-daraja-mcp.exe" if sys.platform == "win32" else "mpesa-daraja-mcp")
+    script.write_text("")
+    editable = {"url": "file:///home/u/Mpesa-MCP/mcp-server", "dir_info": {"editable": True}}
+    assert cli.launch_command(editable, venv, venv / "bin/python", has_uvx=True) == [str(script)]
+
+
+def test_never_registers_a_throwaway_uvx_cache_path():
+    for source in (GIT, {}, {"url": "file:///x.whl", "archive_info": {}}):
+        cmd = cli.launch_command(source, CACHE, CACHE / "bin/python", has_uvx=True)
+        assert "archive-v0" not in " ".join(cmd)
+
+
+def test_setup_offers_to_replace_a_broken_entry(cfg, monkeypatch, capsys):
+    calls = []
+    results = iter(["already registered", "added"])
+    monkeypatch.setattr(cli, "agents", lambda cmd: [cli.Agent(
+        "Claude Code", True, lambda: calls.append("add") or next(results), lambda: calls.append("remove"))])
+    cli.setup(ask=answers("", KEY, "", "n", "", ""), ask_secret=answers(SECRET, ""), verify=lambda *a: (True, "ok"))
+    assert calls == ["add", "remove", "add"] and "Claude Code: replaced" in capsys.readouterr().out
+
+
+def test_claude_replace_clears_local_and_user_scope(monkeypatch):
+    ran = []
+    monkeypatch.setattr(cli.shutil, "which", lambda name: f"/bin/{name}")
+    monkeypatch.setattr(cli.subprocess, "run", lambda cmd, **kw: ran.append(cmd))
+    next(a for a in cli.agents(["uvx", "mpesa-daraja-mcp"]) if a.name == "Claude Code").remove()
+    assert ["claude", "mcp", "remove", "--scope", "local", "mpesa"] in ran
+    assert ["claude", "mcp", "remove", "--scope", "user", "mpesa"] in ran

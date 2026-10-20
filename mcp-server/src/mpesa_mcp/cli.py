@@ -17,6 +17,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
+from typing import NamedTuple
 
 from . import settings
 
@@ -69,12 +70,62 @@ def check_keys(env: str, key: str, secret: str) -> tuple[bool, str]:
 # --------------------------------------------------------------------------- #
 
 
-def launch_command() -> list[str]:
-    """How MCP clients should start this server: uvx from PyPI if available, else this install."""
-    if shutil.which("uvx"):
-        return ["uvx", "mpesa-daraja-mcp"]
-    exe = shutil.which("mpesa-daraja-mcp") or sys.argv[0]
-    return [str(Path(exe).resolve())]
+PACKAGE = "mpesa-daraja-mcp"
+
+
+def _direct_url() -> dict | None:
+    """Where this copy was installed from (PEP 610 direct_url.json), or None for a package index."""
+    from importlib import metadata
+
+    try:
+        raw = metadata.distribution(PACKAGE).read_text("direct_url.json")
+    except metadata.PackageNotFoundError:
+        return None
+    try:
+        return json.loads(raw) if raw else None
+    except json.JSONDecodeError:
+        return None
+
+
+def _is_ephemeral(prefix: Path) -> bool:
+    """True inside a throwaway `uvx` environment (uv's archive cache), whose paths are not stable."""
+    return any(part.startswith("archive-v") for part in prefix.parts)
+
+
+def launch_command(direct_url: dict | None = None, prefix: Path | None = None,
+                   executable: Path | None = None, has_uvx: bool | None = None) -> list[str]:
+    """The command MCP clients should run to start *this same* server.
+
+    Mirrors how setup itself was started, so registering never points at a source that
+    can't be found (e.g. PyPI before the first release when setup ran from GitHub).
+    """
+    direct_url = _direct_url() if direct_url is None else direct_url
+    prefix = Path(sys.prefix) if prefix is None else prefix
+    executable = Path(sys.executable) if executable is None else executable
+    has_uvx = bool(shutil.which("uvx")) if has_uvx is None else has_uvx
+    url = (direct_url or {}).get("url", "")
+
+    if has_uvx and (direct_url or {}).get("vcs_info", {}).get("vcs") == "git":
+        # Keep a requested branch/tag but not the exact commit, so restarts pick up fixes.
+        revision = direct_url["vcs_info"].get("requested_revision")
+        spec = f"git+{url}" + (f"@{revision}" if revision else "")
+        if direct_url.get("subdirectory"):
+            spec += f"#subdirectory={direct_url['subdirectory']}"
+        return ["uvx", "--from", spec, PACKAGE]
+
+    if _is_ephemeral(prefix) and has_uvx:
+        if url.startswith("file://"):  # uvx --from <local wheel or folder>
+            from urllib.parse import unquote, urlparse
+
+            return ["uvx", "--from", unquote(urlparse(url).path), PACKAGE]
+        return ["uvx", PACKAGE]  # uvx from PyPI
+
+    # A lasting install (venv, pip, pipx, `uv tool install`, editable checkout): use its own script.
+    script = executable.parent / (PACKAGE + (".exe" if sys.platform == "win32" else ""))
+    if script.exists():
+        return [str(script)]
+    found = shutil.which(PACKAGE)
+    return [found] if found else ["uvx", PACKAGE]
 
 
 def _merge_json_server(path: Path, key: str, entry: dict) -> str:
@@ -90,6 +141,9 @@ def _merge_json_server(path: Path, key: str, entry: dict) -> str:
     return f"added to {path}"
 
 
+ALREADY = "already registered"
+
+
 def _run(cmd: list[str]) -> str:
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
@@ -100,23 +154,47 @@ def _run(cmd: list[str]) -> str:
     out = (res.stderr or res.stdout).strip().splitlines()
     detail = out[-1] if out else f"exit {res.returncode}"
     if "already exists" in detail.lower():
-        return f"already registered (remove it first to re-add: {cmd[0]} mcp remove {SERVER_NAME})"
+        return ALREADY
     return f"failed: {detail}"
 
 
-def agents(cmd: list[str]) -> list[tuple[str, bool, Callable[[], str]]]:
-    """(name, detected, register) for each supported agent. Keys stay in the config file, not here."""
+def _quietly(*cmds: list[str]) -> None:
+    """Run removal commands, ignoring 'not found' and similar failures."""
+    for cmd in cmds:
+        try:
+            subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+
+
+class Agent(NamedTuple):
+    name: str
+    detected: bool
+    add: Callable[[], str]
+    remove: Callable[[], None]
+
+
+def agents(cmd: list[str]) -> list[Agent]:
+    """Each supported agent with add/remove actions. Keys stay in the config file, never in commands."""
     home = Path.home()
+    cursor = home / ".cursor" / "mcp.json"
     return [
-        ("Claude Code", bool(shutil.which("claude")),
-         lambda: _run(["claude", "mcp", "add", "--scope", "user", SERVER_NAME, "--", *cmd])),
-        ("Codex", bool(shutil.which("codex")),
-         lambda: _run(["codex", "mcp", "add", SERVER_NAME, "--", *cmd])),
-        ("Gemini CLI", bool(shutil.which("gemini")),
-         lambda: _run(["gemini", "mcp", "add", "--scope", "user", SERVER_NAME, *cmd])),
-        ("Cursor", (home / ".cursor").is_dir(),
-         lambda: _merge_json_server(home / ".cursor" / "mcp.json", "mcpServers",
-                                    {"type": "stdio", "command": cmd[0], "args": cmd[1:]})),
+        # Claude Code's local (project) scope overrides user scope, so clear both before re-adding.
+        Agent("Claude Code", bool(shutil.which("claude")),
+              lambda: _run(["claude", "mcp", "add", "--scope", "user", SERVER_NAME, "--", *cmd]),
+              lambda: _quietly(["claude", "mcp", "remove", "--scope", "local", SERVER_NAME],
+                               ["claude", "mcp", "remove", "--scope", "user", SERVER_NAME])),
+        Agent("Codex", bool(shutil.which("codex")),
+              lambda: _run(["codex", "mcp", "add", SERVER_NAME, "--", *cmd]),
+              lambda: _quietly(["codex", "mcp", "remove", SERVER_NAME])),
+        Agent("Gemini CLI", bool(shutil.which("gemini")),
+              lambda: _run(["gemini", "mcp", "add", "--scope", "user", SERVER_NAME, *cmd]),
+              lambda: _quietly(["gemini", "mcp", "remove", "--scope", "user", SERVER_NAME])),
+        # Writing the JSON entry replaces any existing one, so there is nothing to remove first.
+        Agent("Cursor", (home / ".cursor").is_dir(),
+              lambda: _merge_json_server(cursor, "mcpServers",
+                                         {"type": "stdio", "command": cmd[0], "args": cmd[1:]}),
+              lambda: None),
     ]
 
 
@@ -174,9 +252,20 @@ def setup(ask: Callable[[str], str] = input, ask_secret: Callable[[str], str] = 
         found = [a for a in agents(cmd) if a[1]]
         if found:
             print(f"\nRegister the server (runs `{' '.join(cmd)}`; your keys stay in the config file):")
-            for name, _detected, add in found:
-                if ask(f"  Add to {name}? [Y/n]: ").strip().lower() in ("", "y", "yes"):
-                    print(f"    {name}: {add()}")
+            for agent in found:
+                if ask(f"  Add to {agent.name}? [Y/n]: ").strip().lower() not in ("", "y", "yes"):
+                    continue
+                result = agent.add()
+                if result == ALREADY:
+                    question = (f"    {agent.name} already has an '{SERVER_NAME}' server. "
+                                "Replace it with this command? [Y/n]: ")
+                    if ask(question).strip().lower() in ("", "y", "yes"):
+                        agent.remove()
+                        result = agent.add()
+                        result = "replaced" if result == "added" else result
+                    else:
+                        result = "kept the existing entry"
+                print(f"    {agent.name}: {result}")
         else:
             print("\nNo supported agent CLI found. Add the server in your client using the command:\n"
                   f"  {' '.join(cmd)}\n(examples: https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/docs/clients.md)")
