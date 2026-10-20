@@ -72,4 +72,4 @@ If a step fails, fix it with `daraja-troubleshooting` and **rerun the same step*
 
 ## MCP
 
-Set the same `.env` values on the `mpesa` MCP server, then run `mpesa:mpesa_check_credentials` followed by `mpesa:mpesa_stk_push` for an end-to-end sandbox test without writing any code.
+Set the same `.env` values on the `mpesa` MCP server, then run `mpesa_check_credentials` followed by `mpesa_stk_push` for an end-to-end sandbox test without writing any code.

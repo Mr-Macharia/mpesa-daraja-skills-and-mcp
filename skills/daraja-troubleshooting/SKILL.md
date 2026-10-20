@@ -56,4 +56,4 @@ Copy this and work through it:
 
 ## MCP
 
-`mpesa:mpesa_explain_code(code)` returns the same knowledge as the script.
+`mpesa_explain_code(code)` returns the same knowledge as the script.

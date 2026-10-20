@@ -75,4 +75,4 @@ Reply `{"rescode": "200", "resmsg": "Success"}`, then upsert on a unique `transa
 
 ## MCP
 
-`mpesa:mpesa_bill_manager_optin`, `mpesa:mpesa_bill_manager_send_invoice` (which converts the phone to `07…`) and `mpesa:mpesa_bill_manager_cancel_invoice`.
+`mpesa_bill_manager_optin`, `mpesa_bill_manager_send_invoice` (which converts the phone to `07…`) and `mpesa_bill_manager_cancel_invoice`.

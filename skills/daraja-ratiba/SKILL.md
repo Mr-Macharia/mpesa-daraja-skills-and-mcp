@@ -75,4 +75,4 @@ Callback after the customer consents:
 
 ## MCP
 
-`mpesa:mpesa_ratiba_create_standing_order(name, phone, amount, start_date, end_date, frequency, account_reference, till=False)`. It is flagged as money-moving and gated in production.
+`mpesa_ratiba_create_standing_order(name, phone, amount, start_date, end_date, frequency, account_reference, till=False)`. It is flagged as money-moving and gated in production.

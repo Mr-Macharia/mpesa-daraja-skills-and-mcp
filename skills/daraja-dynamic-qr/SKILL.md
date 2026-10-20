@@ -54,4 +54,4 @@ Generating the QR does **not** create a pending transaction or a callback. The c
 
 ## MCP
 
-`mpesa:mpesa_generate_dynamic_qr(merchant_name, ref_no, amount, cpi, trx_code="BG")`
+`mpesa_generate_dynamic_qr(merchant_name, ref_no, amount, cpi, trx_code="BG")`
