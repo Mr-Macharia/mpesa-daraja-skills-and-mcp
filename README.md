@@ -8,9 +8,9 @@ Agent Skills teach your agent how to integrate M-Pesa. The MCP server lets it ca
 Works with Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI and any agent that supports [Agent Skills](https://agentskills.io) or [MCP](https://modelcontextprotocol.io).
 
 [![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml)
-[![PyPI](https://img.shields.io/pypi/v/mpesa-daraja-mcp)](https://pypi.org/project/mpesa-daraja-mcp/)
+[![PyPI](https://img.shields.io/pypi/v/mpesa-daraja-mcp?label=PyPI&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/)
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.Mr--Macharia%2Fmpesa--daraja--mcp-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=mpesa-daraja-mcp)
-[![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja-mcp)](https://pypi.org/project/mpesa-daraja-mcp/)
+[![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja-mcp?cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [Quick start](#quick-start) · [What's inside](#whats-inside) · [Safety](#safety-model) · [Agent setup](docs/clients.md) · [Tools](mcp-server/README.md#tools)
@@ -81,29 +81,36 @@ This repo packages that knowledge so your agent gets it right the first time.
 
 ## What's inside
 
-| | |
-|---|---|
-| 🧠 **[15 Agent Skills](skills)** | Every major Daraja API: STK Push, C2B, B2C, B2B, tax remittance, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager. Plus callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Each skill is self-contained, with scripts that validate requests, build passwords, encrypt credentials and parse callbacks. |
-| 🔌 **[MCP server](mcp-server)** ([`mpesa-daraja-mcp`](https://pypi.org/project/mpesa-daraja-mcp/)) | 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call. An optional built-in callback receiver records results for `mpesa_get_result`. |
-| 🛡️ **Safety by default** | Sandbox unless told otherwise. Live money movement is off until you opt in. Money tools are idempotent, and every request is validated before it is sent. |
-| 🪶 **Context-efficient** | `MPESA_TOOLSETS` loads only the tools you use. STK checkout alone costs about 2,100 schema tokens instead of 6,300. |
+### 🧠 [15 Agent Skills](skills)
+Every major Daraja API: STK Push, C2B, B2C, B2B, tax remittance, Transaction Status, Account Balance, Reversal, Dynamic QR, Ratiba and Bill Manager. Helper skills cover callbacks, sandbox setup and go-live, credentials and security, and troubleshooting.
 
-You can use either half on its own. The skills work without the server, and the server works without the skills. Together, the skills tell the agent *which* tool to call and *why*.
+Each skill is self-contained. It bundles scripts that validate requests, build STK passwords, encrypt credentials and parse callbacks, so the agent runs tested code instead of writing its own.
+
+### 🔌 [MCP server](mcp-server): [`mpesa-daraja-mcp`](https://pypi.org/project/mpesa-daraja-mcp/)
+24 `mpesa_*` tools that call Daraja for the agent. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call. An optional built-in callback receiver records results for `mpesa_get_result`.
+
+### 🛡️ Safe by default
+Sandbox unless told otherwise. Live money movement stays off until you opt in. Money tools are idempotent, and every request is validated before it is sent. Details are in the [safety model](#safety-model).
+
+### 🪶 Light on context
+`MPESA_TOOLSETS` loads only the tools you use. STK checkout alone costs about 2,100 schema tokens instead of 6,300.
+
+You can use either half on its own: the skills work without the server, and the server works without the skills. Together, the skills tell the agent *which* tool to call and *why*.
 
 ### Supported Daraja APIs
 
-| API | Skill | MCP tools |
+| Daraja API | Skill | MCP tools |
 |---|---|---|
-| OAuth | `daraja-auth` | `mpesa_check_credentials` |
-| M-Pesa Express (STK Push) | `daraja-stk-push` | `mpesa_stk_push_and_wait`, `mpesa_stk_push`, `mpesa_stk_query` |
-| C2B and Pull Transactions | `daraja-c2b` | `mpesa_c2b_register_urls`, `mpesa_c2b_simulate`, `mpesa_pull_transactions` |
-| B2C and Pochi la Biashara | `daraja-b2c` | `mpesa_b2c_payment` |
-| B2B, B2C top-up and B2B Express Checkout | `daraja-b2b` | `mpesa_b2b_payment`, `mpesa_b2b_express_checkout` |
-| Tax remittance (KRA) | `daraja-tax-remittance` | `mpesa_b2b_payment` (`PayTaxToKRA`) |
-| Transaction Status, Account Balance, Reversal | `daraja-account-ops` | `mpesa_transaction_status`, `mpesa_account_balance`, `mpesa_reverse_transaction` |
-| Dynamic QR | `daraja-dynamic-qr` | `mpesa_generate_dynamic_qr` |
-| Ratiba (standing orders) | `daraja-ratiba` | `mpesa_ratiba_create_standing_order` |
-| Bill Manager | `daraja-bill-manager` | `mpesa_bill_manager_optin`, `_send_invoice`, `_cancel_invoice` |
+| OAuth | [daraja-auth](skills/daraja-auth) | `mpesa_check_credentials` |
+| M-Pesa Express (STK Push) | [daraja-stk-push](skills/daraja-stk-push) | `mpesa_stk_push_and_wait`<br>`mpesa_stk_push`<br>`mpesa_stk_query` |
+| C2B and Pull Transactions | [daraja-c2b](skills/daraja-c2b) | `mpesa_c2b_register_urls`<br>`mpesa_c2b_simulate`<br>`mpesa_pull_transactions` |
+| B2C and Pochi la Biashara | [daraja-b2c](skills/daraja-b2c) | `mpesa_b2c_payment` |
+| B2B, B2C top-up, B2B Express Checkout | [daraja-b2b](skills/daraja-b2b) | `mpesa_b2b_payment`<br>`mpesa_b2b_express_checkout` |
+| Tax remittance (KRA) | [daraja-tax-remittance](skills/daraja-tax-remittance) | `mpesa_b2b_payment` with `PayTaxToKRA` |
+| Transaction Status, Account Balance, Reversal | [daraja-account-ops](skills/daraja-account-ops) | `mpesa_transaction_status`<br>`mpesa_account_balance`<br>`mpesa_reverse_transaction` |
+| Dynamic QR | [daraja-dynamic-qr](skills/daraja-dynamic-qr) | `mpesa_generate_dynamic_qr` |
+| Ratiba (standing orders) | [daraja-ratiba](skills/daraja-ratiba) | `mpesa_ratiba_create_standing_order` |
+| Bill Manager | [daraja-bill-manager](skills/daraja-bill-manager) | `mpesa_bill_manager_optin`<br>`mpesa_bill_manager_send_invoice`<br>`mpesa_bill_manager_cancel_invoice` |
 
 Helper skills cover callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Offline tools explain result codes, normalise phone numbers, build STK passwords and parse callbacks.
 
