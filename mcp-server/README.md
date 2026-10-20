@@ -69,6 +69,8 @@ uvx mpesa-daraja-mcp status    # what's configured (masked) + a live key check
 uvx mpesa-daraja-mcp           # the MCP server itself, on stdio: what your agent runs
 ```
 
+Until the first PyPI release, run from GitHub instead: `uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp`.
+
 The server needs no flags or environment variables in your agent's config. Settings are read in this order, highest first:
 
 1. **Environment variables**, e.g. from the client's `env` block.

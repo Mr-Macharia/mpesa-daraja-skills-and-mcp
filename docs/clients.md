@@ -38,6 +38,13 @@ Each skill is self-contained, so you can install just the ones you need.
 
 You need [uv](https://docs.astral.sh/uv/) (one-time install: `curl -LsSf https://astral.sh/uv/install.sh | sh`). It runs the server straight from PyPI.
 
+> **Not on PyPI yet?** Until the first release is published, `uvx mpesa-daraja-mcp` fails with "not found", and your agent shows "Connection closed". Use the GitHub form everywhere below instead:
+>
+> ```bash
+> uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp setup
+> claude mcp add --scope user mpesa -- uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp
+> ```
+
 ### Easiest: the setup wizard
 
 ```bash

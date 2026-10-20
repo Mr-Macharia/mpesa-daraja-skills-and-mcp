@@ -61,6 +61,8 @@ npx skills add Mr-Macharia/Mpesa-MCP
 uvx mpesa-daraja-mcp setup
 ```
 
+> **Before the first PyPI release** `uvx mpesa-daraja-mcp` can't find the package yet. Run straight from GitHub instead: use `uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp` wherever these docs say `uvx mpesa-daraja-mcp`.
+
 It asks for your [Daraja](https://developer.safaricom.co.ke/) keys, checks them live, saves them privately, and adds the server to Claude Code, Codex, Gemini CLI or Cursor for you. Prefer doing it by hand? Run `claude mcp add mpesa -- uvx mpesa-daraja-mcp` (no keys in the command) and put the keys in a config file. Every agent is covered in **[docs/clients.md](docs/clients.md)**.
 
 **3. Ask your agent:**
