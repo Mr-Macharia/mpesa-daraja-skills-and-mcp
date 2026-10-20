@@ -1,8 +1,8 @@
 <div align="center">
 
-# MCP and Agent Skills for M-Pesa Daraja
+# MCP and Agent Skills for M-Pesa Daraja API
 
-**Give AI agents safe, working access to Safaricom M-Pesa Daraja.**
+**Give AI agents safe, working access to Safaricom M-Pesa Daraja API.**
 
 Agent Skills that teach the integration, and an MCP server that runs it.
 For Claude Code, Codex, Cursor, Copilot, Gemini CLI and any agent that speaks [Agent Skills](https://agentskills.io) or [MCP](https://modelcontextprotocol.io).
