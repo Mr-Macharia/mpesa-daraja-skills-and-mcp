@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Print an EAT Timestamp and the matching STK Password.
+
+Usage: python scripts/stk_password.py <shortcode> <passkey> [timestamp]
+Output (JSON): {"Timestamp": "...", "Password": "..."}
+Put BOTH values in the request: the Timestamp in the body must be the one used here.
+"""
+import json
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from daraja_helpers import stk_password, timestamp  # noqa: E402  (copied next to this script)
+
+if len(sys.argv) not in (3, 4):
+    sys.exit(__doc__)
+shortcode, passkey = sys.argv[1], sys.argv[2]
+ts = sys.argv[3] if len(sys.argv) == 4 else timestamp()
+if len(ts) != 14 or not ts.isdigit():
+    sys.exit(f"Timestamp must be YYYYMMDDHHmmss, got {ts!r}")
+print(json.dumps({"Timestamp": ts, "Password": stk_password(shortcode, passkey, ts)}))

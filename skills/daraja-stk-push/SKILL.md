@@ -37,7 +37,7 @@ no callback? --POST /mpesa/stkpushquery/v1/query--> final ResultCode
 }
 ```
 
-3. Validate it, fix anything reported, and repeat until it prints `OK`: `python ../mpesa-daraja/scripts/validate_request.py stk body.json`
+3. Validate it, fix anything reported, and repeat until it prints `OK`: `python scripts/validate_request.py stk body.json`
 
 **Paybill vs Till**
 - Paybill: `CustomerPayBillOnline`, with `PartyB` = the Paybill.

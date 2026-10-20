@@ -30,7 +30,7 @@ description: Remits taxes to the Kenya Revenue Authority (KRA) from a business s
 
 Fixed values: `PartyB` is always `572572`, both identifier types are always `"4"`, and `AccountReference` is the PRN.
 
-Validate the body: `python ../mpesa-daraja/scripts/validate_request.py tax body.json`
+Validate the body: `python scripts/validate_request.py tax body.json`
 
 ## Responses
 

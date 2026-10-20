@@ -51,9 +51,42 @@ def test_every_routed_skill_exists():
         assert (ROOT / "skills" / name / "SKILL.md").exists(), name
 
 
-def test_codes_json_matches_server():
-    data = json.loads((ROOT / "skills/daraja-troubleshooting/scripts/codes.json").read_text())
-    assert data == helpers.RESULT_CODES
+def test_skills_in_sync_with_sources():
+    res = subprocess.run([sys.executable, str(ROOT / "tools/sync_skills.py"), "--check"], capture_output=True, text=True)
+    assert res.returncode == 0, res.stdout
+
+
+@pytest.mark.parametrize("skill", SKILLS, ids=lambda p: p.name)
+def test_skill_is_self_contained(skill):
+    for md in skill.glob("*.md"):
+        assert "../" not in md.read_text(encoding="utf-8"), f"{md.name} reaches outside its skill folder"
+
+
+@pytest.mark.parametrize("skill", [s for s in SKILLS if (s / "scripts").exists()], ids=lambda p: p.name)
+def test_skill_scripts_run_in_isolation(skill, tmp_path):
+    """Copy one skill alone (as a claude.ai upload would) and check each script at least starts."""
+    import shutil
+    alone = tmp_path / skill.name
+    shutil.copytree(skill, alone)
+    for script in (alone / "scripts").glob("*.py"):
+        if script.name.startswith("daraja_"):
+            continue
+        res = subprocess.run([sys.executable, str(script)], capture_output=True, text=True, cwd=tmp_path,
+                             env={"PATH": "/usr/bin:/bin"})
+        assert "ModuleNotFoundError" not in res.stderr and "ImportError" not in res.stderr, (script.name, res.stderr)
+
+
+CODE_IN_TABLE = re.compile(r"^\|\s*`?((?:\d{3}\.\d{3}(?:\.\d+)?)|C2B000\d\d|R0\d{5}|\d{1,4})`?\s*\|", re.M)
+
+
+@pytest.mark.parametrize("skill", SKILLS, ids=lambda p: p.name)
+def test_codes_in_skill_tables_are_known(skill):
+    """Inline code tables must not invent codes the shared table doesn't know."""
+    for md in skill.glob("*.md"):
+        for code in CODE_IN_TABLE.findall(md.read_text(encoding="utf-8")):
+            if code in {"400", "401", "404", "405", "429", "500", "503"}:
+                continue  # HTTP statuses
+            assert code in helpers.RESULT_CODES, f"{md.relative_to(ROOT)}: code {code} missing from helpers.RESULT_CODES"
 
 
 def run(script, *args, stdin=None, env=None):
@@ -94,7 +127,7 @@ def test_parse_callback_script():
     payload = {"Result": {"ResultCode": 0, "ResultParameters": {"ResultParameter": [
         {"Key": "AccountBalance", "Value": "Utility Account|KES|10.00|10.00|0.00|0.00"}]}}}
     out = json.loads(run("daraja-callbacks/scripts/parse_callback.py", "-", stdin=json.dumps(payload)).stdout)
-    assert out["success"] and out["AccountBalance"][0]["available"] == "10.00"
+    assert out["success"] and out["balances"][0]["available"] == 10.0
 
 
 def test_explain_code_script():

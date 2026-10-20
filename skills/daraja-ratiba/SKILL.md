@@ -40,7 +40,7 @@ The business creates a standing order on the customer's M-Pesa profile. The cust
 | AccountReference / TransactionDesc | ≤ 12 / ≤ 13 characters |
 | Frequency | `1` one-off, `2` daily, `3` weekly, `4` monthly, `5` bi-monthly, `6` quarterly, `7` half-yearly, `8` yearly |
 
-Validate the body and repeat until it prints `OK`: `python ../mpesa-daraja/scripts/validate_request.py ratiba body.json`
+Validate the body and repeat until it prints `OK`: `python scripts/validate_request.py ratiba body.json`
 
 ## Responses
 

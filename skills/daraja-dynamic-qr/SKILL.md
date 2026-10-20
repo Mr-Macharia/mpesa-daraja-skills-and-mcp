@@ -21,7 +21,7 @@ description: Generates M-Pesa Dynamic QR codes with Safaricom Daraja for Buy Goo
 | CPI | Credit party identifier: Till, Paybill, agent till or phone, depending on TrxCode |
 | Size | Pixel size of the square image, as a string; `"300"` is typical |
 
-Validate the body: `python ../mpesa-daraja/scripts/validate_request.py qr body.json`
+Validate the body: `python scripts/validate_request.py qr body.json`
 
 ## Response
 

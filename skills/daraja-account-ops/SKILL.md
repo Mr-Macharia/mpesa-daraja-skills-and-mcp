@@ -5,7 +5,7 @@ description: Uses Safaricom Daraja's Transaction Status, Transaction Reversal an
 
 # Transaction Status, Reversal and Account Balance
 
-All three APIs use the initiator and `SecurityCredential` (see `daraja-credentials-security`). Each answers with a sync acknowledgment, then posts a `Result` to `ResultURL` (or to `QueueTimeOutURL` on a timeout). Parse it with `python ../daraja-callbacks/scripts/parse_callback.py`.
+All three APIs use the initiator and `SecurityCredential` (see `daraja-credentials-security`). Each answers with a sync acknowledgment, then posts a `Result` to `ResultURL` (or to `QueueTimeOutURL` on a timeout). Parse it with `python scripts/parse_callback.py`.
 
 ## Transaction Status
 

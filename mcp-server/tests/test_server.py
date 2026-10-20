@@ -320,3 +320,10 @@ async def test_expected_errors_reach_the_agent(monkeypatch):
     # ToolError (not a generic crash) is what the transport turns into a visible is_error result.
     with pytest.raises(ToolError, match="MPESA_ALLOW_LIVE_MONEY_MOVEMENT"):
         await server.server.call_tool("mpesa_stk_push", {"phone": "0712345678", "amount": 1, "account_reference": "x"})
+
+
+async def test_invalid_request_rejected_before_sending(daraja):
+    route = daraja.post("/standingorder/v1/createStandingOrderExternal").respond(200, json={})
+    with pytest.raises(ValueError, match="nothing was sent.*EndDate is before StartDate"):
+        await server.ratiba_create_standing_order("Loan", "0712345678", 100, "20270101", "20260101", "4", "LOAN1")
+    assert route.call_count == 0
