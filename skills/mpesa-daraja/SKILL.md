@@ -83,4 +83,4 @@ If the `mpesa` MCP server from this repo is connected, call Daraja directly inst
 - `mpesa:mpesa_parse_callback` parses a callback payload.
 - `mpesa:mpesa_explain_code` explains an error or result code.
 
-Money-moving tools refuse to run in production unless the operator has explicitly enabled them.
+Use `mpesa:mpesa_stk_push_and_wait` for checkout and `mpesa:mpesa_get_result` to read any final result. Money tools are idempotent per `idempotency_key`. Money-moving tools refuse to run in production unless the operator has explicitly enabled them.

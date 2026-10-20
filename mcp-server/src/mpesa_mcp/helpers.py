@@ -147,6 +147,57 @@ def parse_c2b_callback(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def parse_ratiba_callback(payload: dict[str, Any]) -> dict[str, Any]:
+    # Ratiba mixes key casing between docs and responses; normalise to lower-case keys.
+    low = {k.lower(): v for k, v in payload.items()}
+    header = {k.lower(): v for k, v in (low.get("responseheader") or {}).items()}
+    body = {k.lower(): v for k, v in (low.get("responsebody") or {}).items()}
+    data = {
+        str(i.get("name", i.get("Name"))): i.get("value", i.get("Value"))
+        for i in body.get("responsedata", []) or []
+    }
+    code = str(header.get("responsecode", data.get("responseCode", "")))
+    return {
+        "kind": "ratiba",
+        "success": code == "0",
+        "result_code": code,
+        "result_desc": header.get("responsedescription"),
+        "request_ref_id": header.get("requestrefid"),
+        "response_ref_id": header.get("responserefid"),
+        "transaction_id": data.get("TransactionID"),
+        "parameters": data,
+        "explanation": explain_code(code),
+    }
+
+
+def parse_b2b_express_callback(payload: dict[str, Any]) -> dict[str, Any]:
+    code = str(payload.get("resultCode", ""))
+    return {
+        "kind": "b2b_express",
+        "success": code == "0",
+        "result_code": code,
+        "result_desc": payload.get("resultDesc"),
+        "request_id": payload.get("requestId"),
+        "conversation_id": payload.get("conversationID"),
+        "transaction_id": payload.get("transactionId"),
+        "amount": payload.get("amount"),
+        "explanation": explain_code(code),
+    }
+
+
+def parse_bill_manager_payment(payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "kind": "bill_manager_payment",
+        "success": True,
+        "transaction_id": payload.get("transactionId"),
+        "amount": payload.get("paidAmount"),
+        "account_reference": payload.get("accountReference"),
+        "msisdn": payload.get("msisdn"),
+        "shortcode": payload.get("shortCode"),
+        "date": payload.get("dateCreated"),
+    }
+
+
 def parse_callback(payload: dict[str, Any]) -> dict[str, Any]:
     """Detect the callback type and parse it."""
     if "Body" in payload and "stkCallback" in payload.get("Body", {}):
@@ -155,7 +206,27 @@ def parse_callback(payload: dict[str, Any]) -> dict[str, Any]:
         return parse_result_callback(payload)
     if "TransID" in payload:
         return parse_c2b_callback(payload)
-    raise ValueError("Unrecognised Daraja callback payload: expected Body.stkCallback, Result or TransID")
+    if any(k.lower() == "responseheader" for k in payload):
+        return parse_ratiba_callback(payload)
+    if "requestId" in payload and "resultCode" in payload:
+        return parse_b2b_express_callback(payload)
+    if "paidAmount" in payload:
+        return parse_bill_manager_payment(payload)
+    raise ValueError(
+        "Unrecognised Daraja callback payload: expected Body.stkCallback, Result, TransID, "
+        "responseHeader (Ratiba), requestId (B2B Express) or paidAmount (Bill Manager)"
+    )
+
+
+CORRELATION_FIELDS = (
+    "checkout_request_id", "merchant_request_id", "originator_conversation_id", "conversation_id",
+    "transaction_id", "request_id", "request_ref_id", "response_ref_id",
+)
+
+
+def correlation_ids(parsed: dict[str, Any]) -> list[str]:
+    """Every ID in a parsed callback that a stored request might be indexed under."""
+    return [str(parsed[f]) for f in CORRELATION_FIELDS if parsed.get(f)]
 
 
 def parse_account_balance(raw: str) -> list[dict[str, Any]]:

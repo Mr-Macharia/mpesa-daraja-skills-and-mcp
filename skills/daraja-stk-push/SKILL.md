@@ -89,6 +89,8 @@ def on_stk_callback(payload):
 
 ## MCP
 
+- `mpesa:mpesa_stk_push_and_wait(phone, amount, account_reference, idempotency_key=<order id>)` pushes the prompt and returns the final SUCCESS, FAILED or UNKNOWN in one call. Prefer it.
+
 - `mpesa:mpesa_stk_push(phone, amount, account_reference)` normalises the phone, builds the Password and validates lengths.
 - `mpesa:mpesa_stk_query(checkout_request_id)` checks status.
 - `mpesa:mpesa_parse_callback(payload)` flattens a callback.

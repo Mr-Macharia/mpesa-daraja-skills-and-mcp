@@ -43,6 +43,7 @@ class Config:
     initiator_name: str | None = None
     security_credential: str | None = None
     callback_base_url: str | None = None
+    callback_token: str | None = None
     allow_live_money_movement: bool = False
     base_url: str = field(init=False)
 
@@ -76,6 +77,7 @@ class Config:
             initiator_name=get("MPESA_INITIATOR_NAME"),
             security_credential=credential,
             callback_base_url=(get("MPESA_CALLBACK_BASE_URL") or "").rstrip("/") or None,
+            callback_token=get("MPESA_CALLBACK_TOKEN"),
             allow_live_money_movement=get("MPESA_ALLOW_LIVE_MONEY_MOVEMENT") == "true",
         )
 
@@ -89,7 +91,9 @@ class Config:
         if explicit:
             url = explicit
         elif self.callback_base_url:
-            url = f"{self.callback_base_url}{path}"
+            # With the built-in receiver, every generated URL carries its secret path token.
+            prefix = f"/cb/{self.callback_token}" if self.callback_token else ""
+            url = f"{self.callback_base_url}{prefix}{path}"
         else:
             raise RuntimeError("Pass a callback URL or set MPESA_CALLBACK_BASE_URL")
         if not url.startswith("https://"):

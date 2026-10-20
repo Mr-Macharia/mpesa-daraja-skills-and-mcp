@@ -11,7 +11,9 @@ An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja
 | `mpesa_generate_stk_password` | — offline Password + EAT Timestamp | |
 | `mpesa_parse_callback` | — offline parse of any callback payload | |
 | `mpesa_check_credentials` | OAuth token (never returned) | |
-| `mpesa_stk_push` / `mpesa_stk_query` | M-Pesa Express | ✅ / |
+| `mpesa_get_result` | Final status by idempotency key or any Daraja ID (from captured callbacks; STK falls back to STK Query) | |
+| `mpesa_stk_push_and_wait` | M-Pesa Express: push, then wait for callback / poll query; returns SUCCESS, FAILED or UNKNOWN | ✅ |
+| `mpesa_stk_push` / `mpesa_stk_query` | M-Pesa Express, fire-and-forget / status | ✅ / |
 | `mpesa_c2b_register_urls` / `mpesa_c2b_simulate` | C2B v2 (simulate = sandbox only) | |
 | `mpesa_pull_transactions` | Pull Transactions query | |
 | `mpesa_b2c_payment` | B2C v3, B2Pochi | ✅ |
@@ -19,7 +21,7 @@ An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja
 | `mpesa_b2b_express_checkout` | B2B USSD push | ✅ |
 | `mpesa_transaction_status` / `mpesa_account_balance` | Status / Balance (async result) | |
 | `mpesa_reverse_transaction` | Reversal | ✅ |
-| `mpesa_generate_dynamic_qr` | Dynamic QR | |
+| `mpesa_generate_dynamic_qr` | Dynamic QR, saved as a PNG file (path returned, not the image) | |
 | `mpesa_ratiba_create_standing_order` | M-Pesa Ratiba | ✅ |
 | `mpesa_bill_manager_optin` / `mpesa_bill_manager_send_invoice` / `mpesa_bill_manager_cancel_invoice` | Bill Manager | |
 
@@ -32,7 +34,10 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 - Callback URLs must be HTTPS; C2B URLs with `mpesa`/`safaricom` in them are rejected up front.
 - Tokens and secrets are never returned in tool output.
 - Responses with `ResponseCode "0"` are tagged `_note: ACCEPTED for processing only`, so the agent does not report them as completed payments.
-- `mpesa_b2c_payment` always sends an `OriginatorConversationID` and returns it. Reuse it on retries so Daraja rejects duplicates.
+- **Idempotent money tools.** Each request is stored under an idempotency key. Repeating the key returns the stored request (`duplicate: true`) instead of paying again.
+  - Only a definitively FAILED request is re-sent.
+  - ACCEPTED or UNKNOWN requests (queue timeouts, network errors) are never re-sent until their result is known.
+  - B2C, B2B and B2B Express require an explicit `idempotency_key`, e.g. `refund-order-1042`. Reversal, tax and Ratiba derive one from the transaction ID, the PRN and phone + name respectively. For STK the key is optional.
 
 ## Configuration
 
@@ -47,6 +52,11 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 | `MPESA_INITIATOR_PASSWORD` + `MPESA_CERT_PATH` | | Server encrypts the password with the cert at startup |
 | `MPESA_CALLBACK_BASE_URL` | | e.g. `https://abc.ngrok-free.app`; tools append `/mpesa/stk/callback`, `/mpesa/b2c/result`, … |
 | `MPESA_ALLOW_LIVE_MONEY_MOVEMENT` | | `true` to allow production charges/payouts |
+| `MPESA_CALLBACK_LISTEN` | | e.g. `127.0.0.1:8787`: starts the built-in callback receiver |
+| `MPESA_CALLBACK_TOKEN` | with receiver | 16+ random characters. Callback URLs become `<base>/cb/<token>/…` |
+| `MPESA_STATE_DB` | | SQLite file for requests and results (default `~/.mpesa-mcp/state.db`) |
+| `MPESA_TOOLSETS` | | Comma list of `stk,c2b,payouts,ops,qr,ratiba,billmanager` (`core` is always on). Default: all |
+| `MPESA_OUTPUT_DIR` | | Where QR PNGs are saved (default `~/.mpesa-mcp/qr`) |
 
 ## Install & run
 
@@ -84,9 +94,42 @@ claude mcp add mpesa --env MPESA_CONSUMER_KEY=... --env MPESA_CONSUMER_SECRET=..
 }
 ```
 
-## Receiving callbacks
+## Results and callbacks
 
-This server *sends* requests. Results arrive at your callback URLs, so you still need a receiver (see the `daraja-callbacks` skill). For quick testing, point `MPESA_CALLBACK_BASE_URL` at a request-inspector or a tunnel to a local app, then paste the received JSON into `mpesa_parse_callback`.
+Every money or async tool returns one shape:
+
+```json
+{"status": "ACCEPTED | SUCCESS | FAILED | UNKNOWN", "message": "...", "idempotency_key": "...",
+ "duplicate": false, "ids": {"checkout_request_id": "..."}, "receipt": "...", "result_code": "...",
+ "explanation": "...", "raw": {}}
+```
+
+To let the agent see final results, enable the **built-in receiver**:
+
+```bash
+export MPESA_CALLBACK_LISTEN=127.0.0.1:8787
+export MPESA_CALLBACK_TOKEN=$(python -c "import secrets; print(secrets.token_urlsafe(24))")
+ngrok http 8787                        # sandbox; use a reverse proxy with TLS in production
+export MPESA_CALLBACK_BASE_URL=https://<tunnel-host>
+```
+
+Callbacks are stored in `MPESA_STATE_DB`:
+- `mpesa_get_result(id)` reads them.
+- `mpesa_stk_push_and_wait` returns the final outcome in one call.
+- Queue-timeout callbacks are recorded as UNKNOWN.
+- C2B validation requests are always accepted. Use your own receiver if you need to reject payments.
+
+Without the receiver, `mpesa_stk_push_and_wait` still works through STK Query. For other APIs, paste a received payload into `mpesa_parse_callback`.
+
+## Context cost
+
+| Toolsets | Tools | Schema tokens (approx.) |
+|---|---|---|
+| all (default) | 23 | ~6,300 |
+| `stk` | 9 | ~2,100 |
+| `stk,c2b` | 12 | ~2,600 |
+
+Pick the smallest set you need with `MPESA_TOOLSETS`.
 
 ## Development
 
