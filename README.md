@@ -2,38 +2,110 @@
 
 # MCP and Agent Skills for M-Pesa Daraja API
 
-**Give AI agents safe, working access to Safaricom M-Pesa Daraja API.**
+**Give AI agents safe, working access to Safaricom's M-Pesa Daraja API.**
 
-Agent Skills that teach the integration, and an MCP server that runs it.
-For Claude Code, Codex, Cursor, Copilot, Gemini CLI and any agent that speaks [Agent Skills](https://agentskills.io) or [MCP](https://modelcontextprotocol.io).
+Agent Skills teach your agent how to integrate M-Pesa. The MCP server lets it call Daraja, with safety rails built in.
+Works with Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI and any agent that supports [Agent Skills](https://agentskills.io) or [MCP](https://modelcontextprotocol.io).
 
 [![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml)
 [![PyPI](https://img.shields.io/pypi/v/mpesa-daraja-mcp)](https://pypi.org/project/mpesa-daraja-mcp/)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](mcp-server/pyproject.toml)
+[![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.Mr--Macharia%2Fmpesa--daraja--mcp-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=mpesa-daraja-mcp)
+[![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja-mcp)](https://pypi.org/project/mpesa-daraja-mcp/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+[Quick start](#quick-start) · [What's inside](#whats-inside) · [Safety](#safety-model) · [Agent setup](docs/clients.md) · [Tools](mcp-server/README.md#tools)
 
 </div>
 
 ---
 
+## Quick start
+
+**1. Install the skills.** They teach your agent the integration. You need Node.js 22.20 or later.
+
+```bash
+npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp
+```
+
+**2. Install the MCP server.** It lets your agent call Daraja. You need [uv](https://docs.astral.sh/uv/).
+
+```bash
+uvx mpesa-daraja-mcp setup
+```
+
+The wizard:
+1. asks for your [Daraja](https://developer.safaricom.co.ke/) keys, with secrets typed hidden;
+2. checks the keys live with Safaricom;
+3. saves them to a config file only you can read;
+4. adds the server to Claude Code, Codex, Gemini CLI or Cursor for you.
+
+Restart your agent when it finishes.
+
+<details>
+<summary><b>Prefer one command per agent?</b> No keys are needed in the command.</summary>
+
+| Agent | Command |
+|---|---|
+| Claude Code | `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp` |
+| Codex | `codex mcp add mpesa -- uvx mpesa-daraja-mcp` |
+| Gemini CLI | `gemini mcp add --scope user mpesa uvx mpesa-daraja-mcp` |
+| Cursor, VS Code, others | JSON snippets in [docs/clients.md](docs/clients.md#2-mcp-server) |
+
+Then run `uvx mpesa-daraja-mcp setup` to save your keys, or put them in a config file yourself. Both are described in [docs/clients.md](docs/clients.md).
+</details>
+
+**3. Ask your agent:**
+
+> *"Check my M-Pesa credentials, then send a KES 1 STK push to 0712345678 and tell me when it's paid."*
+
+The agent calls `mpesa_check_credentials`, then `mpesa_stk_push_and_wait`, and gives one clear answer:
+
+| Result | Meaning |
+|---|---|
+| `SUCCESS` | Paid. Includes the M-Pesa receipt |
+| `FAILED` | Not paid, with the reason, e.g. `1032`: cancelled by the user |
+| `UNKNOWN` | Outcome not known yet, with what to check next. It is never retried blindly |
+
+Everything starts in the **sandbox**. No real money can move until you opt in.
+
 ## Why
 
-Wiring up M-Pesa is full of traps that agents (and people) fall into:
-- treating `ResponseCode "0"` as *paid*;
-- building the STK password with a UTC timestamp;
-- retrying a timed-out payout and paying twice;
-- "fixing" Daraja's own spelling of `RecieverIdentifierType`.
+Integrating M-Pesa is full of traps that agents, and people, fall into:
 
-This repo packages that hard-won knowledge so an agent gets it right the first time, and then lets the agent call Daraja with safety rails built in.
+- treating `ResponseCode "0"` as *paid*, when it only means *accepted for processing*;
+- building the STK password with a UTC timestamp instead of East Africa Time;
+- retrying a payout that timed out, and paying twice;
+- "fixing" Daraja's own spellings, such as `RecieverIdentifierType` and `Occassion`, which breaks the request.
+
+This repo packages that knowledge so your agent gets it right the first time.
 
 ## What's inside
 
 | | |
 |---|---|
-| 🧠 **[15 Agent Skills](skills)** | Every major Daraja API: STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, sandbox setup and go-live, security, troubleshooting. Each skill is self-contained, with bundled scripts that validate requests, build passwords, encrypt credentials and parse callbacks. |
-| 🔌 **[MCP server](mcp-server)** (`mpesa-daraja-mcp`) | 23 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call. An optional built-in callback receiver feeds `mpesa_get_result`. |
-| 🛡️ **Safety by default** | Uses the sandbox unless told otherwise. Live money movement is off until you opt in. Money tools are idempotent, so a repeated key never pays twice. Requests are validated before anything is sent. |
-| 🪶 **Context-efficient** | `MPESA_TOOLSETS` loads only what you use: STK-only checkout costs ~2,100 schema tokens instead of ~6,300. |
+| 🧠 **[15 Agent Skills](skills)** | Every major Daraja API: STK Push, C2B, B2C, B2B, tax remittance, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager. Plus callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Each skill is self-contained, with scripts that validate requests, build passwords, encrypt credentials and parse callbacks. |
+| 🔌 **[MCP server](mcp-server)** ([`mpesa-daraja-mcp`](https://pypi.org/project/mpesa-daraja-mcp/)) | 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call. An optional built-in callback receiver records results for `mpesa_get_result`. |
+| 🛡️ **Safety by default** | Sandbox unless told otherwise. Live money movement is off until you opt in. Money tools are idempotent, and every request is validated before it is sent. |
+| 🪶 **Context-efficient** | `MPESA_TOOLSETS` loads only the tools you use. STK checkout alone costs about 2,100 schema tokens instead of 6,300. |
+
+You can use either half on its own. The skills work without the server, and the server works without the skills. Together, the skills tell the agent *which* tool to call and *why*.
+
+### Supported Daraja APIs
+
+| API | Skill | MCP tools |
+|---|---|---|
+| OAuth | `daraja-auth` | `mpesa_check_credentials` |
+| M-Pesa Express (STK Push) | `daraja-stk-push` | `mpesa_stk_push_and_wait`, `mpesa_stk_push`, `mpesa_stk_query` |
+| C2B and Pull Transactions | `daraja-c2b` | `mpesa_c2b_register_urls`, `mpesa_c2b_simulate`, `mpesa_pull_transactions` |
+| B2C and Pochi la Biashara | `daraja-b2c` | `mpesa_b2c_payment` |
+| B2B, B2C top-up and B2B Express Checkout | `daraja-b2b` | `mpesa_b2b_payment`, `mpesa_b2b_express_checkout` |
+| Tax remittance (KRA) | `daraja-tax-remittance` | `mpesa_b2b_payment` (`PayTaxToKRA`) |
+| Transaction Status, Account Balance, Reversal | `daraja-account-ops` | `mpesa_transaction_status`, `mpesa_account_balance`, `mpesa_reverse_transaction` |
+| Dynamic QR | `daraja-dynamic-qr` | `mpesa_generate_dynamic_qr` |
+| Ratiba (standing orders) | `daraja-ratiba` | `mpesa_ratiba_create_standing_order` |
+| Bill Manager | `daraja-bill-manager` | `mpesa_bill_manager_optin`, `_send_invoice`, `_cancel_invoice` |
+
+Helper skills cover callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Offline tools explain result codes, normalise phone numbers, build STK passwords and parse callbacks.
 
 ## How it works
 
@@ -47,69 +119,65 @@ flowchart LR
     M -- mpesa_get_result /<br/>stk_push_and_wait --> DB
 ```
 
-## Quick start
-
-**1. Skills.** Works with any supported agent and needs Node.js 22.20+:
-
-```bash
-npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp
-```
-
-**2. MCP server.** Needs [uv](https://docs.astral.sh/uv/). Run the setup wizard:
-
-```bash
-uvx mpesa-daraja-mcp setup
-```
-
-> **Before the first PyPI release** `uvx mpesa-daraja-mcp` can't find the package yet. Run straight from GitHub instead: use `uvx --from "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#subdirectory=mcp-server" mpesa-daraja-mcp` wherever these docs say `uvx mpesa-daraja-mcp`.
-
-It asks for your [Daraja](https://developer.safaricom.co.ke/) keys, checks them live, saves them privately, and adds the server to Claude Code, Codex, Gemini CLI or Cursor for you. Prefer doing it by hand? Run `claude mcp add mpesa -- uvx mpesa-daraja-mcp` (no keys in the command) and put the keys in a config file. Every agent is covered in **[docs/clients.md](docs/clients.md)**.
-
-**3. Ask your agent:**
-
-> *"Check my M-Pesa credentials, then send a KES 1 STK push to 0712345678 and tell me when it's paid."*
-
-The agent calls `mpesa_check_credentials`, then `mpesa_stk_push_and_wait`, and reports one of:
-- `SUCCESS`, with the M-Pesa receipt;
-- `FAILED`, with the reason (e.g. `1032`, cancelled by the user);
-- `UNKNOWN`, with what to check next.
-
 ## Safety model
 
 | Risk | Safeguard |
 |---|---|
-| Real money moved by accident | Sandbox by default. Production money tools refuse to run without `MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true`, and are flagged destructive so clients ask before running them |
-| Paying twice on a retry | Each money request is stored under an idempotency key. A repeat returns the stored outcome; only a definite failure can be re-sent |
-| Reporting "accepted" as "paid" | One result shape: `ACCEPTED`, `SUCCESS`, `FAILED` or `UNKNOWN`. Only callbacks or queries produce `SUCCESS` |
-| Malformed requests | Bodies are checked against Daraja's rules before sending, with the same validator the skills use |
-| Leaked secrets | Tokens and secrets are never returned in tool output. Callbacks need a secret path token |
+| Real money moved by accident | Sandbox by default. In production, money tools refuse to run without `MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true`. They are also flagged as destructive, so clients ask before running them |
+| Paying twice on a retry | Each money request is stored under an idempotency key. Repeating the key returns the stored outcome; only a definite failure can be re-sent |
+| Reporting "accepted" as "paid" | One result shape: `ACCEPTED`, `SUCCESS`, `FAILED` or `UNKNOWN`. Only a callback or a status query can produce `SUCCESS` |
+| Malformed requests | Request bodies are checked against Daraja's rules before sending, using the same validator as the skills |
+| Leaked secrets | Tokens and secrets never appear in tool output, and keys never need to go in agent config. Callback URLs carry a secret path token |
 
-Found a security problem? See [SECURITY.md](SECURITY.md).
+Found a security problem? Please report it privately, as described in [SECURITY.md](SECURITY.md).
 
 ## Documentation
 
 | Doc | For |
 |---|---|
-| [docs/clients.md](docs/clients.md) | Setup for each agent: skills folders and MCP config snippets |
-| [mcp-server/README.md](mcp-server/README.md) | Tools, configuration, the callback receiver, toolsets |
+| [docs/clients.md](docs/clients.md) | Setup for each agent: skills folders, MCP config snippets, config files |
+| [mcp-server/README.md](mcp-server/README.md) | Every tool, configuration settings, the callback receiver, toolsets |
 | [skills/README.md](skills/README.md) | The skill catalogue, and why each skill is built the way it is |
-| [AGENTS.md](AGENTS.md) | Rules for AI agents working on M-Pesa code or this repo |
+| [AGENTS.md](AGENTS.md) | Rules for AI agents working on M-Pesa code or on this repo |
 | [Content.md](Content.md) | Background research: Daraja architecture, OAuth, credentials, sandbox |
+
+## FAQ
+
+**Do I need a Safaricom account?**
+You need a free [Daraja developer account](https://developer.safaricom.co.ke/) and a sandbox app for its consumer key and secret. Sandbox shortcode `174379` and its passkey work out of the box for STK Push.
+
+**Will it charge real money?**
+Not unless you set `MPESA_ENV=production` with live keys *and* `MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
+
+**Why didn't I get a receipt?**
+Safaricom sends the receipt to your callback URL. Set `MPESA_CALLBACK_BASE_URL` to a public HTTPS address, such as an ngrok tunnel to the built-in receiver. Without one, `mpesa_stk_push_and_wait` still reports the outcome through STK Query, but without the receipt number. See [the callback receiver](mcp-server/README.md#results-and-callbacks).
+
+**My agent says "Connection closed".**
+Run `uvx mpesa-daraja-mcp status`. It shows which settings are missing and re-tests your keys. Then restart the agent.
 
 ## Development
 
 ```bash
+git clone https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp.git && cd mpesa-daraja-skills-and-mcp
 pip install -e "mcp-server[dev]"
 uvx ruff check .                 # lint
 python tools/sync_skills.py      # regenerate skill scripts from their single sources
 pytest mcp-server                # tests; no network or credentials needed
 ```
 
-CI runs lint, the sync check, tests on Python 3.10–3.13, and a package build. Releases publish to PyPI and the MCP Registry when a `v*` tag is pushed. See [CONTRIBUTING.md](CONTRIBUTING.md).
+CI runs:
+- lint;
+- the skill-script sync check;
+- tests on Python 3.10–3.13;
+- a package build.
+
+Publishing a `v*` release sends the package to PyPI and the MCP Registry. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing
 
-Bug reports, Daraja corrections and new skills are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and follow the [Code of Conduct](CODE_OF_CONDUCT.md). Changes are tracked in [CHANGELOG.md](CHANGELOG.md).
+Bug reports, Daraja corrections and new skills are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and follow the [Code of Conduct](CODE_OF_CONDUCT.md). Changes are recorded in [CHANGELOG.md](CHANGELOG.md).
+
+If this project saves you time, a ⭐ helps others find it.
 
 ## License
 
@@ -117,4 +185,4 @@ Bug reports, Daraja corrections and new skills are welcome. Please read [CONTRIB
 
 ---
 
-<sub>This is an independent open-source project, not affiliated with or endorsed by Safaricom PLC. M-Pesa and Daraja are trademarks of Safaricom PLC. You are responsible for complying with Safaricom's terms and with applicable payments regulation when you go live.</sub>
+<sub>This is an independent open-source project. It is not affiliated with or endorsed by Safaricom PLC. M-Pesa and Daraja are trademarks of Safaricom PLC. When you go live, you are responsible for complying with Safaricom's terms and with payments regulation.</sub>
