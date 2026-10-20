@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from mpesa_mcp import helpers
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -55,7 +54,8 @@ def test_every_routed_skill_exists():
 
 
 def test_skills_in_sync_with_sources():
-    res = subprocess.run([sys.executable, str(ROOT / "tools/sync_skills.py"), "--check"], capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(ROOT / "tools/sync_skills.py"), "--check"],
+                         capture_output=True, text=True)
     assert res.returncode == 0, res.stdout
 
 
@@ -89,7 +89,7 @@ def test_codes_in_skill_tables_are_known(skill):
         for code in CODE_IN_TABLE.findall(md.read_text(encoding="utf-8")):
             if code in {"400", "401", "404", "405", "429", "500", "503"}:
                 continue  # HTTP statuses
-            assert code in helpers.RESULT_CODES, f"{md.relative_to(ROOT)}: code {code} missing from helpers.RESULT_CODES"
+            assert code in helpers.RESULT_CODES, f"{md.relative_to(ROOT)}: code {code} not in RESULT_CODES"
 
 
 def run(script, *args, stdin=None, env=None):
@@ -138,17 +138,21 @@ def test_explain_code_script():
 
 
 def test_security_credential_script(tmp_path):
+    import base64
+    import datetime as dt
+    import os
+
     from cryptography import x509
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import padding, rsa
     from cryptography.x509.oid import NameOID
-    import base64, datetime as dt, os
 
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "t")])
     now = dt.datetime.now(dt.timezone.utc)
     cert = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(key.public_key())
-            .serial_number(1).not_valid_before(now).not_valid_after(now + dt.timedelta(days=1)).sign(key, hashes.SHA256()))
+            .serial_number(1).not_valid_before(now).not_valid_after(now + dt.timedelta(days=1))
+            .sign(key, hashes.SHA256()))
     path = tmp_path / "c.cer"
     path.write_bytes(cert.public_bytes(serialization.Encoding.PEM))
     res = run("daraja-credentials-security/scripts/security_credential.py", str(path),

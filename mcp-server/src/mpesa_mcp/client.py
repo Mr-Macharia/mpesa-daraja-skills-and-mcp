@@ -53,7 +53,7 @@ class Config:
         self.base_url = BASE_URLS[self.env]
 
     @classmethod
-    def from_env(cls) -> "Config":
+    def from_env(cls) -> Config:
         def get(name: str) -> str | None:
             value = os.environ.get(name, "").strip()
             return value or None

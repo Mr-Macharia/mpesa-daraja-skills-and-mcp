@@ -89,4 +89,4 @@ Callbacks get lost. The Pull API lets you fetch transactions for a time window. 
 
 ## MCP
 
-`mpesa:mpesa_c2b_register_urls`, `mpesa:mpesa_c2b_simulate` (sandbox only), `mpesa:mpesa_pull_transactions`, and `mpesa:mpesa_parse_callback` (for confirmation payloads).
+`mpesa_c2b_register_urls`, `mpesa_c2b_simulate` (sandbox only), `mpesa_pull_transactions`, and `mpesa_parse_callback` (for confirmation payloads).

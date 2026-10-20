@@ -72,4 +72,4 @@ Common errors: `500.002.1001` / `15` duplicate OriginatorConversationID; `18` / 
 
 ## MCP
 
-`mpesa:mpesa_transaction_status`, `mpesa:mpesa_account_balance`, `mpesa:mpesa_reverse_transaction` (flagged destructive, and gated in production) and `mpesa:mpesa_parse_callback`.
+`mpesa_transaction_status`, `mpesa_account_balance`, `mpesa_reverse_transaction` (flagged destructive, and gated in production) and `mpesa_parse_callback`.

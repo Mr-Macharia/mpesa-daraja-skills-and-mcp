@@ -79,11 +79,11 @@ Money leaves your account, so **the outcome must be known before any retry.**
 
 - Never auto-retry a timeout. Treat `QueueTimeOutURL` as **unknown**, not failed.
 - Cap per-transaction and daily totals in your app. Require approval for large amounts.
-- Monitor the utility balance with `mpesa:mpesa_account_balance` and alert early.
+- Monitor the utility balance with `mpesa_account_balance` and alert early.
 
 ## MCP
 
-`idempotency_key` is **required** (e.g. `refund-order-1042`). Repeating it never pays twice. An ACCEPTED or UNKNOWN payout is returned as `duplicate: true` and not re-sent. Read the outcome with `mpesa:mpesa_get_result(<key>)`.
+`idempotency_key` is **required** (e.g. `refund-order-1042`). Repeating it never pays twice. An ACCEPTED or UNKNOWN payout is returned as `duplicate: true` and not re-sent. Read the outcome with `mpesa_get_result(<key>)`.
 
 
-`mpesa:mpesa_b2c_payment(phone, amount, remarks, idempotency_key, command=…)` creates a fresh `OriginatorConversationID` for each attempt and returns it in `ids`. `mpesa:mpesa_transaction_status(original_conversation_id=…)` resolves UNKNOWN outcomes.
+`mpesa_b2c_payment(phone, amount, remarks, idempotency_key, command=…)` creates a fresh `OriginatorConversationID` for each attempt and returns it in `ids`. `mpesa_transaction_status(original_conversation_id=…)` resolves UNKNOWN outcomes.

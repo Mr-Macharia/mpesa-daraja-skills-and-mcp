@@ -72,5 +72,5 @@ The vendor (you) asks a merchant to pay your Paybill from their Till. The mercha
 
 ## MCP
 
-- `mpesa:mpesa_b2b_payment(receiver_shortcode, amount, account_reference, command=…)` sets the identifier types automatically.
-- `mpesa:mpesa_b2b_express_checkout(...)` runs B2B Express Checkout.
+- `mpesa_b2b_payment(receiver_shortcode, amount, account_reference, command=…)` sets the identifier types automatically.
+- `mpesa_b2b_express_checkout(...)` runs B2B Express Checkout.

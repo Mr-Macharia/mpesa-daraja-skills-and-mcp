@@ -77,10 +77,10 @@ Copy this checklist and tick items off as you go:
 
 ## MCP tools
 
-If the `mpesa` MCP server from this repo is connected, call Daraja directly instead of writing throwaway scripts. For example:
-- `mpesa:mpesa_check_credentials` checks the configured keys.
-- `mpesa:mpesa_stk_push` and `mpesa:mpesa_stk_query` run M-Pesa Express.
-- `mpesa:mpesa_parse_callback` parses a callback payload.
-- `mpesa:mpesa_explain_code` explains an error or result code.
+If the `mpesa-daraja-mcp` server is connected (tool names start with `mpesa_`; some clients prefix them with the server name), call Daraja directly instead of writing throwaway scripts. For example:
+- `mpesa_check_credentials` checks the configured keys.
+- `mpesa_stk_push` and `mpesa_stk_query` run M-Pesa Express.
+- `mpesa_parse_callback` parses a callback payload.
+- `mpesa_explain_code` explains an error or result code.
 
-Use `mpesa:mpesa_stk_push_and_wait` for checkout and `mpesa:mpesa_get_result` to read any final result. Money tools are idempotent per `idempotency_key`. Money-moving tools refuse to run in production unless the operator has explicitly enabled them.
+Use `mpesa_stk_push_and_wait` for checkout and `mpesa_get_result` to read any final result. Money tools are idempotent per `idempotency_key`. Money-moving tools refuse to run in production unless the operator has explicitly enabled them.

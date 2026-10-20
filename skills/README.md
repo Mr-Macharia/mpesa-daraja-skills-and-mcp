@@ -22,10 +22,11 @@ Agent Skills for building Safaricom M-Pesa Daraja integrations. Each folder hold
 
 ## Install
 
-- **Claude Code plugin**: run `/plugin marketplace add mr-macharia/mpesa-mcp`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`.
-- **Manual (project)**: `cp -r skills/* .claude/skills/`. **Manual (user)**: `cp -r skills/* ~/.claude/skills/`.
-- **claude.ai / API**: zip each folder and upload it as a custom skill.
-- Pair the skills with the [`mpesa` MCP server](../mcp-server) so the agent can call Daraja directly. The skills reference its tools as `mpesa:mpesa_<tool>`.
+- **Any agent (Codex, Cursor, Copilot, Gemini CLI, Claude Code, Windsurf, Cline, …)**: run `npx skills add Mr-Macharia/Mpesa-MCP`. Add `-a <agent>` to target one agent and `-g` to install globally. Folders for each agent are listed in [docs/clients.md](../docs/clients.md).
+- **Claude Code plugin**: run `/plugin marketplace add Mr-Macharia/Mpesa-MCP`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`.
+- **Manual**: copy any skill folder into your agent's skills directory. Each folder is self-contained.
+- **claude.ai / API**: zip a skill folder and upload it as a custom skill.
+- Pair the skills with the [`mpesa-daraja-mcp` server](../mcp-server) (`uvx mpesa-daraja-mcp`) so the agent can call Daraja directly. The skills name its tools `mpesa_<tool>`.
 
 ## Why the skills are built this way
 
@@ -42,7 +43,7 @@ The structure follows [Anthropic's skill-authoring best practices](https://platf
 | **Low freedom where mistakes cost money** | The guide calls this a narrow bridge: exact guardrails where a misstep is costly | Hard rules: never fulfil on `ResponseCode 0`; never auto-retry an unknown payout; reuse the OriginatorConversationID |
 | **Consistent terminology and naming** | Inconsistent terms confuse selection and parsing | A `daraja-<product>` naming scheme. Always "CallBackURL/ResultURL", "initiator", "SecurityCredential" |
 | **No time-sensitive facts** | Facts like these go stale | Sandbox values are described as "read from the portal" rather than hardcoded passkeys |
-| **Fully qualified MCP tool names** | Avoids "tool not found" errors when several servers are connected | `mpesa:mpesa_stk_push` |
+| **Unambiguous MCP tool names** | Avoids "tool not found" errors when several servers are connected | Every tool carries a service prefix (`mpesa_stk_push`). That is unique across servers and reads the same in every client, where Claude-only `server:tool` syntax would not |
 | **Evaluations first** | Evals are the source of truth for whether a skill helps | [`../evals/skill_evals.json`](../evals/skill_evals.json) holds 10 scenario/rubric pairs; [`../mcp-server/tests/test_skills.py`](../mcp-server/tests/test_skills.py) lints every skill against the spec and tests every script |
 
 ## Sources

@@ -1,6 +1,8 @@
-# mpesa-mcp — M-Pesa Daraja MCP server
+# mpesa-daraja-mcp: M-Pesa Daraja MCP server
 
-An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [`../skills`](../skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
+<!-- mcp-name: io.github.Mr-Macharia/mpesa-daraja-mcp -->
+
+An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [`../skills`](https://github.com/Mr-Macharia/Mpesa-MCP/tree/main/skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
 
 ## Tools
 
@@ -61,26 +63,29 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 ## Install & run
 
 ```bash
-cd mcp-server
-pip install -e .            # or: uv pip install -e .
-mpesa-mcp                   # stdio transport
+uvx mpesa-daraja-mcp        # from PyPI, no install step (stdio transport)
 ```
+
+From a checkout: `pip install -e mcp-server`, then run `mpesa-daraja-mcp`. The older `mpesa-mcp` command still works.
+
+Setup for Claude Code, Codex, Gemini CLI, Cursor, VS Code and others is in [docs/clients.md](https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/docs/clients.md).
 
 ### Claude Code
 
 ```bash
 claude mcp add mpesa --env MPESA_CONSUMER_KEY=... --env MPESA_CONSUMER_SECRET=... \
   --env MPESA_SHORTCODE=174379 --env MPESA_PASSKEY=... \
-  --env MPESA_CALLBACK_BASE_URL=https://<tunnel> -- mpesa-mcp
+  --env MPESA_CALLBACK_BASE_URL=https://<tunnel> -- uvx mpesa-daraja-mcp
 ```
 
-### Claude Desktop / other clients (`mcpServers` JSON)
+### `mcpServers` JSON (Claude Desktop, Cursor, Gemini CLI, …)
 
 ```json
 {
   "mcpServers": {
     "mpesa": {
-      "command": "mpesa-mcp",
+      "command": "uvx",
+      "args": ["mpesa-daraja-mcp"],
       "env": {
         "MPESA_ENV": "sandbox",
         "MPESA_CONSUMER_KEY": "...",
@@ -138,3 +143,7 @@ pip install -e ".[dev]"
 pytest
 ```
 Tests use `respx` to mock Daraja. Nothing hits the network.
+
+## License
+
+[MIT](https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/LICENSE). Not affiliated with or endorsed by Safaricom PLC; M-Pesa and Daraja are trademarks of Safaricom PLC.

@@ -1,15 +1,40 @@
 [project]
-name = "mpesa-mcp"
+name = "mpesa-daraja-mcp"
 version = "0.1.0"
-description = "MCP server exposing Safaricom M-Pesa Daraja APIs (STK Push, C2B, B2C, B2B, status, balance, reversal, QR, Ratiba, Bill Manager) as tools"
+description = "MCP server for Safaricom M-Pesa Daraja: STK Push, C2B, B2C, B2B, status, balance, reversal, QR, Ratiba, Bill Manager"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
+authors = [{ name = "Mr-Macharia" }]
+keywords = ["mpesa", "m-pesa", "daraja", "safaricom", "mcp", "model-context-protocol", "payments", "kenya"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business :: Financial",
+  "Topic :: Software Development :: Libraries",
+]
 dependencies = ["mcp>=2.3,<3", "httpx>=0.27", "cryptography>=42"]
 
+[project.urls]
+Homepage = "https://github.com/Mr-Macharia/Mpesa-MCP"
+Repository = "https://github.com/Mr-Macharia/Mpesa-MCP"
+Issues = "https://github.com/Mr-Macharia/Mpesa-MCP/issues"
+Changelog = "https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/docs/clients.md"
+
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-asyncio>=0.23", "respx>=0.21", "pyyaml>=6"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "respx>=0.21", "pyyaml>=6", "jsonschema>=4", "tomli>=2; python_version < '3.11'"]
 
 [project.scripts]
+# uvx runs the script named like the package; mpesa-mcp is kept for existing configs.
+mpesa-daraja-mcp = "mpesa_mcp.server:main"
 mpesa-mcp = "mpesa_mcp.server:main"
 
 [build-system]

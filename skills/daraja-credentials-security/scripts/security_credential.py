@@ -3,7 +3,9 @@
 """Encrypt an initiator password into a Daraja SecurityCredential.
 
 Usage:
-    MPESA_INITIATOR_PASSWORD=... python scripts/security_credential.py <SandboxCertificate.cer|ProductionCertificate.cer>
+    MPESA_INITIATOR_PASSWORD=... python scripts/security_credential.py <certificate.cer>
+
+Use SandboxCertificate.cer for the sandbox and ProductionCertificate.cer for production.
 
 Reads the password from the environment (never pass it as an argument: it
 would land in shell history). Uses the `cryptography` package if installed,

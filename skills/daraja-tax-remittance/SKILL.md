@@ -51,4 +51,4 @@ Errors and the initiator setup are the same as B2B (see `daraja-b2b` and `daraja
 
 ## MCP
 
-`mpesa:mpesa_b2b_payment(receiver_shortcode="572572", amount=…, account_reference="<PRN>", command="PayTaxToKRA")`. The tool forces `PartyB=572572` and the remittax endpoint.
+`mpesa_b2b_payment(receiver_shortcode="572572", amount=…, account_reference="<PRN>", command="PayTaxToKRA")`. The tool forces `PartyB=572572` and the remittax endpoint.

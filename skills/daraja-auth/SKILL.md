@@ -85,4 +85,4 @@ Node.js uses the same idea: `Buffer.from(`${key}:${secret}`).toString("base64")`
 
 ## MCP
 
-`mpesa:mpesa_check_credentials` fetches a token with the configured keys and reports the environment and expiry. It never returns the token.
+`mpesa_check_credentials` fetches a token with the configured keys and reports the environment and expiry. It never returns the token.

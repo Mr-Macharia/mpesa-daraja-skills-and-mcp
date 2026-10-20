@@ -1,0 +1,43 @@
+name: Bug report
+description: Something in the skills or MCP server doesn't work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste real credentials** (consumer key/secret, passkey, initiator password, SecurityCredential).
+        Security problems belong in a [private advisory](https://github.com/Mr-Macharia/Mpesa-MCP/security/advisories/new), not here.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options: [MCP server, Skill, Skill script, Docs / client setup, Release / packaging]
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Include the tool or skill name and any Daraja errorCode / ResultCode.
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Request bodies and callback payloads help a lot. Mask phone numbers and secrets.
+    validations: { required: true }
+  - type: dropdown
+    id: env
+    attributes:
+      label: Daraja environment
+      options: [sandbox, production, not applicable]
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "mpesa-daraja-mcp 0.1.0, or a commit SHA"
+  - type: input
+    id: agent
+    attributes:
+      label: Agent / MCP client
+      placeholder: "Claude Code, Codex, Cursor, VS Code, Gemini CLI…"

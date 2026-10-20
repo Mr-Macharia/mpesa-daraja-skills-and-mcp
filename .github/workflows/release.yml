@@ -1,0 +1,56 @@
+name: release
+
+# Push a tag like v0.1.0 (matching mcp-server/pyproject.toml and server.json) to publish.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e "mcp-server[dev]"
+      - run: python tools/sync_skills.py --check
+      - run: pytest mcp-server
+      - name: Tag must match the package version
+        run: |
+          version=$(python -c "import tomllib;print(tomllib.load(open('mcp-server/pyproject.toml','rb'))['project']['version'])")
+          test "v$version" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME != v$version"; exit 1; }
+
+  pypi:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # PyPI trusted publishing: no API token stored in the repo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build mcp-server --out-dir dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  mcp-registry:
+    needs: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # MCP Registry login via GitHub OIDC
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+      - name: Wait for the PyPI release to be visible
+        run: |
+          version=$(python3 -c "import json;print(json.load(open('mcp-server/server.json'))['version'])")
+          for i in $(seq 1 30); do
+            curl -sf "https://pypi.org/pypi/mpesa-daraja-mcp/$version/json" >/dev/null && exit 0
+            sleep 10
+          done
+          echo "PyPI release not visible after 5 minutes"; exit 1
+      - run: ./mcp-publisher login github-oidc
+      - run: ../mcp-publisher publish
+        working-directory: mcp-server

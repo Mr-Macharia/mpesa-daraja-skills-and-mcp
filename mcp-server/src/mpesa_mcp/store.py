@@ -106,7 +106,8 @@ class Store:
                     (corr, status, blob, now),
                 )
                 self._db.execute(
-                    f"UPDATE requests SET status = ?, updated_at = ? WHERE status IN ({','.join('?' * len(OPEN_STATUSES))}) "
+                    "UPDATE requests SET status = ?, updated_at = ? "
+                    f"WHERE status IN ({','.join('?' * len(OPEN_STATUSES))}) "
                     "AND key IN (SELECT key FROM request_ids WHERE id = ?)",
                     (status, now, *OPEN_STATUSES, corr),
                 )
