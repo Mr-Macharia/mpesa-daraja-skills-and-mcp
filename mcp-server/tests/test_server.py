@@ -89,10 +89,36 @@ async def test_token_cached_and_401_retried(daraja):
     assert out.status == "FAILED" and "cancel" in out.explanation.lower()
 
 
-async def test_stk_query_still_processing(daraja):
-    daraja.post("/mpesa/stkpushquery/v1/query").respond(500, json={
-        "errorCode": "500.001.1001", "errorMessage": "The transaction is being processed"})
-    assert (await server.stk_query("ws_CO_1")).status == "ACCEPTED"
+PROCESSING = {"requestId": "r1", "errorCode": "500.001.1001", "errorMessage": "The transaction is being processed"}
+
+
+async def test_stk_query_still_processing_keeps_safaricoms_reply(daraja):
+    daraja.post("/mpesa/stkpushquery/v1/query").respond(500, json=PROCESSING)
+    out = await server.stk_query("ws_CO_1")
+    assert out.status == "ACCEPTED"
+    assert out.raw == PROCESSING  # was None: Daraja's answer was thrown away
+    assert "being processed" in out.message and "15 seconds" in out.message
+
+
+async def test_stk_query_lag_then_paid(daraja):
+    """The reported sequence: customer pays, Daraja's query lags, then reports success."""
+    route = daraja.post("/mpesa/stkpushquery/v1/query")
+    route.side_effect = [httpx.Response(500, json=PROCESSING),
+                         httpx.Response(200, json={"ResultCode": "0",
+                                                   "ResultDesc": "The service request is processed successfully."})]
+    assert (await server.stk_query("ws_CO_9")).status == "ACCEPTED"
+    second = await server.stk_query("ws_CO_9")
+    assert second.status == "SUCCESS" and second.result_code == "0"
+    third = await server.stk_query("ws_CO_9")  # now known: answered from the store
+    assert third.status == "SUCCESS" and route.call_count == 2
+
+
+async def test_stk_query_uses_callback_result_with_receipt(daraja):
+    route = daraja.post("/mpesa/stkpushquery/v1/query").respond(500, json=PROCESSING)
+    from mpesa_mcp.receiver import record_callback
+    record_callback(server.state(), "/mpesa/stk/callback", stk_callback(0))
+    out = await server.stk_query("ws_CO_1")
+    assert out.status == "SUCCESS" and out.receipt == "NLJ7RT61SV" and route.call_count == 0
 
 
 async def test_error_surfaces_code_hint(daraja):
