@@ -5,7 +5,7 @@ Tooling that helps AI agents build and operate **Safaricom M-Pesa Daraja** integ
 | Path | What it is |
 |---|---|
 | [`skills/`](skills) | 15 Agent Skills (`SKILL.md` each) covering every major Daraja API, with scripts, references and a router skill |
-| [`mcp-server/`](mcp-server) | `mpesa-mcp`, an MCP server exposing 21 Daraja tools, sandbox-first, with production money movement disabled by default |
+| [`mcp-server/`](mcp-server) | `mpesa-mcp`, an MCP server exposing 23 Daraja tools (idempotent money tools, built-in callback receiver, toolsets), sandbox-first, with production money movement disabled by default |
 | [`evals/`](evals) | Scenario and rubric evaluations for the skills |
 | [`Content.md`](Content.md) | Research volume on the Daraja architecture, auth, credentials and sandbox |
 | `.claude-plugin/` | Lets Claude Code install the skills as a plugin |

@@ -88,4 +88,7 @@ Tunnel with `ngrok http 5000` or `cloudflared tunnel --url http://localhost:5000
 
 ## MCP
 
+The `mpesa` server has a built-in receiver: set `MPESA_CALLBACK_LISTEN` and `MPESA_CALLBACK_TOKEN`. It stores every callback, so `mpesa:mpesa_get_result(id)` returns final results. That is enough for development and the sandbox; write your own receiver for production business logic.
+
+
 `mpesa:mpesa_parse_callback(payload)` parses any of these payloads and explains the result code.

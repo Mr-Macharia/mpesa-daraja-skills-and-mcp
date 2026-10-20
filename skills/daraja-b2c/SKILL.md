@@ -83,4 +83,7 @@ Money leaves your account, so **the outcome must be known before any retry.**
 
 ## MCP
 
-`mpesa:mpesa_b2c_payment(phone, amount, remarks, command=…)` generates and returns the `OriginatorConversationID`. Pass it back as `originator_conversation_id` on a retry. `mpesa:mpesa_transaction_status(original_conversation_id=…)` resolves unknown outcomes.
+`idempotency_key` is **required** (e.g. `refund-order-1042`). Repeating it never pays twice. An ACCEPTED or UNKNOWN payout is returned as `duplicate: true` and not re-sent. Read the outcome with `mpesa:mpesa_get_result(<key>)`.
+
+
+`mpesa:mpesa_b2c_payment(phone, amount, remarks, idempotency_key, command=…)` creates a fresh `OriginatorConversationID` for each attempt and returns it in `ids`. `mpesa:mpesa_transaction_status(original_conversation_id=…)` resolves UNKNOWN outcomes.

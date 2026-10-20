@@ -99,3 +99,17 @@ def test_security_credential_roundtrip():
     for encoding in (serialization.Encoding.PEM, serialization.Encoding.DER):
         cred = helpers.security_credential("Safaricom999!", cert.public_bytes(encoding))
         assert key.decrypt(base64.b64decode(cred), padding.PKCS1v15()) == b"Safaricom999!"
+
+
+def test_parse_ratiba_mixed_case():
+    out = helpers.parse_callback({"responseHeader": {"responseRefID": "r1", "requestRefID": "q1", "responseCode": "0"},
+                                  "responseBody": {"responseData": [{"name": "TransactionID", "value": "SC8F2IQMH5"}]}})
+    assert out["kind"] == "ratiba" and out["success"] and out["transaction_id"] == "SC8F2IQMH5"
+    assert {"r1", "q1", "SC8F2IQMH5"} <= set(helpers.correlation_ids(out))
+
+
+def test_parse_b2b_express_and_bill_manager():
+    bx = helpers.parse_callback({"resultCode": "4001", "requestId": "abc", "resultDesc": "User cancelled"})
+    assert bx["kind"] == "b2b_express" and not bx["success"] and "cancel" in bx["explanation"].lower()
+    bm = helpers.parse_callback({"transactionId": "RJB53MYR1N", "paidAmount": "50", "accountReference": "A1"})
+    assert bm["kind"] == "bill_manager_payment" and helpers.correlation_ids(bm) == ["RJB53MYR1N"]
