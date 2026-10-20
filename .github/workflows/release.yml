@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
+      contents: read
       id-token: write # PyPI trusted publishing: no API token stored in the repo
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +38,7 @@ jobs:
     needs: pypi
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       id-token: write # MCP Registry login via GitHub OIDC
     steps:
       - uses: actions/checkout@v4
