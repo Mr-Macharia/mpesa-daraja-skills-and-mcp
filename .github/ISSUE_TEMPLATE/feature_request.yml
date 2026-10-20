@@ -1,0 +1,21 @@
+name: Feature request
+description: A new Daraja API, tool, skill or agent integration
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The integration or workflow, and where the current tools fall short.
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Link the Daraja portal page for any new API or field.
+  - type: checkboxes
+    id: money
+    attributes:
+      label: Money movement
+      options:
+        - label: This would move money (it must then be idempotent and blocked in production by default)

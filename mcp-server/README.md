@@ -2,7 +2,7 @@
 
 <!-- mcp-name: io.github.Mr-Macharia/mpesa-daraja-mcp -->
 
-An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [`../skills`](../skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
+An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [`../skills`](https://github.com/Mr-Macharia/Mpesa-MCP/tree/main/skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
 
 ## Tools
 
@@ -143,3 +143,7 @@ pip install -e ".[dev]"
 pytest
 ```
 Tests use `respx` to mock Daraja. Nothing hits the network.
+
+## License
+
+[MIT](https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/LICENSE). Not affiliated with or endorsed by Safaricom PLC; M-Pesa and Daraja are trademarks of Safaricom PLC.

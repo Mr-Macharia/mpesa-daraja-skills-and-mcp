@@ -2,10 +2,14 @@
 
 import json
 import re
-import tomllib
 from pathlib import Path
 
 import jsonschema
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10
+    import tomli as tomllib
 
 HERE = Path(__file__).resolve().parents[1]
 SERVER = json.loads((HERE / "server.json").read_text())
@@ -34,3 +38,15 @@ def test_documented_env_vars_exist_in_code():
     code = "".join(p.read_text() for p in (HERE / "src/mpesa_mcp").glob("*.py"))
     for var in SERVER["packages"][0]["environmentVariables"]:
         assert var["name"] in code, var["name"]
+
+
+def test_license_shipped_with_package_matches_repo():
+    assert (HERE / "LICENSE").read_text() == (HERE.parent / "LICENSE").read_text()
+    assert PYPROJECT["license"] == "MIT"
+
+
+def test_pypi_readme_has_no_relative_links():
+    # mcp-server/README.md is the PyPI project page, where repo-relative links break.
+    readme = (HERE / PYPROJECT["readme"]).read_text()
+    relative = [m for m in re.findall(r"\]\(([^)]+)\)", readme) if not m.startswith(("http", "#", "mailto:"))]
+    assert not relative, relative
