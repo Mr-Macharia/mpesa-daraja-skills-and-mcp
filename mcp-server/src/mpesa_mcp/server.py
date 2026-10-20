@@ -18,8 +18,9 @@ import os
 import re
 import time
 import uuid
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Literal
+from typing import Any, Literal
 
 import httpx
 from mcp.server.mcpserver import MCPServer
@@ -125,9 +126,9 @@ def create_server(toolsets: set[str] | None = None) -> MCPServer:
     if unknown:
         raise ValueError(f"Unknown MPESA_TOOLSETS {sorted(unknown)}; choose from {', '.join(TOOLSETS)}")
     srv = MCPServer("mpesa-daraja", instructions=INSTRUCTIONS)
-    for fn, annotations, toolset in _REGISTRY:
+    for fn, hints, toolset in _REGISTRY:
         if toolset in wanted:
-            srv.tool(name=f"mpesa_{fn.__name__}", annotations=annotations)(fn)
+            srv.tool(name=f"mpesa_{fn.__name__}", annotations=hints)(fn)
     return srv
 
 
@@ -524,7 +525,10 @@ async def c2b_simulate(
 
 @tool(QUERY, "c2b")
 async def pull_transactions(start: str, end: str, offset: int = 0, shortcode: str | None = None) -> Any:
-    """Fetch C2B transactions for a window ('YYYY-MM-DD HH:MM:SS') via Pull Transactions to recover missed confirmations (production, registered shortcodes)."""
+    """Fetch C2B transactions for a window ('YYYY-MM-DD HH:MM:SS') via Pull Transactions.
+
+    Recovers missed confirmations. Production only, for shortcodes registered for Pull.
+    """
     c = client()
     return await _post(c, "/pulltransactions/v1/query", {
         "ShortCode": shortcode or c.config.shortcode,
@@ -692,7 +696,9 @@ async def transaction_status(
 
 
 @tool(QUERY, "ops")
-async def account_balance(party_a: str | None = None, result_url: str | None = None, timeout_url: str | None = None) -> Outcome:
+async def account_balance(
+    party_a: str | None = None, result_url: str | None = None, timeout_url: str | None = None
+) -> Outcome:
     """Request shortcode balances. The parsed balances arrive via mpesa_get_result using the returned ID."""
     c = client()
     name, cred = _initiator(c)
@@ -721,7 +727,10 @@ async def reverse_transaction(
     result_url: str | None = None,
     timeout_url: str | None = None,
 ) -> Outcome:
-    """Reverse a C2B payment received on your shortcode (needs a human-approved reason). One reversal per transaction_id."""
+    """Reverse a C2B payment received on your shortcode (needs a human-approved reason).
+
+    One reversal per transaction_id: repeats return the stored request.
+    """
     c = client()
     _guard_money(c)
     name, cred = _initiator(c)
@@ -757,7 +766,8 @@ async def generate_dynamic_qr(
     include_base64: bool = False,
 ) -> dict[str, Any]:
     """Generate an M-Pesa Dynamic QR and save it as a PNG; returns the file path (not the image, to save context).
-    trx_code: BG Buy Goods, PB Paybill, WA agent withdraw, SM send money, SB send to business. cpi = till/paybill/phone."""
+    trx_code: BG Buy Goods, PB Paybill, WA agent withdraw, SM send money, SB send to business.
+    cpi = till/paybill/phone."""
     c = client()
     resp = await _post(c, "/mpesa/qrcode/v1/generate", {
         "MerchantName": merchant_name,
@@ -776,7 +786,8 @@ async def generate_dynamic_qr(
     path = out_dir / f"qr_{safe_ref}_{int(time.time())}.png"
     data = base64.b64decode(qr)
     path.write_bytes(data)
-    result = {"saved": True, "path": str(path), "bytes": len(data), "ref_no": ref_no, "amount": amount, "response": resp}
+    result = {"saved": True, "path": str(path), "bytes": len(data), "ref_no": ref_no, "amount": amount,
+              "response": resp}
     if include_base64:
         result["qr_base64"] = qr
     return result
@@ -796,7 +807,8 @@ async def ratiba_create_standing_order(
     callback_url: str | None = None,
 ) -> Outcome:
     """Create an M-Pesa Ratiba standing order (the customer consents with their PIN). One order per phone + name.
-    Dates YYYYMMDD. frequency: 1 one-off, 2 daily, 3 weekly, 4 monthly, 5 bi-monthly, 6 quarterly, 7 half-year, 8 yearly."""
+    Dates YYYYMMDD. frequency: 1 one-off, 2 daily, 3 weekly, 4 monthly, 5 bi-monthly,
+    6 quarterly, 7 half-year, 8 yearly."""
     c = client()
     _guard_money(c)
     c.config.require("shortcode")
@@ -820,7 +832,9 @@ async def ratiba_create_standing_order(
 
 
 @tool(WRITES, "billmanager")
-async def bill_manager_optin(email: str, official_contact: str, send_reminders: bool = True, callback_url: str | None = None) -> Any:
+async def bill_manager_optin(
+    email: str, official_contact: str, send_reminders: bool = True, callback_url: str | None = None
+) -> Any:
     """Onboard the shortcode to M-Pesa Bill Manager (required once before sending invoices). Returns an app_key."""
     c = client()
     c.config.require("shortcode")
@@ -845,7 +859,10 @@ async def bill_manager_send_invoice(
     amount: int,
     items: list[dict[str, Any]] | None = None,
 ) -> Any:
-    """Send one Bill Manager e-invoice by SMS. billed_period like 'August 2026', due_date 'YYYY-MM-DD'. items: [{'itemName':..., 'amount':...}]."""
+    """Send one Bill Manager e-invoice by SMS.
+
+    billed_period like 'August 2026', due_date 'YYYY-MM-DD', items: [{'itemName': ..., 'amount': ...}].
+    """
     c = client()
     local_phone = "0" + helpers.normalize_phone(phone)[3:]  # Bill Manager uses 07XXXXXXXX
     payload: dict[str, Any] = {

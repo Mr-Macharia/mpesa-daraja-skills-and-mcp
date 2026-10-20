@@ -85,7 +85,7 @@ class CallbackReceiver:
         self.port = self._httpd.server_address[1]
         self._thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
 
-    def start(self) -> "CallbackReceiver":
+    def start(self) -> CallbackReceiver:
         self._thread.start()
         return self
 

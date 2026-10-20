@@ -4,7 +4,6 @@ import json
 import httpx
 import pytest
 import respx
-
 from mpesa_mcp import server
 from mpesa_mcp.client import Config, DarajaClient
 from mpesa_mcp.receiver import CallbackReceiver
@@ -211,7 +210,8 @@ async def test_reversal_once_per_transaction(daraja):
 
 
 async def test_b2b_express_correlates_request_ref(daraja):
-    route = daraja.post("/v1/ussdpush/get-msisdn").respond(200, json={"code": "0", "status": "USSD Initiated Successfully"})
+    ack = {"code": "0", "status": "USSD Initiated Successfully"}
+    route = daraja.post("/v1/ussdpush/get-msisdn").respond(200, json=ack)
     out = await server.b2b_express_checkout("000001", "000002", 100, "INV", "Vendor", idempotency_key="bx-1")
     ref = body(route)["RequestRefID"]
     from mpesa_mcp.receiver import record_callback

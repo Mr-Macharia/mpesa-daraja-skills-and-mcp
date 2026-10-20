@@ -1,0 +1,13 @@
+# Lint config for the whole repo (server, shared scripts, tools). Run: uvx ruff check .
+line-length = 120
+target-version = "py310"
+extend-exclude = ["skills/*/scripts"]  # generated copies; lint their sources instead
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[lint.per-file-ignores]
+# Stdlib CLI scripts must put their own folder on sys.path before importing the copied library.
+"shared/scripts/*.py" = ["E402"]
+# The error-code table reads best as one string per code.
+"mcp-server/src/mpesa_mcp/helpers.py" = ["E501"]
