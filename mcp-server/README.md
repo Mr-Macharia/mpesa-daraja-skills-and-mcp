@@ -2,7 +2,7 @@
 
 <!-- mcp-name: io.github.Mr-Macharia/mpesa-daraja-mcp -->
 
-An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [`../skills`](https://github.com/Mr-Macharia/Mpesa-MCP/tree/main/skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
+An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [`../skills`](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/tree/main/skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
 
 ## Tools
 
@@ -69,7 +69,7 @@ uvx mpesa-daraja-mcp status    # what's configured (masked) + a live key check
 uvx mpesa-daraja-mcp           # the MCP server itself, on stdio: what your agent runs
 ```
 
-Until the first PyPI release, run from GitHub instead: `uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp`.
+Until the first PyPI release, run from GitHub instead: `uvx --from "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#subdirectory=mcp-server" mpesa-daraja-mcp`.
 
 The server needs no flags or environment variables in your agent's config. Settings are read in this order, highest first:
 
@@ -79,7 +79,7 @@ The server needs no flags or environment variables in your agent's config. Setti
 
 The server starts even when unconfigured. Tools then explain what's missing, and `mpesa_setup_status` lists the gaps for each toolset without revealing any values.
 
-To register by hand: `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp`. Every other agent is covered in [docs/clients.md](https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/docs/clients.md). The older `mpesa-mcp` command still works.
+To register by hand: `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp`. Every other agent is covered in [docs/clients.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md). The older `mpesa-mcp` command still works.
 
 ## Results and callbacks
 
@@ -128,4 +128,4 @@ Tests use `respx` to mock Daraja. Nothing hits the network.
 
 ## License
 
-[MIT](https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/LICENSE). Not affiliated with or endorsed by Safaricom PLC; M-Pesa and Daraja are trademarks of Safaricom PLC.
+[MIT](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/LICENSE). Not affiliated with or endorsed by Safaricom PLC; M-Pesa and Daraja are trademarks of Safaricom PLC.

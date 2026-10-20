@@ -12,10 +12,10 @@ Both start in the **sandbox**. Production money movement stays off unless you se
 You need Node.js 22.20+. The [`skills`](https://github.com/vercel-labs/skills) CLI copies the skills into each agent's folder:
 
 ```bash
-npx skills add Mr-Macharia/Mpesa-MCP                      # choose agents interactively
-npx skills add Mr-Macharia/Mpesa-MCP -a codex -a cursor   # specific agents, this project
-npx skills add Mr-Macharia/Mpesa-MCP -g                   # global, all your projects
-npx skills add Mr-Macharia/Mpesa-MCP --skill daraja-stk-push --skill mpesa-daraja   # only some skills
+npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp                      # choose agents interactively
+npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp -a codex -a cursor   # specific agents, this project
+npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp -g                   # global, all your projects
+npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp --skill daraja-stk-push --skill mpesa-daraja   # only some skills
 ```
 
 Where they land:
@@ -30,7 +30,7 @@ Where they land:
 | Windsurf | `windsurf` | `.windsurf/skills/` | `~/.codeium/windsurf/skills/` |
 | Cline | `cline` | `.agents/skills/` | `~/.agents/skills/` |
 
-Claude Code users can install them as a plugin instead: `/plugin marketplace add Mr-Macharia/Mpesa-MCP`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`.
+Claude Code users can install them as a plugin instead: `/plugin marketplace add Mr-Macharia/mpesa-daraja-skills-and-mcp`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`.
 
 Each skill is self-contained, so you can install just the ones you need.
 
@@ -41,8 +41,8 @@ You need [uv](https://docs.astral.sh/uv/) (one-time install: `curl -LsSf https:/
 > **Not on PyPI yet?** Until the first release is published, `uvx mpesa-daraja-mcp` fails with "not found", and your agent shows "Connection closed". Use the GitHub form everywhere below instead:
 >
 > ```bash
-> uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp setup
-> claude mcp add --scope user mpesa -- uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp
+> uvx --from "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#subdirectory=mcp-server" mpesa-daraja-mcp setup
+> claude mcp add --scope user mpesa -- uvx --from "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#subdirectory=mcp-server" mpesa-daraja-mcp
 > ```
 
 ### Easiest: the setup wizard

@@ -268,7 +268,7 @@ def setup(ask: Callable[[str], str] = input, ask_secret: Callable[[str], str] = 
                 print(f"    {agent.name}: {result}")
         else:
             print("\nNo supported agent CLI found. Add the server in your client using the command:\n"
-                  f"  {' '.join(cmd)}\n(examples: https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/docs/clients.md)")
+                  f"  {' '.join(cmd)}\n(examples: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md)")
 
     print("\nDone. Restart your agent, then try: \"Check my M-Pesa credentials.\"")
     return 0

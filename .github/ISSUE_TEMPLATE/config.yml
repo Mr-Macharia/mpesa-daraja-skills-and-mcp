@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report a security vulnerability
-    url: https://github.com/Mr-Macharia/Mpesa-MCP/security/advisories/new
+    url: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/security/advisories/new
     about: Please report security issues privately.
   - name: Daraja platform problems
     url: https://developer.safaricom.co.ke/

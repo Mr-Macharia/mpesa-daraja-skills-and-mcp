@@ -11,7 +11,7 @@ Thanks for helping improve M-Pesa tooling for AI agents. Bug reports, Daraja cor
 ## Development setup
 
 ```bash
-git clone https://github.com/Mr-Macharia/Mpesa-MCP.git && cd Mpesa-MCP
+git clone https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp.git && cd mpesa-daraja-skills-and-mcp
 python -m venv .venv && . .venv/bin/activate
 pip install -e "mcp-server[dev]"
 ```

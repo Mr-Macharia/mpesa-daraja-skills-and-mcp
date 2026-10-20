@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         **Never paste real credentials** (consumer key/secret, passkey, initiator password, SecurityCredential).
-        Security problems belong in a [private advisory](https://github.com/Mr-Macharia/Mpesa-MCP/security/advisories/new), not here.
+        Security problems belong in a [private advisory](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/security/advisories/new), not here.
   - type: dropdown
     id: component
     attributes:

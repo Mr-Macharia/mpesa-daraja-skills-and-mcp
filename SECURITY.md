@@ -5,7 +5,7 @@ This project moves real money when it is configured for production, so security 
 ## Reporting a vulnerability
 
 **Please don't open a public issue.** Report privately through GitHub instead:
-- **Where:** [Security → Report a vulnerability](https://github.com/Mr-Macharia/Mpesa-MCP/security/advisories/new) on this repository.
+- **Where:** [Security → Report a vulnerability](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/security/advisories/new) on this repository.
 - **What to include:**
   - what an attacker could do (e.g. trigger a payout, read secrets, bypass the production guard);
   - steps to reproduce;
