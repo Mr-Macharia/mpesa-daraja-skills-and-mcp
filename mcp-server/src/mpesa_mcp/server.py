@@ -376,7 +376,7 @@ async def get_result(id: str, refresh: bool = True) -> Outcome:
         if rec.kind == "stk" and rec.status in OPEN_STATUSES and refresh and not st.latest_result([rec.key, *rec.ids]):
             checkout = (rec.response.get("_ids") or _ids_from(rec.response)).get("checkout_request_id")
             if checkout:
-                await _stk_query_once(checkout)
+                await _stk_query_once(checkout)  # stores the result if final
                 rec = st.get_request(id) or rec
         return _record_outcome(rec, duplicate=False)
     found = st.latest_result([id])
@@ -401,24 +401,28 @@ def _stk_auth(c: DarajaClient) -> dict[str, str]:
             "Timestamp": ts}
 
 
-async def _stk_query_once(checkout_request_id: str) -> dict[str, Any] | None:
-    """Ask Daraja for an STK result; store and return it if final, else None."""
+async def _stk_query_once(checkout_request_id: str) -> tuple[dict[str, Any] | None, Any]:
+    """Ask Daraja for an STK result.
+
+    Returns (parsed, reply): parsed is the final result (also stored) or None while Safaricom is
+    still processing; reply is Daraja's own response either way, so callers can show it.
+    """
     c = client()
     try:
         resp = await _post(c, "/mpesa/stkpushquery/v1/query",
                             {**_stk_auth(c), "CheckoutRequestID": checkout_request_id})
     except DarajaError as exc:
         if isinstance(exc.body, dict) and exc.body.get("errorCode") == "500.001.1001":
-            return None  # "The transaction is being processed"
+            return None, exc.body  # "The transaction is being processed"
         raise
     if not isinstance(resp, dict) or "ResultCode" not in resp:
-        return None
+        return None, resp
     code = str(resp["ResultCode"])
     parsed = {"kind": "stk", "source": "stk_query", "success": code == "0", "result_code": code,
               "result_desc": resp.get("ResultDesc"), "checkout_request_id": checkout_request_id,
               "merchant_request_id": resp.get("MerchantRequestID"), "explanation": helpers.explain_code(code)}
     state().add_result(helpers.correlation_ids(parsed), SUCCESS if code == "0" else FAILED, parsed)
-    return parsed
+    return parsed, resp
 
 
 async def _stk_push(phone, amount, account_reference, description, transaction_type, party_b,
@@ -490,7 +494,7 @@ async def stk_push_and_wait(
         if st.latest_result([checkout]):
             break
         if time.monotonic() >= next_query:
-            if await _stk_query_once(checkout):
+            if (await _stk_query_once(checkout))[0]:
                 break
             next_query = time.monotonic() + STK_QUERY_EVERY_S
         await asyncio.sleep(STK_POLL_S)
@@ -503,12 +507,23 @@ async def stk_push_and_wait(
 
 @tool(QUERY, "stk")
 async def stk_query(checkout_request_id: str) -> Outcome:
-    """Ask Daraja for the final status of an STK Push. status=ACCEPTED means still processing."""
-    parsed = await _stk_query_once(checkout_request_id)
+    """Final status of an STK Push. status=ACCEPTED means Safaricom is still processing it."""
     ids = {"checkout_request_id": checkout_request_id}
-    if not parsed:
-        return _outcome(None, "stk", ACCEPTED, ids, None)
-    return _outcome(None, "stk", SUCCESS if parsed["success"] else FAILED, ids, parsed, parsed=parsed)
+    known = state().latest_result([checkout_request_id])
+    if known and known[0] in (SUCCESS, FAILED):
+        # Already final (callback or earlier query); a callback also carries the receipt.
+        status, parsed = known
+        return _outcome(None, "stk", status, ids, parsed, parsed=parsed)
+    parsed, reply = await _stk_query_once(checkout_request_id)
+    if parsed:
+        return _outcome(None, "stk", SUCCESS if parsed["success"] else FAILED, ids, parsed, parsed=parsed)
+    detail = reply.get("errorMessage") if isinstance(reply, dict) else None
+    return Outcome(
+        status=ACCEPTED, ids=ids, raw=reply if isinstance(reply, dict) else {"response": reply},
+        message=(f"Safaricom says: {detail or 'not final yet'}. Daraja's query often lags a few seconds "
+                 "behind the customer's PIN entry, so ask again in about 15 seconds, or use "
+                 "mpesa_get_result / mpesa_stk_push_and_wait, which wait for the outcome."),
+    )
 
 
 # --------------------------------------------------------------------------- #

@@ -22,6 +22,12 @@ All notable changes to this project are documented here. The format follows [Kee
 - The server starts even when unconfigured. Missing-key errors now point to `setup` and the config file path.
 - Rejected keys now get a clear explanation instead of a bare `HTTP 400`.
 
+### Fixed
+
+- `mpesa_stk_query`:
+  - It no longer discards Safaricom's reply. While a payment is still processing, it now returns Daraja's message, explains that the query lags a few seconds behind PIN entry, and suggests retrying.
+  - It answers from results already recorded (from a callback or an earlier query), including the receipt from a callback, instead of asking Safaricom again.
+
 ## [0.1.0] - 2026-10-20
 
 First public release.
