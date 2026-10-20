@@ -1,13 +1,13 @@
 <div align="center">
 
-# Mpesa-MCP
+# MCP and Agent Skills for M-Pesa Daraja
 
 **Give AI agents safe, working access to Safaricom M-Pesa Daraja.**
 
 Agent Skills that teach the integration, and an MCP server that runs it.
 For Claude Code, Codex, Cursor, Copilot, Gemini CLI and any agent that speaks [Agent Skills](https://agentskills.io) or [MCP](https://modelcontextprotocol.io).
 
-[![CI](https://github.com/Mr-Macharia/Mpesa-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/Mpesa-MCP/actions/workflows/test.yml)
+[![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml)
 [![PyPI](https://img.shields.io/pypi/v/mpesa-daraja-mcp)](https://pypi.org/project/mpesa-daraja-mcp/)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](mcp-server/pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -52,7 +52,7 @@ flowchart LR
 **1. Skills.** Works with any supported agent and needs Node.js 22.20+:
 
 ```bash
-npx skills add Mr-Macharia/Mpesa-MCP
+npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp
 ```
 
 **2. MCP server.** Needs [uv](https://docs.astral.sh/uv/). Run the setup wizard:
@@ -61,7 +61,7 @@ npx skills add Mr-Macharia/Mpesa-MCP
 uvx mpesa-daraja-mcp setup
 ```
 
-> **Before the first PyPI release** `uvx mpesa-daraja-mcp` can't find the package yet. Run straight from GitHub instead: use `uvx --from "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server" mpesa-daraja-mcp` wherever these docs say `uvx mpesa-daraja-mcp`.
+> **Before the first PyPI release** `uvx mpesa-daraja-mcp` can't find the package yet. Run straight from GitHub instead: use `uvx --from "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#subdirectory=mcp-server" mpesa-daraja-mcp` wherever these docs say `uvx mpesa-daraja-mcp`.
 
 It asks for your [Daraja](https://developer.safaricom.co.ke/) keys, checks them live, saves them privately, and adds the server to Claude Code, Codex, Gemini CLI or Cursor for you. Prefer doing it by hand? Run `claude mcp add mpesa -- uvx mpesa-daraja-mcp` (no keys in the command) and put the keys in a config file. Every agent is covered in **[docs/clients.md](docs/clients.md)**.
 

@@ -22,8 +22,8 @@ Agent Skills for building Safaricom M-Pesa Daraja integrations. Each folder hold
 
 ## Install
 
-- **Any agent (Codex, Cursor, Copilot, Gemini CLI, Claude Code, Windsurf, Cline, …)**: run `npx skills add Mr-Macharia/Mpesa-MCP`. Add `-a <agent>` to target one agent and `-g` to install globally. Folders for each agent are listed in [docs/clients.md](../docs/clients.md).
-- **Claude Code plugin**: run `/plugin marketplace add Mr-Macharia/Mpesa-MCP`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`.
+- **Any agent (Codex, Cursor, Copilot, Gemini CLI, Claude Code, Windsurf, Cline, …)**: run `npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp`. Add `-a <agent>` to target one agent and `-g` to install globally. Folders for each agent are listed in [docs/clients.md](../docs/clients.md).
+- **Claude Code plugin**: run `/plugin marketplace add Mr-Macharia/mpesa-daraja-skills-and-mcp`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`.
 - **Manual**: copy any skill folder into your agent's skills directory. Each folder is self-contained.
 - **claude.ai / API**: zip a skill folder and upload it as a custom skill.
 - Pair the skills with the [`mpesa-daraja-mcp` server](../mcp-server) (`uvx mpesa-daraja-mcp`) so the agent can call Daraja directly. The skills name its tools `mpesa_<tool>`.

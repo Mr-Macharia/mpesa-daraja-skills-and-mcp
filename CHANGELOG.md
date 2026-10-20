@@ -58,5 +58,5 @@ First public release.
   - a Claude Code plugin marketplace;
   - setup guides for Codex, Gemini CLI, Cursor, VS Code/Copilot and other MCP clients.
 
-[Unreleased]: https://github.com/Mr-Macharia/Mpesa-MCP/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/Mr-Macharia/Mpesa-MCP/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/releases/tag/v0.1.0

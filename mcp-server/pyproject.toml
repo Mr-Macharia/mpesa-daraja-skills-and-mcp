@@ -23,11 +23,11 @@ classifiers = [
 dependencies = ["mcp>=2.3,<3", "httpx>=0.27", "cryptography>=42"]
 
 [project.urls]
-Homepage = "https://github.com/Mr-Macharia/Mpesa-MCP"
-Repository = "https://github.com/Mr-Macharia/Mpesa-MCP"
-Issues = "https://github.com/Mr-Macharia/Mpesa-MCP/issues"
-Changelog = "https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/CHANGELOG.md"
-Documentation = "https://github.com/Mr-Macharia/Mpesa-MCP/blob/main/docs/clients.md"
+Homepage = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp"
+Repository = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp"
+Issues = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/issues"
+Changelog = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md"
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-asyncio>=0.23", "respx>=0.21", "pyyaml>=6", "jsonschema>=4", "tomli>=2; python_version < '3.11'"]

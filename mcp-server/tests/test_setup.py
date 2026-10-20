@@ -162,20 +162,20 @@ def test_dotenv_override(cfg, monkeypatch):
 # direct_url values below are the real ones uv/pip wrote for each install method.
 
 CACHE = Path("/home/u/.cache/uv/archive-v0/AbC123")
-GIT = {"url": "https://github.com/Mr-Macharia/Mpesa-MCP", "subdirectory": "mcp-server",
+GIT = {"url": "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp", "subdirectory": "mcp-server",
        "vcs_info": {"vcs": "git", "commit_id": "9e40684"}}
 
 
 def test_uvx_from_github_registers_the_github_source():
     cmd = cli.launch_command(GIT, CACHE, CACHE / "bin/python", has_uvx=True)
-    assert cmd == ["uvx", "--from", "git+https://github.com/Mr-Macharia/Mpesa-MCP#subdirectory=mcp-server",
+    assert cmd == ["uvx", "--from", "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#subdirectory=mcp-server",
                    "mpesa-daraja-mcp"]
 
 
 def test_github_branch_is_kept_but_commit_is_not():
     branch = {**GIT, "vcs_info": {**GIT["vcs_info"], "requested_revision": "feature/easy-setup"}}
     cmd = cli.launch_command(branch, CACHE, CACHE / "bin/python", has_uvx=True)
-    assert cmd[2] == "git+https://github.com/Mr-Macharia/Mpesa-MCP@feature/easy-setup#subdirectory=mcp-server"
+    assert cmd[2] == "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp@feature/easy-setup#subdirectory=mcp-server"
     assert "9e40684" not in " ".join(cmd)
 
 
