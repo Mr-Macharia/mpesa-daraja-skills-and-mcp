@@ -146,7 +146,7 @@ Found a security problem? Please report it privately, as described in [SECURITY.
 | [mcp-server/README.md](mcp-server/README.md) | Every tool, configuration settings, the callback receiver, toolsets |
 | [skills/README.md](skills/README.md) | The skill catalogue, and why each skill is built the way it is |
 | [AGENTS.md](AGENTS.md) | Rules for AI agents working on M-Pesa code or on this repo |
-| [Content.md](Content.md) | Background research: Daraja architecture, OAuth, credentials, sandbox |
+| [Research.md](Research.md) | Background research: Daraja architecture, OAuth, credentials, sandbox |
 
 ## FAQ
 
