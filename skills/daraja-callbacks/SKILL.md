@@ -1,6 +1,6 @@
 ---
 name: daraja-callbacks
-description: Builds resilient Safaricom Daraja callback and webhook receivers: STK CallBackURL; C2B Validation and Confirmation; ResultURL and QueueTimeOutURL for B2C, B2B, tax, status, reversal and balance; Ratiba, Bill Manager and B2B Express callbacks. Covers fast acknowledgment, async processing, idempotency, payload parsing, endpoint security and the "callback never arrived" checklist. Use when writing or debugging any endpoint that M-Pesa posts results to.
+description: "Builds resilient Safaricom Daraja callback and webhook receivers: STK CallBackURL; C2B Validation and Confirmation; ResultURL and QueueTimeOutURL for B2C, B2B, tax, status, reversal and balance; Ratiba, Bill Manager and B2B Express callbacks. Covers fast acknowledgment, async processing, idempotency, payload parsing, endpoint security and the \"callback never arrived\" checklist. Use when writing or debugging any endpoint that M-Pesa posts results to."
 ---
 
 # Daraja callback receivers

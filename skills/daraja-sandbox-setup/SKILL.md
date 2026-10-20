@@ -1,6 +1,6 @@
 ---
 name: daraja-sandbox-setup
-description: Sets up a Safaricom Daraja sandbox from scratch: creating the developer account and app with the right products, finding test credentials (shortcodes, passkey, initiator, certificate), writing the .env file, exposing callbacks through a tunnel, smoke testing each API, and running the production go-live checklist. Use when starting a new M-Pesa integration, when a sandbox setup is broken, or when preparing to go live.
+description: "Sets up a Safaricom Daraja sandbox from scratch: creating the developer account and app with the right products, finding test credentials (shortcodes, passkey, initiator, certificate), writing the .env file, exposing callbacks through a tunnel, smoke testing each API, and running the production go-live checklist. Use when starting a new M-Pesa integration, when a sandbox setup is broken, or when preparing to go live."
 ---
 
 # Daraja sandbox setup and go-live
