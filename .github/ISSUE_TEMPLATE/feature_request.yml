@@ -1,21 +1,37 @@
-name: Feature request
-description: A new Daraja API, tool, skill or agent integration
+name: MCP or skill feature request
+description: An improvement to an existing MCP tool, skill, script or the setup experience
 labels: [enhancement]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        For a new Daraja API or a new skill, use the **Skill or Daraja API request** form instead.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options: [MCP tool, MCP server setup or config, Skill, Skill script, Docs, Other]
+    validations: { required: true }
+  - type: input
+    id: target
+    attributes:
+      label: Which tool or skill?
+      placeholder: "mpesa_stk_push_and_wait, daraja-b2c…"
   - type: textarea
     id: problem
     attributes:
       label: What are you trying to do?
-      description: The integration or workflow, and where the current tools fall short.
+      description: The workflow, and where the kit falls short today.
     validations: { required: true }
   - type: textarea
     id: proposal
     attributes:
       label: Proposed change
-      description: Link the Daraja portal page for any new API or field.
+      description: What it should do instead. Link the Daraja portal page for any new field or behaviour.
   - type: checkboxes
-    id: money
+    id: flags
     attributes:
-      label: Money movement
+      label: Checks
       options:
         - label: This would move money (it must then be idempotent and blocked in production by default)
+        - label: I'd like to build this myself

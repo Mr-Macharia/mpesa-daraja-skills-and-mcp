@@ -1,0 +1,47 @@
+name: Daraja correction
+description: A skill, tool or doc says Daraja does one thing, but it actually does another
+labels: [daraja-correction]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks. Corrections from real integrations are the most valuable contributions this project gets.
+        **Mask phone numbers, receipts and shortcodes, and never paste credentials** (consumer key/secret, passkey, initiator password, SecurityCredential).
+  - type: input
+    id: api
+    attributes:
+      label: Daraja API
+      placeholder: "STK Push, B2C, C2B, Transaction Status…"
+    validations: { required: true }
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What we say
+      description: Quote it, and link the file, e.g. skills/daraja-b2c/SKILL.md or a tool's docstring.
+    validations: { required: true }
+  - type: textarea
+    id: right
+    attributes:
+      label: What Daraja actually does
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: |
+        Best: the request you sent and the response or callback you got back, masked.
+        Otherwise: a link to the Daraja portal page, or a quote from Safaricom support.
+      render: json
+    validations: { required: true }
+  - type: dropdown
+    id: env
+    attributes:
+      label: Where you saw it
+      options: [sandbox, production, both, Daraja portal docs]
+    validations: { required: true }
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Contributing the fix
+      options:
+        - label: I'd like to open the PR for this myself
