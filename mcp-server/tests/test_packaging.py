@@ -63,3 +63,4 @@ def test_claude_plugin_version_and_server_agree():
     assert market["metadata"]["version"] == entry["version"] == plugin["version"] == PYPROJECT["version"]
     assert not {"skills", "mcpServers"} & entry.keys(), "declare components in plugin.json, not the marketplace entry"
     assert plugin["mcpServers"]["mpesa"] == {"command": "uvx", "args": [PYPROJECT["name"]]}
+    assert (root / "icon.png").is_file()

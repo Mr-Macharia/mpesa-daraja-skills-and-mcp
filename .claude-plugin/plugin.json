@@ -41,5 +41,6 @@
         "mpesa-daraja-mcp"
       ]
     }
-  }
+  },
+  "icon": "./.claude-plugin/icon.png"
 }
