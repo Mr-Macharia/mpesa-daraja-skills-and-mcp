@@ -188,7 +188,7 @@ A maintainer ([CODEOWNERS](.github/CODEOWNERS)) aims to give a first review with
 ## Releasing (maintainers)
 
 1. Move the **Unreleased** changelog entries under a new version heading.
-2. Bump `version` in `mcp-server/pyproject.toml`, both fields in `mcp-server/server.json`, and both fields in `.claude-plugin/marketplace.json`. A test checks they all match.
+2. Bump `version` in `mcp-server/pyproject.toml`, both fields in `mcp-server/server.json`, and the version in `.claude-plugin/marketplace.json` (twice) and `.claude-plugin/plugin.json`. A test checks they all match.
 3. Merge, then tag the merge commit on `main`: `git tag v<version> && git push origin v<version>`. The `release` workflow tests, then publishes to PyPI and the MCP Registry.
 4. Create the GitHub release for the tag, with the changelog entries as notes.
 

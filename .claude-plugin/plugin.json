@@ -1,0 +1,45 @@
+{
+  "name": "mpesa-daraja-skills",
+  "version": "0.1.3",
+  "description": "M-Pesa Daraja Agent Kit: 15 skills (STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja-mcp server. Sandbox by default.",
+  "author": {
+    "name": "Mr-Macharia",
+    "url": "https://github.com/Mr-Macharia"
+  },
+  "homepage": "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp",
+  "repository": "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp",
+  "license": "MIT",
+  "keywords": [
+    "mpesa",
+    "daraja",
+    "safaricom",
+    "payments",
+    "mcp",
+    "kenya"
+  ],
+  "skills": [
+    "./skills/daraja-account-ops",
+    "./skills/daraja-auth",
+    "./skills/daraja-b2b",
+    "./skills/daraja-b2c",
+    "./skills/daraja-bill-manager",
+    "./skills/daraja-c2b",
+    "./skills/daraja-callbacks",
+    "./skills/daraja-credentials-security",
+    "./skills/daraja-dynamic-qr",
+    "./skills/daraja-ratiba",
+    "./skills/daraja-sandbox-setup",
+    "./skills/daraja-stk-push",
+    "./skills/daraja-tax-remittance",
+    "./skills/daraja-troubleshooting",
+    "./skills/mpesa-daraja"
+  ],
+  "mcpServers": {
+    "mpesa": {
+      "command": "uvx",
+      "args": [
+        "mpesa-daraja-mcp"
+      ]
+    }
+  }
+}
