@@ -48,7 +48,7 @@ The structure follows [Anthropic's skill-authoring best practices](https://platf
 
 ## Sources
 
-- The repository's [`Content.md`](../Content.md) research volume: architecture, auth, token lifecycle, credential storage, sandbox.
+- The [documentation chapters](../docs/README.md): architecture, auth, token lifecycle, credential storage, sandbox.
 - The Daraja 3.0 developer portal API pages (request and response fields, error tables) for all 22 APIs, as scraped by the community project [JacksCodeVault/mpesa-daraja-mcp](https://github.com/JacksCodeVault/mpesa-daraja-mcp). Daraja changes over time, so verify against `developer.safaricom.co.ke` before go-live.
 
 ## Maintaining
