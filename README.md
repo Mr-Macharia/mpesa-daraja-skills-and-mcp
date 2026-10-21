@@ -104,6 +104,25 @@ Run both commands.
 
 ## Quick start
 
+### Let your agent install it
+
+Paste this into Claude Code, Codex, Cursor, Gemini CLI or any coding agent:
+
+```text
+Install the M-Pesa Daraja Agent Kit for me:
+1. Install the Agent Skills for yourself: npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp -a <your agent id>
+   (agent ids: claude-code, codex, cursor, github-copilot, gemini-cli). Use -g if I want them in every project.
+2. Add the MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja-mcp
+   It needs no keys in your config. If uv is missing, tell me how to install it first.
+3. Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja-mcp setup` in my own terminal,
+   which saves them privately, then to restart you.
+4. After I restart you, call mpesa_check_credentials and tell me if everything works.
+```
+
+Your agent installs both halves; you only type your Daraja keys into the setup wizard, never into the chat.
+
+### Or install it yourself
+
 **1. Install the skills.** Needs Node.js 22.20 or later.
 
 ```bash
@@ -134,7 +153,7 @@ No keys go in these commands; the server reads them from its config file.
 Then run `uvx mpesa-daraja-mcp setup` to save your keys, or write the config file yourself as described in [docs/clients.md](docs/clients.md).
 </details>
 
-**3. Try it.**
+### Try it
 
 > Check my M-Pesa credentials, then send a KES 1 STK push to 0712345678 and tell me when it's paid.
 
@@ -154,14 +173,11 @@ Everything starts in the **sandbox**. No real money moves until you opt in.
 
 ## Why this exists
 
-M-Pesa integrations fail in the same few ways, for agents and people alike:
+M-Pesa Daraja Agent Kit makes M-Pesa payment handling and integration easier for:
 
-- treating `ResponseCode "0"` as *paid*, when it only means *accepted for processing*;
-- building the STK password with a UTC timestamp instead of East Africa Time;
-- retrying a payout that timed out, and paying twice;
-- "fixing" Daraja's own spellings, `RecieverIdentifierType` and `Occassion`, which breaks the request.
-
-Every skill and tool here is built around those traps.
+- **Developers** building payment integration systems. With the kit, your coding agent knows the Daraja API, so you describe the integration and review the code, instead of piecing it together from the portal. Test it all in the sandbox before going live.
+- **Learners** finding out how the Daraja API works. Send real requests to the sandbox, a safe test environment, see what comes back, and read [docs](docs/README.md) that explain why each step exists.
+- **Businesses and teams** that want an AI agent to handle payments: collecting them, checking whether they went through, and reconciling them through an agent.
 
 ## What's inside
 
@@ -169,7 +185,7 @@ Every skill and tool here is built around those traps.
 
 **[The MCP server](mcp-server), [`mpesa-daraja-mcp`](https://pypi.org/project/mpesa-daraja-mcp/).** 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call, and an optional built-in callback receiver records results for `mpesa_get_result`.
 
-**Light on context.** `DARAJA_TOOLSETS` loads only the tools you use: STK checkout alone costs about 2,100 schema tokens instead of 6,300.
+**Load only what you need.** Every tool the server offers takes up space in your agent's context, even when it's never called. Set `DARAJA_TOOLSETS` to the groups you use, and the agent sees only those tools. For example, `DARAJA_TOOLSETS=stk` for a shop that only takes STK payments, or `stk,payouts` if it also pays people. The groups are `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba` and `billmanager`; the basic tools (`core`) are always on. Leave it unset to load everything.
 
 <details>
 <summary><b>Supported Daraja APIs, skills and tools</b></summary>
