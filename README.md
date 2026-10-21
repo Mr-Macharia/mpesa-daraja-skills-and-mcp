@@ -123,7 +123,7 @@ Your agent installs both halves; you only type your Daraja keys into the setup w
 
 ### Claude Code: one plugin for both
 
-The plugin installs all 15 skills and the MCP server in one step:
+The plugin installs all 15 skills and the MCP server in one step. The server runs through [uv](https://docs.astral.sh/uv/), so install that first, and make sure `uvx` is on the PATH Claude Code sees:
 
 ```text
 /plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp

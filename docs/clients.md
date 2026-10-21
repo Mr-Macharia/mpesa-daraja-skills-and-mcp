@@ -30,7 +30,7 @@ Where they land:
 | Windsurf | `windsurf` | `.windsurf/skills/` | `~/.codeium/windsurf/skills/` |
 | Cline | `cline` | `.agents/skills/` | `~/.agents/skills/` |
 
-Claude Code users can install the **plugin** instead. It bundles all the skills *and* the MCP server:
+Claude Code users can install the **plugin** instead. It bundles all the skills *and* the MCP server, which runs through `uvx`, so [uv](https://docs.astral.sh/uv/) must be installed first:
 
 ```text
 /plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp
