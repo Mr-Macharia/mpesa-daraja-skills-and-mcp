@@ -5,7 +5,7 @@ Two pieces, installed separately:
 - **Skills**: instructions and scripts the agent reads. Use them with any agent that supports the open [Agent Skills](https://agentskills.io) format.
 - **MCP server** (`mpesa-daraja-mcp`): tools that call Daraja. Use it with any MCP client.
 
-Both start in the **sandbox**. Production money movement stays off unless you set `MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
+Both start in the **sandbox**. Production money movement stays off unless you set `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
 
 ## 1. Skills
 
@@ -67,13 +67,13 @@ Then put your keys in one of these. The server reads them on start; restart it a
 | File | Use it for |
 |---|---|
 | `~/.config/mpesa-daraja-mcp/config.env` (Windows: `%APPDATA%\mpesa-daraja-mcp\config.env`) | Your keys for every project. This is the file `setup` writes |
-| `.env` in the project folder | Keys for one project. Only `MPESA_*` lines are read |
+| `.env` in the project folder | Keys for one project. Only `DARAJA_*` lines are read |
 
 ```dotenv
-MPESA_CONSUMER_KEY=...
-MPESA_CONSUMER_SECRET=...
-MPESA_SHORTCODE=174379
-MPESA_PASSKEY=...
+DARAJA_CONSUMER_KEY=...
+DARAJA_CONSUMER_SECRET=...
+DARAJA_SHORTCODE=174379
+DARAJA_PASSKEY=...
 ```
 
 [`.env.example`](../.env.example) lists every setting. If something is missing, the agent can call `mpesa_setup_status`. It reports what's missing for each feature, without ever showing values.
@@ -83,9 +83,9 @@ MPESA_PASSKEY=...
 Real environment variables take priority over both files. Use them if your client manages secrets for you:
 
 ```bash
-claude mcp add mpesa -e MPESA_CONSUMER_KEY=... -e MPESA_CONSUMER_SECRET=... -- uvx mpesa-daraja-mcp
-codex mcp add mpesa --env MPESA_CONSUMER_KEY=... --env MPESA_CONSUMER_SECRET=... -- uvx mpesa-daraja-mcp
-gemini mcp add -e MPESA_CONSUMER_KEY=... -e MPESA_CONSUMER_SECRET=... mpesa uvx mpesa-daraja-mcp
+claude mcp add mpesa -e DARAJA_CONSUMER_KEY=... -e DARAJA_CONSUMER_SECRET=... -- uvx mpesa-daraja-mcp
+codex mcp add mpesa --env DARAJA_CONSUMER_KEY=... --env DARAJA_CONSUMER_SECRET=... -- uvx mpesa-daraja-mcp
+gemini mcp add -e DARAJA_CONSUMER_KEY=... -e DARAJA_CONSUMER_SECRET=... mpesa uvx mpesa-daraja-mcp
 ```
 
 VS Code can prompt for secrets and store them securely:
@@ -101,7 +101,7 @@ VS Code can prompt for secrets and store them securely:
       "type": "stdio",
       "command": "uvx",
       "args": ["mpesa-daraja-mcp"],
-      "env": { "MPESA_CONSUMER_KEY": "${input:mpesa-key}", "MPESA_CONSUMER_SECRET": "${input:mpesa-secret}" }
+      "env": { "DARAJA_CONSUMER_KEY": "${input:mpesa-key}", "DARAJA_CONSUMER_SECRET": "${input:mpesa-secret}" }
     }
   }
 }
@@ -114,7 +114,7 @@ Notes:
 
 ## 3. Keep context small
 
-Load only the tool groups you use, e.g. `MPESA_TOOLSETS=stk` for checkout alone. That cuts the schema the agent reads from about 6,300 tokens to about 2,100. Groups: `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba`, `billmanager`.
+Load only the tool groups you use, e.g. `DARAJA_TOOLSETS=stk` for checkout alone. That cuts the schema the agent reads from about 6,300 tokens to about 2,100. Groups: `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba`, `billmanager`.
 
 ## 4. Check it works
 

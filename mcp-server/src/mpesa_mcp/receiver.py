@@ -1,9 +1,9 @@
 """Optional built-in callback receiver.
 
 Daraja posts results to public HTTPS URLs. Run this receiver behind a tunnel
-or reverse proxy (e.g. `ngrok http 8787`) and set MPESA_CALLBACK_BASE_URL to
+or reverse proxy (e.g. `ngrok http 8787`) and set DARAJA_CALLBACK_BASE_URL to
 the public URL: the tools then generate callback URLs under
-/cb/<MPESA_CALLBACK_TOKEN>/..., and every callback lands in the store where
+/cb/<DARAJA_CALLBACK_TOKEN>/..., and every callback lands in the store where
 mpesa_get_result and mpesa_stk_push_and_wait can see it.
 
 C2B validation requests are always accepted; use your own receiver if you

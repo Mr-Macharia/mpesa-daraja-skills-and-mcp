@@ -24,7 +24,7 @@ def make_client(env="sandbox", **kw):
 @pytest.fixture(autouse=True)
 def fresh_state(monkeypatch, tmp_path):
     monkeypatch.setattr(server, "_state", Store(":memory:"))
-    monkeypatch.setenv("MPESA_OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setenv("DARAJA_OUTPUT_DIR", str(tmp_path))
     monkeypatch.setattr(server, "STK_POLL_S", 0.01)
     monkeypatch.setattr(server, "STK_QUERY_AFTER_S", 0.05)
     monkeypatch.setattr(server, "STK_QUERY_EVERY_S", 0.05)
@@ -275,9 +275,9 @@ def test_callback_urls_carry_token():
 
 
 def test_receiver_requires_strong_token(monkeypatch):
-    monkeypatch.setenv("MPESA_CALLBACK_LISTEN", "127.0.0.1:0")
-    monkeypatch.setenv("MPESA_CALLBACK_TOKEN", "short")
-    with pytest.raises(RuntimeError, match="MPESA_CALLBACK_TOKEN"):
+    monkeypatch.setenv("DARAJA_CALLBACK_LISTEN", "127.0.0.1:0")
+    monkeypatch.setenv("DARAJA_CALLBACK_TOKEN", "short")
+    with pytest.raises(RuntimeError, match="DARAJA_CALLBACK_TOKEN"):
         server.start_receiver_from_env()
 
 
@@ -345,7 +345,7 @@ async def test_expected_errors_reach_the_agent(monkeypatch):
 
     monkeypatch.setattr(server, "_client", make_client(env="production"))
     # ToolError (not a generic crash) is what the transport turns into a visible is_error result.
-    with pytest.raises(ToolError, match="MPESA_ALLOW_LIVE_MONEY_MOVEMENT"):
+    with pytest.raises(ToolError, match="DARAJA_ALLOW_LIVE_MONEY_MOVEMENT"):
         await server.server.call_tool("mpesa_stk_push", {"phone": "0712345678", "amount": 1, "account_reference": "x"})
 
 

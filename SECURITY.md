@@ -18,7 +18,7 @@ You'll get an acknowledgement within **3 working days**. Confirmed issues are fi
 ## In scope
 
 - Ways to move money that bypass the server's safeguards:
-  - the production guard (`MPESA_ALLOW_LIVE_MONEY_MOVEMENT`);
+  - the production guard (`DARAJA_ALLOW_LIVE_MONEY_MOVEMENT`);
   - idempotency (a repeated key paying twice);
   - pre-send validation.
 - Secret leakage through tool output, logs, error messages or the state database.
@@ -36,7 +36,7 @@ Security fixes go to the latest release on PyPI (`mpesa-daraja-mcp`) and to `mai
 
 ## Hardening guidance for users
 
-- Keep `MPESA_ENV=sandbox` until you have tested end to end.
-- Leave `MPESA_ALLOW_LIVE_MONEY_MOVEMENT` unset unless an agent genuinely needs to move live money.
+- Keep `DARAJA_ENV=sandbox` until you have tested end to end.
+- Leave `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT` unset unless an agent genuinely needs to move live money.
 - Give the API initiator only the roles it needs. Store secrets in a secret manager, not in committed config files.
-- In production, run the callback receiver behind TLS with a long random `MPESA_CALLBACK_TOKEN`. Use your own receiver if you need to reject C2B payments.
+- In production, run the callback receiver behind TLS with a long random `DARAJA_CALLBACK_TOKEN`. Use your own receiver if you need to reject C2B payments.

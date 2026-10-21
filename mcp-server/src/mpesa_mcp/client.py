@@ -49,7 +49,7 @@ class Config:
 
     def __post_init__(self) -> None:
         if self.env not in BASE_URLS:
-            raise ValueError(f"MPESA_ENV must be 'sandbox' or 'production', got {self.env!r}")
+            raise ValueError(f"DARAJA_ENV must be 'sandbox' or 'production', got {self.env!r}")
         self.base_url = BASE_URLS[self.env]
 
     @classmethod
@@ -58,33 +58,33 @@ class Config:
             value = os.environ.get(name, "").strip()
             return value or None
 
-        missing = [n for n in ("MPESA_CONSUMER_KEY", "MPESA_CONSUMER_SECRET") if not get(n)]
+        missing = [n for n in ("DARAJA_CONSUMER_KEY", "DARAJA_CONSUMER_SECRET") if not get(n)]
         if missing:
             raise RuntimeError(settings.missing_message(missing))
 
-        credential = get("MPESA_SECURITY_CREDENTIAL")
-        password, cert_path = get("MPESA_INITIATOR_PASSWORD"), get("MPESA_CERT_PATH")
+        credential = get("DARAJA_SECURITY_CREDENTIAL")
+        password, cert_path = get("DARAJA_INITIATOR_PASSWORD"), get("DARAJA_CERT_PATH")
         if not credential and password and cert_path:
             with open(cert_path, "rb") as fh:
                 credential = helpers.security_credential(password, fh.read())
 
         return cls(
-            env=(get("MPESA_ENV") or "sandbox").lower(),
-            consumer_key=get("MPESA_CONSUMER_KEY") or "",
-            consumer_secret=get("MPESA_CONSUMER_SECRET") or "",
-            shortcode=get("MPESA_SHORTCODE"),
-            passkey=get("MPESA_PASSKEY"),
-            initiator_name=get("MPESA_INITIATOR_NAME"),
+            env=(get("DARAJA_ENV") or "sandbox").lower(),
+            consumer_key=get("DARAJA_CONSUMER_KEY") or "",
+            consumer_secret=get("DARAJA_CONSUMER_SECRET") or "",
+            shortcode=get("DARAJA_SHORTCODE"),
+            passkey=get("DARAJA_PASSKEY"),
+            initiator_name=get("DARAJA_INITIATOR_NAME"),
             security_credential=credential,
-            callback_base_url=(get("MPESA_CALLBACK_BASE_URL") or "").rstrip("/") or None,
-            callback_token=get("MPESA_CALLBACK_TOKEN"),
-            allow_live_money_movement=get("MPESA_ALLOW_LIVE_MONEY_MOVEMENT") == "true",
+            callback_base_url=(get("DARAJA_CALLBACK_BASE_URL") or "").rstrip("/") or None,
+            callback_token=get("DARAJA_CALLBACK_TOKEN"),
+            allow_live_money_movement=get("DARAJA_ALLOW_LIVE_MONEY_MOVEMENT") == "true",
         )
 
     def require(self, *names: str) -> None:
         missing = [n for n in names if not getattr(self, n)]
         if missing:
-            env_names = ", ".join("MPESA_" + n.upper() for n in missing)
+            env_names = ", ".join("DARAJA_" + n.upper() for n in missing)
             raise RuntimeError(settings.missing_message(env_names.split(", ")))
 
     def callback(self, explicit: str | None, path: str) -> str:
@@ -95,7 +95,7 @@ class Config:
             prefix = f"/cb/{self.callback_token}" if self.callback_token else ""
             url = f"{self.callback_base_url}{prefix}{path}"
         else:
-            raise RuntimeError("Pass a callback URL or set MPESA_CALLBACK_BASE_URL")
+            raise RuntimeError("Pass a callback URL or set DARAJA_CALLBACK_BASE_URL")
         if not url.startswith("https://"):
             raise ValueError(f"Daraja callback URLs must be public HTTPS, got {url!r}")
         return url

@@ -27,14 +27,14 @@ These are on the portal's **Test Credentials** and simulator pages. Read them fr
 ## 3. `.env` template
 
 ```dotenv
-MPESA_ENV=sandbox
-MPESA_CONSUMER_KEY=
-MPESA_CONSUMER_SECRET=
-MPESA_SHORTCODE=174379
-MPESA_PASSKEY=
-MPESA_INITIATOR_NAME=
-MPESA_SECURITY_CREDENTIAL=
-MPESA_CALLBACK_BASE_URL=https://<tunnel-host>
+DARAJA_ENV=sandbox
+DARAJA_CONSUMER_KEY=
+DARAJA_CONSUMER_SECRET=
+DARAJA_SHORTCODE=174379
+DARAJA_PASSKEY=
+DARAJA_INITIATOR_NAME=
+DARAJA_SECURITY_CREDENTIAL=
+DARAJA_CALLBACK_BASE_URL=https://<tunnel-host>
 ```
 
 Add `.env` to `.gitignore`, and commit a `.env.example` with no values. The same variables configure the repo's MCP server.

@@ -157,7 +157,7 @@ def test_security_credential_script(tmp_path):
     path = tmp_path / "c.cer"
     path.write_bytes(cert.public_bytes(serialization.Encoding.PEM))
     res = run("daraja-credentials-security/scripts/security_credential.py", str(path),
-              env={**os.environ, "MPESA_INITIATOR_PASSWORD": "pw"})
+              env={**os.environ, "DARAJA_INITIATOR_PASSWORD": "pw"})
     assert key.decrypt(base64.b64decode(res.stdout.strip()), padding.PKCS1v15()) == b"pw"
 
 

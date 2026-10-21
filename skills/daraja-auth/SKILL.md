@@ -21,7 +21,7 @@ Authorization: Basic base64(CONSUMER_KEY + ":" + CONSUMER_SECRET)
 Quick check of your credentials (stdlib only; it never prints the token):
 
 ```bash
-MPESA_CONSUMER_KEY=... MPESA_CONSUMER_SECRET=... MPESA_ENV=sandbox python scripts/check_token.py
+DARAJA_CONSUMER_KEY=... DARAJA_CONSUMER_SECRET=... DARAJA_ENV=sandbox python scripts/check_token.py
 ```
 
 ## Reference implementation (Python)
@@ -29,9 +29,9 @@ MPESA_CONSUMER_KEY=... MPESA_CONSUMER_SECRET=... MPESA_ENV=sandbox python script
 ```python
 import base64, os, threading, time, requests
 
-BASE_URL = os.environ.get("MPESA_BASE_URL", "https://sandbox.safaricom.co.ke")
-KEY = os.environ["MPESA_CONSUMER_KEY"].strip()        # KeyError = fail fast at startup
-SECRET = os.environ["MPESA_CONSUMER_SECRET"].strip()
+BASE_URL = os.environ.get("DARAJA_BASE_URL", "https://sandbox.safaricom.co.ke")
+KEY = os.environ["DARAJA_CONSUMER_KEY"].strip()        # KeyError = fail fast at startup
+SECRET = os.environ["DARAJA_CONSUMER_SECRET"].strip()
 SAFETY_MARGIN_S = 60                                  # refresh before expiry so in-flight calls never carry a dead token
 
 _lock = threading.Lock()

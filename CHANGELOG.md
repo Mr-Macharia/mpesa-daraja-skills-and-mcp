@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-21
+
+### Changed
+
+- Environment variables are now named `DARAJA_*` (e.g. `DARAJA_ENV`, `DARAJA_CONSUMER_KEY`), since they configure the Daraja API. Rename `MPESA_*` keys in your `.env` or `config.env` to `DARAJA_*`.
+
 ## [0.1.1] - 2026-10-20
 
 ### Changed
@@ -56,6 +62,7 @@ First public release.
   - Rejected keys get a plain explanation instead of a bare `HTTP 400`.
   - `mpesa_stk_query` keeps Safaricom's reply while a payment is processing, and answers from recorded results (including a callback's receipt) when it has them.
 
-[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/releases/tag/v0.1.0
