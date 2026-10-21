@@ -210,7 +210,54 @@ def architecture():
     (OUT / "how-it-works.svg").write_text("".join(o), encoding="utf-8")
 
 
+def banner():
+    w, h = 1280, 420
+    o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img" aria-label="M-Pesa Daraja for AI agents">',
+         DEFS,
+         f'<rect width="{w}" height="{h}" rx="28" fill="{BG}"/>',
+         f'<rect width="{w}" height="{h}" rx="28" fill="url(#dots)"/>',
+         f'<rect width="{w}" height="{h}" rx="28" fill="url(#halo)"/>']
+    # left: name and promise
+    o.append(text(64, 118, "MCP + Agent Skills", 16, ORANGE_HI, 600, font=MONO))
+    o.append(text(62, 186, "M-Pesa Daraja", 64, INK, 800, extra='letter-spacing="-1.5"'))
+    o.append(text(62, 252, "for AI agents", 64, INK, 800, extra='letter-spacing="-1.5" fill-opacity="0.92"'))
+    o.append(text(64, 300, "Your agent sends the STK push, waits for the PIN,", 19, MUTED))
+    o.append(text(64, 328, "and tells you if it was paid. Safely, in the sandbox first.", 19, MUTED))
+    for i, (label, colour) in enumerate((("STK Push", ORANGE_HI), ("B2C", ORANGE_HI), ("C2B", ORANGE_HI), ("Ratiba", ORANGE_HI), ("+ 7 more", MUTED))):
+        x = 64 + sum(len(s) * 8.4 + 34 for s, _ in (("STK Push", 0), ("B2C", 0), ("C2B", 0), ("Ratiba", 0))[:i])
+        pw = len(label) * 8.4 + 22
+        o.append(f'<rect x="{x}" y="352" width="{pw}" height="30" rx="15" fill="none" stroke="{FAINT}"/>')
+        o.append(text(x + pw / 2, 372, label, 13.5, colour, 500, "middle", MONO))
+    # right: the agent asks, the phone prompts, the agent answers
+    o.append(f'<path d="M840,150 C 900,150 900,96 960,96" fill="none" stroke="{ORANGE}" stroke-width="2.5" stroke-dasharray="2 8" stroke-linecap="round" filter="url(#glow)"/>')
+    o.append(f'<path d="M1090,330 C 1090,352 1000,352 930,352" fill="none" stroke="{GREEN_HI}" stroke-width="2.5" stroke-dasharray="2 8" stroke-linecap="round" filter="url(#glow)"/>')
+    # agent prompt bubble
+    o.append(f'<g filter="url(#lift)"><rect x="640" y="112" width="250" height="76" rx="16" fill="{CARD}" stroke="{FAINT}"/></g>')
+    o.append(text(660, 140, "You", 12.5, MUTED, 600))
+    o.append(text(660, 164, "Charge 0712 345 678 KES 1", 15, INK, 500))
+    # phone
+    o.append('<g filter="url(#lift)"><rect x="960" y="40" width="250" height="300" rx="34" fill="#08070f" stroke="#2c2a4a" stroke-width="2"/></g>')
+    o.append('<rect x="1055" y="54" width="60" height="7" rx="3.5" fill="#2c2a4a"/>')
+    o.append('<rect x="980" y="84" width="210" height="228" rx="18" fill="#141320"/>')
+    o.append('<rect x="980" y="84" width="210" height="44" rx="18" fill="url(#green)"/><rect x="980" y="110" width="210" height="18" fill="url(#green)"/>')
+    o.append(text(1085, 112, "M-PESA", 15, "#fff", 800, "middle", extra='letter-spacing="1.5"'))
+    o.append(text(1000, 156, "Pay KES 1 to", 14, MUTED))
+    o.append(text(1000, 178, "DEMO SHOP 174379?", 15, INK, 700))
+    o.append(text(1000, 210, "Enter M-PESA PIN", 13.5, MUTED))
+    for i in range(4):
+        o.append(f'<circle cx="{1012 + i * 26}" cy="234" r="7" fill="{GREEN_HI if i < 3 else "none"}" stroke="{GREEN_HI}" stroke-width="1.6"/>')
+    o.append(f'<rect x="1000" y="262" width="80" height="32" rx="10" fill="none" stroke="{FAINT}"/>' + text(1040, 283, "Cancel", 13, MUTED, 600, "middle"))
+    o.append('<rect x="1090" y="262" width="80" height="32" rx="10" fill="url(#green)"/>' + text(1130, 283, "Send", 13, "#fff", 700, "middle"))
+    # agent answer
+    o.append(f'<g filter="url(#lift)"><rect x="640" y="316" width="290" height="80" rx="16" fill="url(#orange)" stroke="{ORANGE_HI}"/></g>')
+    o.append(text(660, 344, "mpesa_stk_push_and_wait", 12.5, "#ffe2cf", 500, font=MONO))
+    o.append(text(660, 372, "SUCCESS, receipt TJK7Q2X9LM", 16, "#fff", 700))
+    o.append("</svg>")
+    (OUT / "banner.svg").write_text("".join(o), encoding="utf-8")
+
+
 architecture()
+banner()
 
 sequence(
     "stk-push-sequence", "STK Push, from request to callback",

@@ -35,6 +35,7 @@ CI runs all three on Python 3.10–3.13, and also fails if the generated files a
 | Request validation rules | `mcp-server/src/mpesa_mcp/validation.py` | `python tools/sync_skills.py` |
 | A skill's command-line script | `shared/scripts/` (never `skills/*/scripts/`, which are generated) | `python tools/sync_skills.py` |
 | Skill instructions | `skills/<name>/SKILL.md` | Keep it under 500 lines, with valid YAML frontmatter |
+| The README banner or a docs diagram | `docs/diagrams/build.py` (the SVGs are generated) | `python docs/diagrams/build.py` |
 
 ## Adding or changing a skill
 
