@@ -54,7 +54,13 @@ def test_pypi_readme_has_no_relative_links():
 
 def test_claude_plugin_version_and_server_agree():
     # The Claude Code plugin bundles this server, so its version tracks the package.
-    market = json.loads((HERE.parent / ".claude-plugin/marketplace.json").read_text())
-    plugin = market["plugins"][0]
-    assert market["metadata"]["version"] == plugin["version"] == PYPROJECT["version"]
+    # Skills and the server live in plugin.json (the directory screens it), not inline in the marketplace entry.
+    root = HERE.parent / ".claude-plugin"
+    market = json.loads((root / "marketplace.json").read_text())
+    plugin = json.loads((root / "plugin.json").read_text())
+    entry = market["plugins"][0]
+    assert entry["name"] == plugin["name"]
+    assert market["metadata"]["version"] == entry["version"] == plugin["version"] == PYPROJECT["version"]
+    assert not {"skills", "mcpServers"} & entry.keys(), "declare components in plugin.json, not the marketplace entry"
     assert plugin["mcpServers"]["mpesa"] == {"command": "uvx", "args": [PYPROJECT["name"]]}
+    assert (root / "icon.png").is_file()
