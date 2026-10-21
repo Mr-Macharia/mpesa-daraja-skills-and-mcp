@@ -1,6 +1,6 @@
 [project]
 name = "mpesa-daraja-mcp"
-version = "0.1.1"
+version = "0.1.2"
 description = "MCP server for Safaricom M-Pesa Daraja: STK Push, C2B, B2C, B2B, status, balance, reversal, QR, Ratiba, Bill Manager"
 readme = "README.md"
 license = "MIT"

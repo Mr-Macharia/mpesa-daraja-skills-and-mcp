@@ -93,7 +93,7 @@ Each skill is self-contained. It bundles scripts that validate requests, build S
 Sandbox unless told otherwise. Live money movement stays off until you opt in. Money tools are idempotent, and every request is validated before it is sent. Details are in the [safety model](#safety-model).
 
 ### 🪶 Light on context
-`MPESA_TOOLSETS` loads only the tools you use. STK checkout alone costs about 2,100 schema tokens instead of 6,300.
+`DARAJA_TOOLSETS` loads only the tools you use. STK checkout alone costs about 2,100 schema tokens instead of 6,300.
 
 You can use either half on its own: the skills work without the server, and the server works without the skills. Together, the skills tell the agent *which* tool to call and *why*.
 
@@ -130,7 +130,7 @@ flowchart LR
 
 | Risk | Safeguard |
 |---|---|
-| Real money moved by accident | Sandbox by default. In production, money tools refuse to run without `MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true`. They are also flagged as destructive, so clients ask before running them |
+| Real money moved by accident | Sandbox by default. In production, money tools refuse to run without `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true`. They are also flagged as destructive, so clients ask before running them |
 | Paying twice on a retry | Each money request is stored under an idempotency key. Repeating the key returns the stored outcome; only a definite failure can be re-sent |
 | Reporting "accepted" as "paid" | One result shape: `ACCEPTED`, `SUCCESS`, `FAILED` or `UNKNOWN`. Only a callback or a status query can produce `SUCCESS` |
 | Malformed requests | Request bodies are checked against Daraja's rules before sending, using the same validator as the skills |
@@ -154,10 +154,10 @@ Found a security problem? Please report it privately, as described in [SECURITY.
 You need a free [Daraja developer account](https://developer.safaricom.co.ke/) and a sandbox app for its consumer key and secret. Sandbox shortcode `174379` and its passkey work out of the box for STK Push.
 
 **Will it charge real money?**
-Not unless you set `MPESA_ENV=production` with live keys *and* `MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
+Not unless you set `DARAJA_ENV=production` with live keys *and* `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
 
 **Why didn't I get a receipt?**
-Safaricom sends the receipt to your callback URL. Set `MPESA_CALLBACK_BASE_URL` to a public HTTPS address, such as an ngrok tunnel to the built-in receiver. Without one, `mpesa_stk_push_and_wait` still reports the outcome through STK Query, but without the receipt number. See [the callback receiver](mcp-server/README.md#results-and-callbacks).
+Safaricom sends the receipt to your callback URL. Set `DARAJA_CALLBACK_BASE_URL` to a public HTTPS address, such as an ngrok tunnel to the built-in receiver. Without one, `mpesa_stk_push_and_wait` still reports the outcome through STK Query, but without the receipt number. See [the callback receiver](mcp-server/README.md#results-and-callbacks).
 
 **My agent says "Connection closed".**
 Run `uvx mpesa-daraja-mcp status`. It shows which settings are missing and re-tests your keys. Then restart the agent.

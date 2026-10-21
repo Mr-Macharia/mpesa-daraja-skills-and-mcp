@@ -33,7 +33,7 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 ## Safety
 
 - Defaults to the **sandbox**.
-- In production, money-moving tools refuse to run unless `MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
+- In production, money-moving tools refuse to run unless `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
 - Callback URLs must be HTTPS; C2B URLs with `mpesa`/`safaricom` in them are rejected up front.
 - Tokens and secrets are never returned in tool output.
 - Responses with `ResponseCode "0"` are tagged `_note: ACCEPTED for processing only`, so the agent does not report them as completed payments.
@@ -46,20 +46,20 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 
 | Variable | Required | Notes |
 |---|---|---|
-| `MPESA_ENV` | | `sandbox` (default) or `production` |
-| `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET` | ✅ | From your Daraja app |
-| `MPESA_SHORTCODE` | most tools | Paybill / store number (`174379` in sandbox) |
-| `MPESA_PASSKEY` | STK | Lipa na M-Pesa passkey |
-| `MPESA_INITIATOR_NAME` | B2C/B2B/status/balance/reversal | API operator username |
-| `MPESA_SECURITY_CREDENTIAL` | same | Pre-encrypted credential, **or** set the next two |
-| `MPESA_INITIATOR_PASSWORD` + `MPESA_CERT_PATH` | | Server encrypts the password with the cert at startup |
-| `MPESA_CALLBACK_BASE_URL` | | e.g. `https://abc.ngrok-free.app`; tools append `/mpesa/stk/callback`, `/mpesa/b2c/result`, … |
-| `MPESA_ALLOW_LIVE_MONEY_MOVEMENT` | | `true` to allow production charges/payouts |
-| `MPESA_CALLBACK_LISTEN` | | e.g. `127.0.0.1:8787`: starts the built-in callback receiver |
-| `MPESA_CALLBACK_TOKEN` | with receiver | 16+ random characters. Callback URLs become `<base>/cb/<token>/…` |
-| `MPESA_STATE_DB` | | SQLite file for requests and results (default `~/.mpesa-mcp/state.db`) |
-| `MPESA_TOOLSETS` | | Comma list of `stk,c2b,payouts,ops,qr,ratiba,billmanager` (`core` is always on). Default: all |
-| `MPESA_OUTPUT_DIR` | | Where QR PNGs are saved (default `~/.mpesa-mcp/qr`) |
+| `DARAJA_ENV` | | `sandbox` (default) or `production` |
+| `DARAJA_CONSUMER_KEY`, `DARAJA_CONSUMER_SECRET` | ✅ | From your Daraja app |
+| `DARAJA_SHORTCODE` | most tools | Paybill / store number (`174379` in sandbox) |
+| `DARAJA_PASSKEY` | STK | Lipa na M-Pesa passkey |
+| `DARAJA_INITIATOR_NAME` | B2C/B2B/status/balance/reversal | API operator username |
+| `DARAJA_SECURITY_CREDENTIAL` | same | Pre-encrypted credential, **or** set the next two |
+| `DARAJA_INITIATOR_PASSWORD` + `DARAJA_CERT_PATH` | | Server encrypts the password with the cert at startup |
+| `DARAJA_CALLBACK_BASE_URL` | | e.g. `https://abc.ngrok-free.app`; tools append `/mpesa/stk/callback`, `/mpesa/b2c/result`, … |
+| `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT` | | `true` to allow production charges/payouts |
+| `DARAJA_CALLBACK_LISTEN` | | e.g. `127.0.0.1:8787`: starts the built-in callback receiver |
+| `DARAJA_CALLBACK_TOKEN` | with receiver | 16+ random characters. Callback URLs become `<base>/cb/<token>/…` |
+| `DARAJA_STATE_DB` | | SQLite file for requests and results (default `~/.mpesa-mcp/state.db`) |
+| `DARAJA_TOOLSETS` | | Comma list of `stk,c2b,payouts,ops,qr,ratiba,billmanager` (`core` is always on). Default: all |
+| `DARAJA_OUTPUT_DIR` | | Where QR PNGs are saved (default `~/.mpesa-mcp/qr`) |
 
 ## Install & run
 
@@ -72,8 +72,8 @@ uvx mpesa-daraja-mcp           # the MCP server itself, on stdio: what your agen
 The server needs no flags or environment variables in your agent's config. Settings are read in this order, highest first:
 
 1. **Environment variables**, e.g. from the client's `env` block.
-2. **A project `.env`** in the folder the agent starts the server in, or the file named by `MPESA_DOTENV`. Only `MPESA_*` lines are read.
-3. **The user config file** that `setup` writes: `~/.config/mpesa-daraja-mcp/config.env` (Windows: `%APPDATA%\mpesa-daraja-mcp\config.env`; override the folder with `MPESA_CONFIG_DIR`). It is readable only by you.
+2. **A project `.env`** in the folder the agent starts the server in, or the file named by `DARAJA_DOTENV`. Only `DARAJA_*` lines are read.
+3. **The user config file** that `setup` writes: `~/.config/mpesa-daraja-mcp/config.env` (Windows: `%APPDATA%\mpesa-daraja-mcp\config.env`; override the folder with `DARAJA_CONFIG_DIR`). It is readable only by you.
 
 The server starts even when unconfigured. Tools then explain what's missing, and `mpesa_setup_status` lists the gaps for each toolset without revealing any values.
 
@@ -92,13 +92,13 @@ Every money or async tool returns one shape:
 To let the agent see final results, enable the **built-in receiver**:
 
 ```bash
-export MPESA_CALLBACK_LISTEN=127.0.0.1:8787
-export MPESA_CALLBACK_TOKEN=$(python -c "import secrets; print(secrets.token_urlsafe(24))")
+export DARAJA_CALLBACK_LISTEN=127.0.0.1:8787
+export DARAJA_CALLBACK_TOKEN=$(python -c "import secrets; print(secrets.token_urlsafe(24))")
 ngrok http 8787                        # sandbox; use a reverse proxy with TLS in production
-export MPESA_CALLBACK_BASE_URL=https://<tunnel-host>
+export DARAJA_CALLBACK_BASE_URL=https://<tunnel-host>
 ```
 
-Callbacks are stored in `MPESA_STATE_DB`:
+Callbacks are stored in `DARAJA_STATE_DB`:
 - `mpesa_get_result(id)` reads them.
 - `mpesa_stk_push_and_wait` returns the final outcome in one call.
 - Queue-timeout callbacks are recorded as UNKNOWN.
@@ -114,7 +114,7 @@ Without the receiver, `mpesa_stk_push_and_wait` still works through STK Query. F
 | `stk` | 9 | ~2,100 |
 | `stk,c2b` | 12 | ~2,600 |
 
-Pick the smallest set you need with `MPESA_TOOLSETS`.
+Pick the smallest set you need with `DARAJA_TOOLSETS`.
 
 ## Development
 

@@ -3,10 +3,10 @@
 Precedence (highest first):
   1. Real environment variables (e.g. set by the MCP client's config)
   2. A project `.env` in the directory the client starts the server in
-     (or the file named by MPESA_DOTENV)
+     (or the file named by DARAJA_DOTENV)
   3. The user config file written by `mpesa-daraja-mcp setup`
 
-Only MPESA_* keys are read from files, so a project's other secrets are never loaded.
+Only DARAJA_* keys are read from files, so a project's other secrets are never loaded.
 """
 
 from __future__ import annotations
@@ -19,24 +19,24 @@ from pathlib import Path
 APP = "mpesa-daraja-mcp"
 
 # Variables that say where to look for config, rather than being config themselves.
-LOCATION_VARS = ("MPESA_CONFIG_DIR", "MPESA_DOTENV")
+LOCATION_VARS = ("DARAJA_CONFIG_DIR", "DARAJA_DOTENV")
 
 # key -> where its value came from ("environment", or a file path); filled by load()
 SOURCES: dict[str, str] = {}
 
-_LINE = re.compile(r"^\s*(?:export\s+)?(MPESA_[A-Z0-9_]+)\s*=\s*(.*?)\s*$")
+_LINE = re.compile(r"^\s*(?:export\s+)?(DARAJA_[A-Z0-9_]+)\s*=\s*(.*?)\s*$")
 
 
 def config_dir() -> Path:
-    if os.environ.get("MPESA_CONFIG_DIR"):
-        return Path(os.environ["MPESA_CONFIG_DIR"])
+    if os.environ.get("DARAJA_CONFIG_DIR"):
+        return Path(os.environ["DARAJA_CONFIG_DIR"])
     if sys.platform == "win32":
         return Path(os.environ.get("APPDATA", Path.home())) / APP
     return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / APP
 
 
 def project_env_file() -> Path:
-    return Path(os.environ["MPESA_DOTENV"]) if os.environ.get("MPESA_DOTENV") else Path.cwd() / ".env"
+    return Path(os.environ["DARAJA_DOTENV"]) if os.environ.get("DARAJA_DOTENV") else Path.cwd() / ".env"
 
 
 def user_config_file() -> Path:
@@ -44,7 +44,7 @@ def user_config_file() -> Path:
 
 
 def parse_env_file(path: Path) -> dict[str, str]:
-    """Minimal dotenv: KEY=value lines, optional quotes and `export`, # comments. MPESA_* keys only."""
+    """Minimal dotenv: KEY=value lines, optional quotes and `export`, # comments. DARAJA_* keys only."""
     values: dict[str, str] = {}
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
@@ -66,7 +66,7 @@ def parse_env_file(path: Path) -> dict[str, str]:
 def load() -> None:
     """Fill os.environ from config files without overriding anything already set."""
     for key, value in os.environ.items():
-        if key.startswith("MPESA_") and value.strip():
+        if key.startswith("DARAJA_") and value.strip():
             SOURCES.setdefault(key, "environment")
     for path in (project_env_file(), user_config_file()):
         for key, value in parse_env_file(path).items():
@@ -93,7 +93,7 @@ def write_user_config(values: dict[str, str]) -> Path:
 
 def missing_message(names: list[str]) -> str:
     return (
-        f"Missing M-Pesa configuration: {', '.join(names)}. "
+        f"Missing Daraja configuration: {', '.join(names)}. "
         f"Run `uvx {APP} setup` in a terminal, or add the values to {user_config_file()} "
         "(or a project .env), then restart the MCP server."
     )

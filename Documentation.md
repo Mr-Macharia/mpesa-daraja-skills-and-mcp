@@ -780,14 +780,14 @@ load_dotenv()
 app = Flask(__name__)
 
 # --- Configuration from Environment Variables ---
-CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY")
-CONSUMER_SECRET = os.getenv("MPESA_CONSUMER_SECRET")
-BUSINESS_SHORT_CODE = os.getenv("MPESA_BUSINESS_SHORT_CODE") # Your Paybill/Till Number
-PASSKEY = os.getenv("MPESA_PASSKEY")
-CALLBACK_URL = os.getenv("MPESA_CALLBACK_URL") # Your public URL for callbacks (e.g., ngrok URL)
-MPESA_ENV = os.getenv("MPESA_ENV", "sandbox") # 'sandbox' or 'production'
+CONSUMER_KEY = os.getenv("DARAJA_CONSUMER_KEY")
+CONSUMER_SECRET = os.getenv("DARAJA_CONSUMER_SECRET")
+BUSINESS_SHORT_CODE = os.getenv("DARAJA_BUSINESS_SHORT_CODE") # Your Paybill/Till Number
+PASSKEY = os.getenv("DARAJA_PASSKEY")
+CALLBACK_URL = os.getenv("DARAJA_CALLBACK_URL") # Your public URL for callbacks (e.g., ngrok URL)
+DARAJA_ENV = os.getenv("DARAJA_ENV", "sandbox") # 'sandbox' or 'production'
 
-if MPESA_ENV == "sandbox":
+if DARAJA_ENV == "sandbox":
     BASE_URL = "https://sandbox.safaricom.co.ke"
 else:
     BASE_URL = "https://api.safaricom.co.ke"
@@ -957,12 +957,12 @@ if __name__ == "__main__":
 
 #### `.env` file example:
 ```
-MPESA_CONSUMER_KEY=your_consumer_key
-MPESA_CONSUMER_SECRET=your_consumer_secret
-MPESA_BUSINESS_SHORT_CODE=600XXX
-MPESA_PASSKEY=your_passkey
-MPESA_CALLBACK_URL=https://your-ngrok-url.ngrok-free.app/mpesa_callback
-MPESA_ENV=sandbox
+DARAJA_CONSUMER_KEY=your_consumer_key
+DARAJA_CONSUMER_SECRET=your_consumer_secret
+DARAJA_BUSINESS_SHORT_CODE=600XXX
+DARAJA_PASSKEY=your_passkey
+DARAJA_CALLBACK_URL=https://your-ngrok-url.ngrok-free.app/mpesa_callback
+DARAJA_ENV=sandbox
 ```
 
 **Explanation of the Code:**
@@ -2817,8 +2817,8 @@ For example, a developer might write:
 
 ```python
 # Insecure: Hardcoding credentials directly in source code
-MPESA_CONSUMER_KEY = "your_hardcoded_consumer_key_here"
-MPESA_CONSUMER_SECRET = "your_hardcoded_consumer_secret_here"
+DARAJA_CONSUMER_KEY = "your_hardcoded_consumer_key_here"
+DARAJA_CONSUMER_SECRET = "your_hardcoded_consumer_secret_here"
 
 # This key is now part of the application's source code.
 ```
@@ -2837,8 +2837,8 @@ Once a credential is hardcoded and committed to a repository, it becomes part of
 For example, on a Linux/macOS system, you might set an environment variable like this:
 
 ```bash
-export MPESA_CONSUMER_KEY="your_consumer_key"
-export MPESA_CONSUMER_SECRET="your_consumer_secret"
+export DARAJA_CONSUMER_KEY="your_consumer_key"
+export DARAJA_CONSUMER_SECRET="your_consumer_secret"
 ```
 
 A Python application can then access these values using the built-in `os` module:
@@ -2846,17 +2846,17 @@ A Python application can then access these values using the built-in `os` module
 ```python
 import os
 
-mpesa_consumer_key = os.environ.get("MPESA_CONSUMER_KEY")
-mpesa_consumer_secret = os.environ.get("MPESA_CONSUMER_SECRET")
+mpesa_consumer_key = os.environ.get("DARAJA_CONSUMER_KEY")
+mpesa_consumer_secret = os.environ.get("DARAJA_CONSUMER_SECRET")
 
 if not mpesa_consumer_key or not mpesa_consumer_secret:
-    raise ValueError("MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET environment variables must be set.")
+    raise ValueError("DARAJA_CONSUMER_KEY and DARAJA_CONSUMER_SECRET environment variables must be set.")
 
 print(f"Consumer Key: {mpesa_consumer_key}")
 print(f"Consumer Secret: {mpesa_consumer_secret}")
 ```
 
-> 💡 **What is happening here:** Instead of being written directly into the code, the `MPESA_CONSUMER_KEY` and `MPESA_CONSUMER_SECRET` are stored outside the application code, within the operating system's settings. The Python program then requests these values from the operating system when it runs, keeping the sensitive data separate from the code itself.
+> 💡 **What is happening here:** Instead of being written directly into the code, the `DARAJA_CONSUMER_KEY` and `DARAJA_CONSUMER_SECRET` are stored outside the application code, within the operating system's settings. The Python program then requests these values from the operating system when it runs, keeping the sensitive data separate from the code itself.
 
 **First Principles**: Environment variables exist to decouple configuration from code. This separation is crucial for several reasons:
 1.  **Security**: Sensitive data is not embedded in the source code, significantly reducing the risk of accidental exposure in version control systems.
@@ -2871,8 +2871,8 @@ A **.env file** is a plain text file used primarily in local development environ
 An example .env file looks like this:
 
 ```
-MPESA_CONSUMER_KEY="your_dev_consumer_key"
-MPESA_CONSUMER_SECRET="your_dev_consumer_secret"
+DARAJA_CONSUMER_KEY="your_dev_consumer_key"
+DARAJA_CONSUMER_SECRET="your_dev_consumer_secret"
 DATABASE_URL="sqlite:///./dev.db"
 ```
 
@@ -2996,7 +2996,7 @@ For local development and testing, environment variables, often managed via .env
 When using .env files in a Python project, the **`python-dotenv`** library is commonly employed. This library helps load variables from `.env` files into the application's environment.
 
 **Step-by-step mechanism:**
-1.  **.env file creation**: A developer creates a file named `.env` in the root directory of their project. This file contains key-value pairs for environment variables, such as `MPESA_CONSUMER_KEY="your_value"`.
+1.  **.env file creation**: A developer creates a file named `.env` in the root directory of their project. This file contains key-value pairs for environment variables, such as `DARAJA_CONSUMER_KEY="your_value"`.
 2.  **.gitignore entry**: The `.env` file is immediately added to the project's `.gitignore` file. This crucial step instructs Git to ignore the `.env` file, preventing it from being committed to the version control repository.
 3.  **python-dotenv installation**: The `python-dotenv` library is installed in the project's virtual environment using a package manager like pip (`pip install python-dotenv`).
 4.  **Loading in code**: At the entry point of the application, `dotenv.load_dotenv()` is called. This function reads the key-value pairs from the .env file and adds them to the `os.environ` dictionary, making them accessible as standard environment variables within the Python process.
@@ -3015,8 +3015,8 @@ In your project's root directory, create a file named `.env` with the following 
 
 ```
 # .env
-MPESA_CONSUMER_KEY="your_sandbox_consumer_key_here"
-MPESA_CONSUMER_SECRET="your_sandbox_consumer_secret_here"
+DARAJA_CONSUMER_KEY="your_sandbox_consumer_key_here"
+DARAJA_CONSUMER_SECRET="your_sandbox_consumer_secret_here"
 ```
 
 **2. Add .env to .gitignore:**
@@ -3053,12 +3053,12 @@ def get_mpesa_access_token():
     Obtains an Mpesa Daraja OAuth 2.0 access token using credentials from environment variables.
     """
     # 2. Retrieve credentials from environment variables
-    CONSUMER_KEY = os.environ.get("MPESA_CONSUMER_KEY")
-    CONSUMER_SECRET = os.environ.get("MPESA_CONSUMER_SECRET")
+    CONSUMER_KEY = os.environ.get("DARAJA_CONSUMER_KEY")
+    CONSUMER_SECRET = os.environ.get("DARAJA_CONSUMER_SECRET")
 
     # 3. Validate that the environment variables are set
     if not CONSUMER_KEY or not CONSUMER_SECRET:
-        print("Error: MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET environment variables must be set.")
+        print("Error: DARAJA_CONSUMER_KEY and DARAJA_CONSUMER_SECRET environment variables must be set.")
         print("Please ensure you have a .env file with these variables or they are set in your shell.")
         return None
 
@@ -3116,8 +3116,8 @@ if __name__ == "__main__":
 3.  `import base64`: This imports the `base64` module, used for encoding credentials into a Base64 format as required by the Daraja API for Basic Authentication.
 4.  `from dotenv import load_dotenv`: This specifically imports the `load_dotenv` function from the `python-dotenv` library.
 5.  `load_dotenv()`: This is the crucial step for local development. When this line executes, `python-dotenv` actively searches for a `.env` file in the current directory (or its parent directories). If found, it reads each `KEY=VALUE` pair from the file and adds `KEY` to the `os.environ` dictionary with its corresponding `VALUE`. This effectively makes the variables defined in the `.env` file available as standard system environment variables for the current Python process.
-6.  `CONSUMER_KEY = os.environ.get("MPESA_CONSUMER_KEY")`: The `os.environ.get()` method is used to safely retrieve the value associated with the `MPESA_CONSUMER_KEY` environment variable. Using `.get()` is safer than direct dictionary access (`os.environ["KEY"]`) because it returns `None` if the variable is not set, preventing a program-crashing `KeyError`.
-7.  `CONSUMER_SECRET = os.environ.get("MPESA_CONSUMER_SECRET")`: This line similarly retrieves the `MPESA_CONSUMER_SECRET` from the environment variables.
+6.  `CONSUMER_KEY = os.environ.get("DARAJA_CONSUMER_KEY")`: The `os.environ.get()` method is used to safely retrieve the value associated with the `DARAJA_CONSUMER_KEY` environment variable. Using `.get()` is safer than direct dictionary access (`os.environ["KEY"]`) because it returns `None` if the variable is not set, preventing a program-crashing `KeyError`.
+7.  `CONSUMER_SECRET = os.environ.get("DARAJA_CONSUMER_SECRET")`: This line similarly retrieves the `DARAJA_CONSUMER_SECRET` from the environment variables.
 8.  `if not CONSUMER_KEY or not CONSUMER_SECRET:`: This block performs essential **validation**. It checks if the environment variables were successfully loaded and are not empty. If either is `None` (meaning it wasn't found), the program prints a clear error message and exits gracefully. This prevents the application from proceeding with missing credentials, adhering to the "fail-fast" principle.
 9.  `credentials = f"{CONSUMER_KEY}:{CONSUMER_SECRET}"`: The retrieved key and secret are concatenated (joined together) with a colon separator, as specifically required by the Daraja API for constructing the Basic Authentication string.
 10. `encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')`: The concatenated string is first encoded into bytes using `utf-8` and then Base64 encoded. Finally, it's decoded back to a string so it can be correctly included in the HTTP header.
@@ -3284,8 +3284,8 @@ def get_secret(secret_name):
     return os.environ.get(secret_name)
 
 # Usage
-CONSUMER_KEY = get_secret("MPESA_CONSUMER_KEY")
-CONSUMER_SECRET = get_secret("MPESA_CONSUMER_SECRET")
+CONSUMER_KEY = get_secret("DARAJA_CONSUMER_KEY")
+CONSUMER_SECRET = get_secret("DARAJA_CONSUMER_SECRET")
 ```
 
 > 💡 **What is happening here:** This code first checks for a secret file in a special, secure location (`/run/secrets/`) used by container orchestration systems. If found, it reads the secret from there. If not, it falls back to checking standard environment variables. This creates a flexible system that prioritizes the most secure method available.
@@ -3367,7 +3367,7 @@ def validate_config():
     Validates that all required environment variables are present.
     If any are missing, it prints an error and exits the application.
     """
-    required_vars = ["MPESA_CONSUMER_KEY", "MPESA_CONSUMER_SECRET"]
+    required_vars = ["DARAJA_CONSUMER_KEY", "DARAJA_CONSUMER_SECRET"]
     # Create a list of any required variables that are not found in the environment
     missing_vars = [var for var in required_vars if not os.environ.get(var)]
     
@@ -3447,10 +3447,10 @@ Most CI/CD platforms provide a way to **mask secrets**. Masking means replacing 
 ```yaml
 - name: Set up Mpesa Credentials
   run: |
-    echo "::add-mask::${{ secrets.MPESA_CONSUMER_KEY }}"
-    echo "::add-mask::${{ secrets.MPESA_CONSUMER_SECRET }}"
-    echo "MPESA_CONSUMER_KEY=${{ secrets.MPESA_CONSUMER_KEY }}" >> $GITHUB_ENV
-    echo "MPESA_CONSUMER_SECRET=${{ secrets.MPESA_CONSUMER_SECRET }}" >> $GITHUB_ENV
+    echo "::add-mask::${{ secrets.DARAJA_CONSUMER_KEY }}"
+    echo "::add-mask::${{ secrets.DARAJA_CONSUMER_SECRET }}"
+    echo "DARAJA_CONSUMER_KEY=${{ secrets.DARAJA_CONSUMER_KEY }}" >> $GITHUB_ENV
+    echo "DARAJA_CONSUMER_SECRET=${{ secrets.DARAJA_CONSUMER_SECRET }}" >> $GITHUB_ENV
 ```
 
 > 💡 **What is happening here:** Before setting the actual secret values as environment variables for the CI/CD job, special commands are used to tell the CI/CD system to hide these values in the logs. This ensures that even if the job output is publicly visible, the secrets themselves are obscured.

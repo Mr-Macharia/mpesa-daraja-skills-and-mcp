@@ -8,85 +8,85 @@
     "source": "github",
     "subfolder": "mcp-server"
   },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "mpesa-daraja-mcp",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
-          "name": "MPESA_CONSUMER_KEY",
+          "name": "DARAJA_CONSUMER_KEY",
           "description": "Daraja app Consumer Key",
           "isRequired": true,
           "isSecret": true
         },
         {
-          "name": "MPESA_CONSUMER_SECRET",
+          "name": "DARAJA_CONSUMER_SECRET",
           "description": "Daraja app Consumer Secret",
           "isRequired": true,
           "isSecret": true
         },
         {
-          "name": "MPESA_ENV",
+          "name": "DARAJA_ENV",
           "description": "sandbox (default) or production",
           "isRequired": false,
           "isSecret": false
         },
         {
-          "name": "MPESA_SHORTCODE",
+          "name": "DARAJA_SHORTCODE",
           "description": "Paybill / store number (174379 in sandbox)",
           "isRequired": false,
           "isSecret": false
         },
         {
-          "name": "MPESA_PASSKEY",
+          "name": "DARAJA_PASSKEY",
           "description": "M-Pesa Express passkey (STK Push)",
           "isRequired": false,
           "isSecret": true
         },
         {
-          "name": "MPESA_INITIATOR_NAME",
+          "name": "DARAJA_INITIATOR_NAME",
           "description": "API operator username (B2C, B2B, status, balance, reversal)",
           "isRequired": false,
           "isSecret": false
         },
         {
-          "name": "MPESA_SECURITY_CREDENTIAL",
+          "name": "DARAJA_SECURITY_CREDENTIAL",
           "description": "Encrypted initiator password",
           "isRequired": false,
           "isSecret": true
         },
         {
-          "name": "MPESA_CALLBACK_BASE_URL",
+          "name": "DARAJA_CALLBACK_BASE_URL",
           "description": "Public HTTPS base for callback URLs",
           "isRequired": false,
           "isSecret": false
         },
         {
-          "name": "MPESA_CALLBACK_LISTEN",
+          "name": "DARAJA_CALLBACK_LISTEN",
           "description": "host:port for the built-in callback receiver",
           "isRequired": false,
           "isSecret": false
         },
         {
-          "name": "MPESA_CALLBACK_TOKEN",
+          "name": "DARAJA_CALLBACK_TOKEN",
           "description": "16+ random characters; secret path for callbacks",
           "isRequired": false,
           "isSecret": true
         },
         {
-          "name": "MPESA_TOOLSETS",
+          "name": "DARAJA_TOOLSETS",
           "description": "Comma list: stk,c2b,payouts,ops,qr,ratiba,billmanager",
           "isRequired": false,
           "isSecret": false
         },
         {
-          "name": "MPESA_ALLOW_LIVE_MONEY_MOVEMENT",
+          "name": "DARAJA_ALLOW_LIVE_MONEY_MOVEMENT",
           "description": "true to allow production charges and payouts",
           "isRequired": false,
           "isSecret": false

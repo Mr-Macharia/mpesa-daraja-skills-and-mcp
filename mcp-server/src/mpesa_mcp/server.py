@@ -4,7 +4,7 @@ Configuration comes from environment variables (see README). Offline helper
 tools work without credentials; API tools create the client lazily.
 
 Every money-moving tool is refused in production unless
-MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true, and is idempotent: a repeated call with
+DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true, and is idempotent: a repeated call with
 the same idempotency key returns the stored request instead of paying again.
 """
 
@@ -126,7 +126,7 @@ def create_server(toolsets: set[str] | None = None) -> MCPServer:
     wanted = set(TOOLSETS) if toolsets is None else {"core", *toolsets}
     unknown = wanted - set(TOOLSETS)
     if unknown:
-        raise ValueError(f"Unknown MPESA_TOOLSETS {sorted(unknown)}; choose from {', '.join(TOOLSETS)}")
+        raise ValueError(f"Unknown DARAJA_TOOLSETS {sorted(unknown)}; choose from {', '.join(TOOLSETS)}")
     srv = MCPServer("mpesa-daraja", instructions=INSTRUCTIONS)
     for fn, hints, toolset in _REGISTRY:
         if toolset in wanted:
@@ -135,7 +135,7 @@ def create_server(toolsets: set[str] | None = None) -> MCPServer:
 
 
 def toolsets_from_env() -> set[str] | None:
-    raw = os.environ.get("MPESA_TOOLSETS", "").strip()
+    raw = os.environ.get("DARAJA_TOOLSETS", "").strip()
     return {t.strip() for t in raw.split(",") if t.strip()} if raw and raw != "all" else None
 
 
@@ -158,7 +158,7 @@ def state() -> Store:
     global _state
     if _state is None:
         default = Path.home() / ".mpesa-mcp" / "state.db"
-        _state = Store(os.environ.get("MPESA_STATE_DB") or default)
+        _state = Store(os.environ.get("DARAJA_STATE_DB") or default)
     return _state
 
 
@@ -193,7 +193,7 @@ async def _post(c: DarajaClient, path: str, body: Any) -> Any:
 def _guard_money(c: DarajaClient) -> None:
     if c.config.env == "production" and not c.config.allow_live_money_movement:
         raise PermissionError(
-            "Refusing to move real money: set MPESA_ALLOW_LIVE_MONEY_MOVEMENT=true to enable "
+            "Refusing to move real money: set DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true to enable "
             "production payouts/charges through this server."
         )
 
@@ -324,13 +324,13 @@ def parse_callback(payload: dict[str, Any]) -> dict[str, Any]:
 
 # What each toolset needs beyond the consumer key and secret.
 TOOLSET_NEEDS = {
-    "stk": ["MPESA_SHORTCODE", "MPESA_PASSKEY"],
-    "c2b": ["MPESA_SHORTCODE"],
-    "payouts": ["MPESA_SHORTCODE", "MPESA_INITIATOR_NAME", "MPESA_SECURITY_CREDENTIAL", "MPESA_CALLBACK_BASE_URL"],
-    "ops": ["MPESA_SHORTCODE", "MPESA_INITIATOR_NAME", "MPESA_SECURITY_CREDENTIAL", "MPESA_CALLBACK_BASE_URL"],
+    "stk": ["DARAJA_SHORTCODE", "DARAJA_PASSKEY"],
+    "c2b": ["DARAJA_SHORTCODE"],
+    "payouts": ["DARAJA_SHORTCODE", "DARAJA_INITIATOR_NAME", "DARAJA_SECURITY_CREDENTIAL", "DARAJA_CALLBACK_BASE_URL"],
+    "ops": ["DARAJA_SHORTCODE", "DARAJA_INITIATOR_NAME", "DARAJA_SECURITY_CREDENTIAL", "DARAJA_CALLBACK_BASE_URL"],
     "qr": [],
-    "ratiba": ["MPESA_SHORTCODE", "MPESA_CALLBACK_BASE_URL"],
-    "billmanager": ["MPESA_SHORTCODE"],
+    "ratiba": ["DARAJA_SHORTCODE", "DARAJA_CALLBACK_BASE_URL"],
+    "billmanager": ["DARAJA_SHORTCODE"],
 }
 
 
@@ -341,9 +341,9 @@ def setup_status() -> dict[str, Any]:
     def present(name: str) -> bool:
         return bool(os.environ.get(name, "").strip())
 
-    core = [n for n in ("MPESA_CONSUMER_KEY", "MPESA_CONSUMER_SECRET") if not present(n)]
+    core = [n for n in ("DARAJA_CONSUMER_KEY", "DARAJA_CONSUMER_SECRET") if not present(n)]
     return {
-        "environment": (os.environ.get("MPESA_ENV") or "sandbox").strip().lower(),
+        "environment": (os.environ.get("DARAJA_ENV") or "sandbox").strip().lower(),
         "configured": sorted(k for k in settings.SOURCES if present(k) and k not in settings.LOCATION_VARS),
         "sources": {k: v for k, v in settings.SOURCES.items() if present(k) and k not in settings.LOCATION_VARS},
         "missing_core": core,
@@ -459,7 +459,7 @@ async def stk_push(
     """Send an M-Pesa Express (STK Push) PIN prompt and return immediately with status ACCEPTED.
 
     Prefer mpesa_stk_push_and_wait when the final result is needed. For Buy Goods, pass the Till as
-    party_b (MPESA_SHORTCODE stays the store number). Pass idempotency_key (e.g. the order ID) to
+    party_b (DARAJA_SHORTCODE stays the store number). Pass idempotency_key (e.g. the order ID) to
     prevent double prompts.
     """
     return await _stk_push(phone, amount, account_reference, description, transaction_type,
@@ -830,7 +830,7 @@ async def generate_dynamic_qr(
     qr = resp.pop("QRCode", None) if isinstance(resp, dict) else None
     if not qr:
         return {"saved": False, "response": resp}
-    out_dir = Path(os.environ.get("MPESA_OUTPUT_DIR") or Path.home() / ".mpesa-mcp" / "qr")
+    out_dir = Path(os.environ.get("DARAJA_OUTPUT_DIR") or Path.home() / ".mpesa-mcp" / "qr")
     out_dir.mkdir(parents=True, exist_ok=True)
     safe_ref = re.sub(r"[^A-Za-z0-9_-]", "_", ref_no)[:40]
     path = out_dir / f"qr_{safe_ref}_{int(time.time())}.png"
@@ -945,14 +945,14 @@ server = create_server(toolsets_from_env())
 
 
 def start_receiver_from_env():
-    """Start the built-in callback receiver when MPESA_CALLBACK_LISTEN=host:port is set."""
-    listen = os.environ.get("MPESA_CALLBACK_LISTEN", "").strip()
+    """Start the built-in callback receiver when DARAJA_CALLBACK_LISTEN=host:port is set."""
+    listen = os.environ.get("DARAJA_CALLBACK_LISTEN", "").strip()
     if not listen:
         return None
-    token = os.environ.get("MPESA_CALLBACK_TOKEN", "").strip()
+    token = os.environ.get("DARAJA_CALLBACK_TOKEN", "").strip()
     if len(token) < 16:
         # A stable, unguessable token: Daraja sends no auth, and C2B URLs are registered once.
-        raise RuntimeError("MPESA_CALLBACK_LISTEN needs MPESA_CALLBACK_TOKEN (16+ random characters)")
+        raise RuntimeError("DARAJA_CALLBACK_LISTEN needs DARAJA_CALLBACK_TOKEN (16+ random characters)")
     from .receiver import CallbackReceiver
 
     host, _, port = listen.rpartition(":")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify consumer key/secret by requesting a token. Stdlib only.
 
-Usage: MPESA_CONSUMER_KEY=... MPESA_CONSUMER_SECRET=... [MPESA_ENV=sandbox|production] python scripts/check_token.py
+Usage: DARAJA_CONSUMER_KEY=... DARAJA_CONSUMER_SECRET=... [DARAJA_ENV=sandbox|production] python scripts/check_token.py
 Prints OK with the expiry, or the Daraja error and what it means. Never prints the token.
 """
 import base64
@@ -15,11 +15,11 @@ HINTS = {
     "400.008.01": "Invalid authentication: key/secret wrong, has whitespace, or belongs to the other environment.",
     "400.008.02": "Invalid grant type: the query must be grant_type=client_credentials.",
 }
-key = os.environ.get("MPESA_CONSUMER_KEY", "").strip()
-secret = os.environ.get("MPESA_CONSUMER_SECRET", "").strip()
+key = os.environ.get("DARAJA_CONSUMER_KEY", "").strip()
+secret = os.environ.get("DARAJA_CONSUMER_SECRET", "").strip()
 if not key or not secret:
-    sys.exit("Set MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET")
-env = os.environ.get("MPESA_ENV", "sandbox").strip().lower()
+    sys.exit("Set DARAJA_CONSUMER_KEY and DARAJA_CONSUMER_SECRET")
+env = os.environ.get("DARAJA_ENV", "sandbox").strip().lower()
 base = {"sandbox": "https://sandbox.safaricom.co.ke", "production": "https://api.safaricom.co.ke"}[env]
 req = urllib.request.Request(
     f"{base}/oauth/v1/generate?grant_type=client_credentials",

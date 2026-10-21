@@ -26,14 +26,14 @@ SANDBOX_SHORTCODE = "174379"
 
 # (env var, label, secret?) shown by `status`
 FIELDS = [
-    ("MPESA_ENV", "Environment", False),
-    ("MPESA_CONSUMER_KEY", "Consumer Key", True),
-    ("MPESA_CONSUMER_SECRET", "Consumer Secret", True),
-    ("MPESA_SHORTCODE", "Shortcode", False),
-    ("MPESA_PASSKEY", "Passkey (STK Push)", True),
-    ("MPESA_INITIATOR_NAME", "Initiator name (payouts)", False),
-    ("MPESA_SECURITY_CREDENTIAL", "Security credential (payouts)", True),
-    ("MPESA_CALLBACK_BASE_URL", "Callback base URL", False),
+    ("DARAJA_ENV", "Environment", False),
+    ("DARAJA_CONSUMER_KEY", "Consumer Key", True),
+    ("DARAJA_CONSUMER_SECRET", "Consumer Secret", True),
+    ("DARAJA_SHORTCODE", "Shortcode", False),
+    ("DARAJA_PASSKEY", "Passkey (STK Push)", True),
+    ("DARAJA_INITIATOR_NAME", "Initiator name (payouts)", False),
+    ("DARAJA_SECURITY_CREDENTIAL", "Security credential (payouts)", True),
+    ("DARAJA_CALLBACK_BASE_URL", "Callback base URL", False),
 ]
 
 
@@ -217,32 +217,32 @@ def setup(ask: Callable[[str], str] = input, ask_secret: Callable[[str], str] = 
           "Get keys from https://developer.safaricom.co.ke/ → My Apps. Input for secrets is hidden.\n")
     env = ""
     while env not in ("sandbox", "production"):
-        env = prompt("Environment, sandbox or production", "MPESA_ENV", "sandbox").lower()
-    values = {"MPESA_ENV": env}
+        env = prompt("Environment, sandbox or production", "DARAJA_ENV", "sandbox").lower()
+    values = {"DARAJA_ENV": env}
     for _attempt in range(3):
-        values["MPESA_CONSUMER_KEY"] = prompt("Consumer Key", "MPESA_CONSUMER_KEY")
-        values["MPESA_CONSUMER_SECRET"] = prompt("Consumer Secret", "MPESA_CONSUMER_SECRET", secret=True)
-        if not (values["MPESA_CONSUMER_KEY"] and values["MPESA_CONSUMER_SECRET"]):
+        values["DARAJA_CONSUMER_KEY"] = prompt("Consumer Key", "DARAJA_CONSUMER_KEY")
+        values["DARAJA_CONSUMER_SECRET"] = prompt("Consumer Secret", "DARAJA_CONSUMER_SECRET", secret=True)
+        if not (values["DARAJA_CONSUMER_KEY"] and values["DARAJA_CONSUMER_SECRET"]):
             print("  Both the key and the secret are required.")
             continue
         print("  Checking with Daraja…")
-        ok, message = verify(env, values["MPESA_CONSUMER_KEY"], values["MPESA_CONSUMER_SECRET"])
+        ok, message = verify(env, values["DARAJA_CONSUMER_KEY"], values["DARAJA_CONSUMER_SECRET"])
         print(f"  {'✓' if ok else '✗'} {message}")
         if ok:
             break
-        current.pop("MPESA_CONSUMER_KEY", None)
-        current.pop("MPESA_CONSUMER_SECRET", None)
+        current.pop("DARAJA_CONSUMER_KEY", None)
+        current.pop("DARAJA_CONSUMER_SECRET", None)
     else:
         print("\nCould not verify the keys; nothing was saved. Check the app's keys and environment, then retry.")
         return 1
 
     default_shortcode = SANDBOX_SHORTCODE if env == "sandbox" else ""
-    values["MPESA_SHORTCODE"] = prompt("Shortcode (Paybill / store number)", "MPESA_SHORTCODE", default_shortcode)
-    values["MPESA_PASSKEY"] = prompt("Passkey for STK Push (Enter to skip)", "MPESA_PASSKEY", secret=True)
+    values["DARAJA_SHORTCODE"] = prompt("Shortcode (Paybill / store number)", "DARAJA_SHORTCODE", default_shortcode)
+    values["DARAJA_PASSKEY"] = prompt("Passkey for STK Push (Enter to skip)", "DARAJA_PASSKEY", secret=True)
     if ask("Set up payouts and queries too (B2C, B2B, status, balance)? [y/N]: ").strip().lower() == "y":
-        values["MPESA_INITIATOR_NAME"] = prompt("Initiator name", "MPESA_INITIATOR_NAME")
-        values["MPESA_SECURITY_CREDENTIAL"] = prompt(
-            "Security credential (encrypted initiator password)", "MPESA_SECURITY_CREDENTIAL", secret=True)
+        values["DARAJA_INITIATOR_NAME"] = prompt("Initiator name", "DARAJA_INITIATOR_NAME")
+        values["DARAJA_SECURITY_CREDENTIAL"] = prompt(
+            "Security credential (encrypted initiator password)", "DARAJA_SECURITY_CREDENTIAL", secret=True)
 
     path = settings.write_user_config(values)
     print(f"\n✓ Saved to {path} (readable only by you).")
@@ -288,11 +288,11 @@ def status(verify: Callable[[str, str, str], tuple[bool, str]] = check_keys) -> 
         shown = (mask(value) if secret else value) if value else "-"
         source = f"  [{settings.SOURCES[key]}]" if value and key in settings.SOURCES else ""
         print(f"  {label:<32}{shown}{source}")
-    key, secret = os.environ.get("MPESA_CONSUMER_KEY", ""), os.environ.get("MPESA_CONSUMER_SECRET", "")
+    key, secret = os.environ.get("DARAJA_CONSUMER_KEY", ""), os.environ.get("DARAJA_CONSUMER_SECRET", "")
     if not (key and secret):
         print("\n✗ Not configured. Run: mpesa-daraja-mcp setup")
         return 1
-    ok, message = verify(os.environ.get("MPESA_ENV", "sandbox").strip().lower() or "sandbox", key, secret)
+    ok, message = verify(os.environ.get("DARAJA_ENV", "sandbox").strip().lower() or "sandbox", key, secret)
     print(f"\n{'✓' if ok else '✗'} {message}")
     return 0 if ok else 1
 

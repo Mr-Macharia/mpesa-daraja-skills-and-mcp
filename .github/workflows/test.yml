@@ -46,7 +46,7 @@ jobs:
         run: |
           uv venv /tmp/smoke && . /tmp/smoke/bin/activate
           uv pip install dist/*.whl
-          MPESA_CONSUMER_KEY=x MPESA_CONSUMER_SECRET=y python -c "
+          DARAJA_CONSUMER_KEY=x DARAJA_CONSUMER_SECRET=y python -c "
           import asyncio
           from mpesa_mcp import server
           print(len(asyncio.run(server.server.list_tools())), 'tools')"

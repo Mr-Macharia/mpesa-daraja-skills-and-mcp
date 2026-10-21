@@ -25,7 +25,7 @@ description: Manages Safaricom Daraja secrets safely (Consumer Key and Secret, M
 Fail fast at startup:
 
 ```python
-REQUIRED = ["MPESA_CONSUMER_KEY", "MPESA_CONSUMER_SECRET", "MPESA_SHORTCODE", "MPESA_PASSKEY"]
+REQUIRED = ["DARAJA_CONSUMER_KEY", "DARAJA_CONSUMER_SECRET", "DARAJA_SHORTCODE", "DARAJA_PASSKEY"]
 missing = [k for k in REQUIRED if not os.getenv(k, "").strip()]   # .strip() catches trailing newlines
 if missing:
     raise RuntimeError(f"Missing M-Pesa config: {', '.join(missing)}")
@@ -38,17 +38,17 @@ if missing:
 1. Download the **sandbox** or **production** certificate from the Daraja portal. It must match the environment you will call.
 2. Run the script. It reads the password from the environment so it never lands in shell history:
    ```bash
-   MPESA_INITIATOR_PASSWORD='...' python scripts/security_credential.py ProductionCertificate.cer
+   DARAJA_INITIATOR_PASSWORD='...' python scripts/security_credential.py ProductionCertificate.cer
    ```
    It uses `cryptography` if installed (`pip install cryptography`), otherwise the `openssl` CLI. The output differs on every run because of random padding; that is expected.
-3. Store the output as `MPESA_SECURITY_CREDENTIAL` in the secret store.
+3. Store the output as `DARAJA_SECURITY_CREDENTIAL` in the secret store.
 4. Verify it with one sandbox `account_balance` call. A `2001` or `18` result means the wrong password or the wrong certificate: go back to step 1.
 
 Node.js equivalent:
 
 ```js
 crypto.publicEncrypt({ key: fs.readFileSync(certPath), padding: crypto.constants.RSA_PKCS1_PADDING },
-                     Buffer.from(process.env.MPESA_INITIATOR_PASSWORD)).toString("base64");
+                     Buffer.from(process.env.DARAJA_INITIATOR_PASSWORD)).toString("base64");
 ```
 
 ## Operational hygiene
@@ -70,4 +70,4 @@ crypto.publicEncrypt({ key: fs.readFileSync(certPath), padding: crypto.constants
 
 ## MCP
 
-The `mpesa` server accepts either `MPESA_SECURITY_CREDENTIAL`, or `MPESA_INITIATOR_PASSWORD` plus `MPESA_CERT_PATH`, in which case it encrypts at startup. It never returns secrets in tool output.
+The `mpesa` server accepts either `DARAJA_SECURITY_CREDENTIAL`, or `DARAJA_INITIATOR_PASSWORD` plus `DARAJA_CERT_PATH`, in which case it encrypts at startup. It never returns secrets in tool output.

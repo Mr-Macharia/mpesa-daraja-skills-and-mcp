@@ -3,7 +3,7 @@
 """Encrypt an initiator password into a Daraja SecurityCredential.
 
 Usage:
-    MPESA_INITIATOR_PASSWORD=... python scripts/security_credential.py <certificate.cer>
+    DARAJA_INITIATOR_PASSWORD=... python scripts/security_credential.py <certificate.cer>
 
 Use SandboxCertificate.cer for the sandbox and ProductionCertificate.cer for production.
 
@@ -21,9 +21,9 @@ import sys
 if len(sys.argv) != 2:
     sys.exit(__doc__)
 cert_path = sys.argv[1]
-password = os.environ.get("MPESA_INITIATOR_PASSWORD", "")
+password = os.environ.get("DARAJA_INITIATOR_PASSWORD", "")
 if not password:
-    sys.exit("Set MPESA_INITIATOR_PASSWORD in the environment first")
+    sys.exit("Set DARAJA_INITIATOR_PASSWORD in the environment first")
 if not os.path.exists(cert_path):
     sys.exit(f"Certificate not found: {cert_path}. Download it from the Daraja portal (docs / test credentials).")
 
