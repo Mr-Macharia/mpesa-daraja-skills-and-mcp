@@ -153,7 +153,7 @@ No keys go in these commands; the server reads them from its config file.
 Then run `uvx mpesa-daraja-mcp setup` to save your keys, or write the config file yourself as described in [docs/clients.md](docs/clients.md).
 </details>
 
-**3. Try it.**
+### Try it
 
 > Check my M-Pesa credentials, then send a KES 1 STK push to 0712345678 and tell me when it's paid.
 
