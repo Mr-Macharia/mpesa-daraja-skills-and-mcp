@@ -20,6 +20,8 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - run: uvx ruff check .
       - run: python3 tools/sync_skills.py --check
+      - name: Skills meet the Agent Skills spec
+        run: for d in skills/*/; do npx -y skills-ref@0.1.5 validate "$d" || exit 1; done
 
   test:
     runs-on: ubuntu-latest

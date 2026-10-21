@@ -121,6 +121,16 @@ Install the M-Pesa Daraja Agent Kit for me:
 
 Your agent installs both halves; you only type your Daraja keys into the setup wizard, never into the chat.
 
+### Claude Code: one plugin for both
+
+The plugin installs all 15 skills and the MCP server in one step:
+
+```text
+/plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp
+```
+
+Then run `uvx mpesa-daraja-mcp setup` once in a terminal to save your Daraja keys. When it offers to add the server to Claude Code, answer **n**: the plugin already did. Restart Claude Code.
+
 ### Or install it yourself
 
 **1. Install the skills.** Needs Node.js 22.20 or later.

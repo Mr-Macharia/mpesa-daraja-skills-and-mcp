@@ -50,3 +50,11 @@ def test_pypi_readme_has_no_relative_links():
     readme = (HERE / PYPROJECT["readme"]).read_text()
     relative = [m for m in re.findall(r"\]\(([^)]+)\)", readme) if not m.startswith(("http", "#", "mailto:"))]
     assert not relative, relative
+
+
+def test_claude_plugin_version_and_server_agree():
+    # The Claude Code plugin bundles this server, so its version tracks the package.
+    market = json.loads((HERE.parent / ".claude-plugin/marketplace.json").read_text())
+    plugin = market["plugins"][0]
+    assert market["metadata"]["version"] == plugin["version"] == PYPROJECT["version"]
+    assert plugin["mcpServers"]["mpesa"] == {"command": "uvx", "args": [PYPROJECT["name"]]}
