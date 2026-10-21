@@ -104,6 +104,25 @@ Run both commands.
 
 ## Quick start
 
+### Let your agent install it
+
+Paste this into Claude Code, Codex, Cursor, Gemini CLI or any coding agent:
+
+```text
+Install the M-Pesa Daraja Agent Kit for me:
+1. Install the Agent Skills for yourself: npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp -a <your agent id>
+   (agent ids: claude-code, codex, cursor, github-copilot, gemini-cli). Use -g if I want them in every project.
+2. Add the MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja-mcp
+   It needs no keys in your config. If uv is missing, tell me how to install it first.
+3. Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja-mcp setup` in my own terminal,
+   which saves them privately, then to restart you.
+4. After I restart you, call mpesa_check_credentials and tell me if everything works.
+```
+
+Your agent installs both halves; you only type your Daraja keys into the setup wizard, never into the chat.
+
+### Or install it yourself
+
 **1. Install the skills.** Needs Node.js 22.20 or later.
 
 ```bash
@@ -154,13 +173,13 @@ Everything starts in the **sandbox**. No real money moves until you opt in.
 
 ## Why this exists
 
-To make M-Pesa easy to work with, whoever you are:
+Daraja is powerful, but getting started is slow: scattered docs, unusual field names, and payment flows that finish in a callback minutes after the request. This kit makes M-Pesa easier to work with, for three kinds of people:
 
-- **Developers** get a coding agent that already knows Daraja. Describe the integration you want, and it writes code that handles callbacks, retries and errors correctly, and lets you test it in the sandbox before going live.
-- **Learners** get a safe way to understand how M-Pesa payments work. Try real requests in the sandbox, and read [docs](docs/README.md) that explain why each rule exists, not just what it is.
-- **Businesses** get an AI agent that handles payments for them: collecting, checking and reconciling them from a chat. Every payment request is sent exactly once, so nobody is charged or paid twice.
+- **Developers** building payment features. Your coding agent already knows Daraja, so you describe the integration and review the code, instead of piecing it together from the portal. Test it all in the sandbox before going live.
+- **Learners** finding out how M-Pesa payments work. Send real requests to the sandbox, see what comes back, and read [docs](docs/README.md) that explain why each step exists.
+- **Businesses** that want an AI agent to handle payments: collecting them, checking whether they went through, and reconciling them, all from a chat.
 
-In short, the kit makes M-Pesa payment handling and integration easier.
+In short, it makes M-Pesa payment handling and integration easier.
 
 ## What's inside
 
