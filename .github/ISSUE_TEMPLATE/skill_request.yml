@@ -1,0 +1,48 @@
+name: Skill or Daraja API request
+description: Propose a new skill, or support for a Daraja API the kit doesn't cover yet
+labels: [enhancement, skill]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Not sure it fits? Start a [Discussion](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/discussions) first.
+  - type: input
+    id: name
+    attributes:
+      label: Daraja API or skill topic
+      placeholder: "e.g. B2B Express Checkout callbacks, Daraja IMSI check, a skill for SACCO collections"
+    validations: { required: true }
+  - type: textarea
+    id: who
+    attributes:
+      label: Who needs it, and for what?
+      description: The integration or task, and where the current skills or tools fall short.
+    validations: { required: true }
+  - type: textarea
+    id: prompts
+    attributes:
+      label: Example prompts
+      description: Two or three things a user would ask their agent. These become eval scenarios.
+      placeholder: |
+        "Add Ratiba subscriptions to my Laravel app"
+        "Why does my standing order return 500.001.1001?"
+    validations: { required: true }
+  - type: input
+    id: docs
+    attributes:
+      label: Daraja portal link
+      description: The API's page on developer.safaricom.co.ke, if it has one.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: What should it include?
+      multiple: true
+      options: [A skill (instructions and scripts), MCP tools, Both]
+    validations: { required: true }
+  - type: checkboxes
+    id: money
+    attributes:
+      label: Money movement
+      options:
+        - label: This API moves money (tools must then be idempotent and blocked in production by default)
+        - label: I'd like to build this myself
