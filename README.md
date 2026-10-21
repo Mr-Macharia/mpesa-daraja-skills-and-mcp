@@ -185,7 +185,7 @@ M-Pesa Daraja Agent Kit makes M-Pesa payment handling and integration easier for
 
 **[The MCP server](mcp-server), [`mpesa-daraja-mcp`](https://pypi.org/project/mpesa-daraja-mcp/).** 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call, and an optional built-in callback receiver records results for `mpesa_get_result`.
 
-**Light on context.** `DARAJA_TOOLSETS` loads only the tools you use: STK checkout alone costs about 2,100 schema tokens instead of 6,300.
+**Load only what you need.** Every tool the server offers takes up space in your agent's context, even when it's never called. Set `DARAJA_TOOLSETS` to the groups you use, and the agent sees only those tools. For example, `DARAJA_TOOLSETS=stk` for a shop that only takes STK payments, or `stk,payouts` if it also pays people. The groups are `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba` and `billmanager`; the basic tools (`core`) are always on. Leave it unset to load everything.
 
 <details>
 <summary><b>Supported Daraja APIs, skills and tools</b></summary>
