@@ -154,14 +154,13 @@ Everything starts in the **sandbox**. No real money moves until you opt in.
 
 ## Why this exists
 
-M-Pesa integrations fail in the same few ways, for agents and people alike:
+To make M-Pesa easy to work with, whoever you are:
 
-- treating `ResponseCode "0"` as *paid*, when it only means *accepted for processing*;
-- building the STK password with a UTC timestamp instead of East Africa Time;
-- retrying a payout that timed out, and paying twice;
-- "fixing" Daraja's own spellings, `RecieverIdentifierType` and `Occassion`, which breaks the request.
+- **Developers** get a coding agent that already knows Daraja. Describe the integration you want, and it writes code that handles callbacks, retries and errors correctly, instead of you piecing it together from the portal docs.
+- **Learners** get a safe place to understand how M-Pesa payments work. Try real requests in the sandbox, and read [docs](docs/README.md) that explain why each rule exists, not just what it is.
+- **Businesses that want AI agents to handle payments** get an agent that can collect, check and reconcile payments from a chat, with guardrails: sandbox by default, every money request sent once, and nothing live until you switch it on.
 
-Every skill and tool here is built around those traps.
+Along the way, the kit steers everyone around the mistakes that catch most M-Pesa integrations: treating `ResponseCode "0"` as *paid* when it only means *accepted*, timestamping in UTC instead of East Africa Time, retrying a payout that timed out and paying twice, and "fixing" Daraja's own spellings such as `RecieverIdentifierType`.
 
 ## What's inside
 
