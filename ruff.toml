@@ -11,6 +11,8 @@ select = ["E", "F", "W", "I", "B", "UP"]
 "shared/scripts/*.py" = ["E402"]
 # The error-code table reads best as one string per code.
 "mcp-server/src/mpesa_mcp/helpers.py" = ["E501"]
+# SVG markup and diagram specs read best one element per line.
+"docs/diagrams/build.py" = ["E501"]
 
 [lint.isort]
 known-first-party = ["mpesa_mcp"]
