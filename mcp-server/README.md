@@ -1,8 +1,44 @@
-# mpesa-daraja-mcp: M-Pesa Daraja MCP server
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/main/docs/diagrams/banner.svg" alt="M-Pesa Daraja Agent Kit: Agent Skills and an MCP server for Safaricom's Daraja API. You ask your agent to charge a phone number; the customer gets an M-Pesa PIN prompt; the agent reports SUCCESS with the receipt number." width="100%">
+
+# mpesa-daraja-mcp
+
+**The MCP server in the M-Pesa Daraja Agent Kit. It lets an AI agent call Safaricom's Daraja API safely.**
+
+</div>
 
 <!-- mcp-name: io.github.Mr-Macharia/mpesa-daraja-mcp -->
 
-An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Claude Desktop, any MCP client) can test and operate M-Pesa integrations. It pairs with the skills in [Agent Skills in this repository](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/tree/main/skills): skills teach *how* to integrate, this server lets the agent *call* Daraja.
+An [MCP](https://modelcontextprotocol.io) server that exposes Safaricom's Daraja APIs as tools, so an agent (Claude Code, Codex, Cursor, Gemini CLI, any MCP client) can collect payments, check whether they went through, and operate M-Pesa from a chat. It starts in the **sandbox**, and nothing live happens until you switch it on.
+
+It pairs with the [Agent Skills](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/tree/main/skills) in the same kit: the skills teach an agent *how* to integrate M-Pesa, and this server lets it *call* Daraja. You can use either on its own.
+
+## Who it's for
+
+- **Developers** building payment integrations: ask your agent to run a request against the sandbox and read the real response.
+- **Learners** finding out how the Daraja API works: send real requests to a safe test environment and see what comes back.
+- **Businesses and teams** that want an AI agent to handle payments: collecting them, checking whether they went through, and reconciling them.
+
+## Install
+
+**Let your agent do it.** Paste this into Claude Code, Codex, Cursor, Gemini CLI or any coding agent:
+
+```text
+Add the M-Pesa Daraja MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja-mcp
+It needs no keys in your config. If uv is missing, tell me how to install it first.
+Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja-mcp setup` in my own terminal,
+which saves them privately, then to restart you.
+After I restart you, call mpesa_check_credentials and tell me if everything works.
+```
+
+**Or do it yourself.** You need [uv](https://docs.astral.sh/uv/). The wizard asks for your [Daraja](https://developer.safaricom.co.ke/) keys (secrets are typed hidden), checks them live with Safaricom, saves them to a file only you can read, and registers the server with Claude Code, Codex, Gemini CLI or Cursor:
+
+```bash
+uvx mpesa-daraja-mcp setup
+```
+
+Then restart your agent and ask: *"Check my M-Pesa credentials, then send a KES 1 STK push to 0712345678 and tell me when it's paid."* The full Agent Kit, with the skills and more examples, is in the [main README](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#readme).
 
 ## Tools
 
@@ -61,7 +97,7 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 | `DARAJA_TOOLSETS` | | Comma list of `stk,c2b,payouts,ops,qr,ratiba,billmanager` (`core` is always on). Default: all |
 | `DARAJA_OUTPUT_DIR` | | Where QR PNGs are saved (default `~/.mpesa-mcp/qr`) |
 
-## Install & run
+## Commands and configuration files
 
 ```bash
 uvx mpesa-daraja-mcp setup     # guided: keys (hidden input), live check, save, register with your agents
@@ -106,15 +142,18 @@ Callbacks are stored in `DARAJA_STATE_DB`:
 
 Without the receiver, `mpesa_stk_push_and_wait` still works through STK Query. For other APIs, paste a received payload into `mpesa_parse_callback`.
 
-## Context cost
+## Load only the tools you need
 
-| Toolsets | Tools | Schema tokens (approx.) |
+Every tool the server offers takes up space in your agent's context, even when it's never called. Set `DARAJA_TOOLSETS` to the groups you use, and the agent sees only those tools. The basic tools (`core`) are always on; leave the setting unset to load everything.
+
+| Setting | You get | Good for |
 |---|---|---|
-| all (default) | 24 | ~6,300 |
-| `stk` | 9 | ~2,100 |
-| `stk,c2b` | 12 | ~2,600 |
+| unset (default) | all 24 tools | exploring everything |
+| `stk` | the basic tools plus the 3 STK Push tools | a shop that only takes STK payments |
+| `stk,payouts` | the above, plus B2C, B2B and B2B Express | a platform that collects and pays out |
+| `stk,c2b,ops` | STK, C2B, then transaction status, balance and reversal | reconciliation and support |
 
-Pick the smallest set you need with `DARAJA_TOOLSETS`.
+The groups are `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba` and `billmanager`.
 
 ## Development
 
@@ -126,4 +165,4 @@ Tests use `respx` to mock Daraja. Nothing hits the network.
 
 ## License
 
-[MIT](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/LICENSE). Not affiliated with or endorsed by Safaricom PLC; M-Pesa and Daraja are trademarks of Safaricom PLC.
+[MIT](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/LICENSE) © 2026 Mr-Macharia. An independent open-source project, not affiliated with or endorsed by Safaricom PLC. M-Pesa and Daraja are trademarks of Safaricom PLC.
