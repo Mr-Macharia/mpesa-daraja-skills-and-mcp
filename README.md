@@ -173,13 +173,11 @@ Everything starts in the **sandbox**. No real money moves until you opt in.
 
 ## Why this exists
 
-Daraja is powerful, but getting started is slow: scattered docs, unusual field names, and payment flows that finish in a callback minutes after the request. This kit makes M-Pesa easier to work with, for three kinds of people:
+M-Pesa Daraja Agent Kit makes M-Pesa payment handling and integration easier for:
 
-- **Developers** building payment features. Your coding agent already knows Daraja, so you describe the integration and review the code, instead of piecing it together from the portal. Test it all in the sandbox before going live.
-- **Learners** finding out how M-Pesa payments work. Send real requests to the sandbox, see what comes back, and read [docs](docs/README.md) that explain why each step exists.
-- **Businesses** that want an AI agent to handle payments: collecting them, checking whether they went through, and reconciling them, all from a chat.
-
-In short, it makes M-Pesa payment handling and integration easier.
+- **Developers** building payment integration systems. With the kit, your coding agent knows the Daraja API, so you describe the integration and review the code, instead of piecing it together from the portal. Test it all in the sandbox before going live.
+- **Learners** finding out how the Daraja API works. Send real requests to the sandbox, a safe test environment, see what comes back, and read [docs](docs/README.md) that explain why each step exists.
+- **Businesses and teams** that want an AI agent to handle payments: collecting them, checking whether they went through, and reconciling them through an agent.
 
 ## What's inside
 
