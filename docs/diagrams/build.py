@@ -47,11 +47,11 @@ def badge(x, y, n, side):
             + text(x, y + 4.5, str(n), 12.5, colour, 700, "middle"))
 
 
-def frame(w, h, title, subtitle):
+def frame(w, h, title, subtitle, legend_on=True):
     legend_x = w - 40
     items = [("Customer", GREY), ("Safaricom", GREEN_HI), ("Your side", ORANGE_HI)]
     legend = ""
-    for label, colour in items:
+    for label, colour in items if legend_on else ():
         legend_x -= len(label) * 7.8 + 36
         legend += f'<circle cx="{legend_x + 6}" cy="47" r="5" fill="{colour}"/>' + text(legend_x + 18, 52, label, 13, MUTED)
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img" aria-label="{escape(title)}">'
@@ -212,17 +212,17 @@ def architecture():
 
 def banner():
     w, h = 1280, 420
-    o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img" aria-label="M-Pesa Daraja for AI agents">',
+    o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img" aria-label="M-Pesa Daraja Agent Kit">',
          DEFS,
          f'<rect width="{w}" height="{h}" rx="28" fill="{BG}"/>',
          f'<rect width="{w}" height="{h}" rx="28" fill="url(#dots)"/>',
          f'<rect width="{w}" height="{h}" rx="28" fill="url(#halo)"/>']
     # left: name and promise
-    o.append(text(64, 118, "MCP + Agent Skills", 16, ORANGE_HI, 600, font=MONO))
+    o.append(text(64, 118, "Agent Skills + MCP server", 16, ORANGE_HI, 600, font=MONO))
     o.append(text(62, 186, "M-Pesa Daraja", 64, INK, 800, extra='letter-spacing="-1.5"'))
-    o.append(text(62, 252, "for AI agents", 64, INK, 800, extra='letter-spacing="-1.5" fill-opacity="0.92"'))
-    o.append(text(64, 300, "Your agent sends the STK push, waits for the PIN,", 19, MUTED))
-    o.append(text(64, 328, "and tells you if it was paid. Safely, in the sandbox first.", 19, MUTED))
+    o.append(text(62, 252, "Agent Kit", 64, "url(#orange)", 800, extra='letter-spacing="-1.5"'))
+    o.append(text(64, 300, "Build M-Pesa integrations with your coding agent,", 19, MUTED))
+    o.append(text(64, 328, "or let your agent take payments. Sandbox first.", 19, MUTED))
     for i, (label, colour) in enumerate((("STK Push", ORANGE_HI), ("B2C", ORANGE_HI), ("C2B", ORANGE_HI), ("Ratiba", ORANGE_HI), ("+ 7 more", MUTED))):
         x = 64 + sum(len(s) * 8.4 + 34 for s, _ in (("STK Push", 0), ("B2C", 0), ("C2B", 0), ("Ratiba", 0))[:i])
         pw = len(label) * 8.4 + 22
@@ -256,8 +256,60 @@ def banner():
     (OUT / "banner.svg").write_text("".join(o), encoding="utf-8")
 
 
+USE_ICONS = {
+    "cart": '<path d="M7 8h3l2.5 11h10l2-8H11"/><circle cx="13" cy="24" r="1.5"/><circle cx="21" cy="24" r="1.5"/>',
+    "send": '<path d="M8 16l16-7-5 16-3-6z"/><path d="M16 19l8-10"/>',
+    "bell": '<path d="M10 20V15a6 6 0 0 1 12 0v5l2 2H8z"/><path d="M14 25h4"/>',
+    "bug": '<rect x="11" y="11" width="10" height="13" rx="5"/><path d="M16 11V8M8 15h3M21 15h3M8 21h3M21 21h3"/>',
+    "rocket": '<path d="M16 6c4 3 5 8 4 13h-8c-1-5 0-10 4-13z"/><path d="M12 19l-3 4h4M20 19l3 4h-4"/><circle cx="16" cy="13" r="2"/>',
+    "phone": '<rect x="11" y="6" width="10" height="20" rx="2.5"/><path d="M15 22h2"/>',
+    "chat": '<path d="M8 9h16v11h-9l-5 4v-4H8z"/>',
+    "check": '<rect x="8" y="7" width="16" height="18" rx="3"/><path d="M12 16l3 3 5-6"/>',
+    "scale": '<path d="M16 7v18M10 25h12M9 11h14"/><path d="M9 11l-3 7h6zM23 11l-3 7h6z"/>',
+    "repeat": '<path d="M9 13a7 7 0 0 1 12-3l2 2M23 19a7 7 0 0 1-12 3l-2-2"/><path d="M23 8v4h-4M9 24v-4h4"/>',
+}
+
+
+def usecases():
+    w, h = 1280, 640
+    o = [frame(w, h, "What you can do with it", "Build payment systems with a coding agent, or let an agent run payments for you.", legend_on=False)]
+    cols = [
+        (40, "Build", "with the skills, in your codebase", [
+            ("cart", "Checkout", "STK Push with a callback that marks orders paid"),
+            ("send", "Payouts", "B2C and B2B jobs that never pay twice"),
+            ("bell", "Callback handlers", "idempotent, fast to acknowledge, keyed correctly"),
+            ("bug", "Debugging", "decode 400.002.02, 1032 and friends in seconds"),
+            ("rocket", "Go-live", "sandbox to production, credentials done right"),
+        ]),
+        (660, "Operate", "with the MCP server, from chat", [
+            ("phone", "Collect", "charge a phone and wait for the real result"),
+            ("chat", "Support", "answer \"did my payment go through?\""),
+            ("check", "Reconcile", "pull C2B transactions and match invoices"),
+            ("scale", "Treasury", "balances, transaction status, reversals"),
+            ("repeat", "Billing", "Ratiba standing orders, Bill Manager invoices"),
+        ]),
+    ]
+    for x, head, sub, items in cols:
+        solid = head == "Operate"
+        o.append(f'<rect x="{x}" y="112" width="580" height="440" rx="22" fill="{PANEL}" stroke="{ORANGE if solid else FAINT}" stroke-opacity="{0.6 if solid else 1}"/>')
+        o.append(f'<rect x="{x + 28}" y="136" width="{len(head) * 12 + 36}" height="36" rx="18" fill="{"url(#orange)" if solid else "none"}" stroke="{ORANGE_HI}"/>')
+        o.append(text(x + 28 + (len(head) * 12 + 36) / 2, 160, head, 16, "#fff" if solid else ORANGE_HI, 700, "middle"))
+        o.append(text(x + 28 + len(head) * 12 + 52, 160, sub, 14, MUTED))
+        for i, (icon, title, desc) in enumerate(items):
+            y = 196 + i * 70
+            if i:
+                o.append(f'<line x1="{x + 28}" y1="{y - 8}" x2="{x + 552}" y2="{y - 8}" stroke="{FAINT}" stroke-opacity="0.6"/>')
+            o.append(f'<g transform="translate({x + 28},{y + 8})">{icon_box(USE_ICONS[icon], ORANGE_HI)}</g>')
+            o.append(text(x + 76, y + 22, title, 16, INK, 700))
+            o.append(text(x + 76, y + 44, desc, 14, MUTED))
+    o.append(text(40, 594, "Also: KRA tax remittance, Dynamic QR at the till, simulated C2B payments for tests, and learning how Daraja works.", 14, MUTED))
+    o.append("</svg>")
+    (OUT / "use-cases.svg").write_text("".join(o), encoding="utf-8")
+
+
 architecture()
 banner()
+usecases()
 
 sequence(
     "stk-push-sequence", "STK Push, from request to callback",

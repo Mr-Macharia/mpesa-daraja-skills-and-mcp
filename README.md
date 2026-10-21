@@ -1,19 +1,49 @@
 <div align="center">
 
-<img src="docs/diagrams/banner.svg" alt="M-Pesa Daraja for AI agents. You ask your agent to charge a phone number; the customer gets an M-Pesa PIN prompt; the agent reports SUCCESS with the receipt number." width="100%">
+<img src="docs/diagrams/banner.svg" alt="M-Pesa Daraja Agent Kit: Agent Skills and an MCP server for Safaricom's Daraja API. You ask your agent to charge a phone number; the customer gets an M-Pesa PIN prompt; the agent reports SUCCESS with the receipt number." width="100%">
 
 <br>
 
 [![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml) [![PyPI](https://img.shields.io/pypi/v/mpesa-daraja-mcp?label=PyPI&color=ff5a14&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/) [![MCP Registry](https://img.shields.io/badge/MCP_Registry-mpesa--daraja--mcp-ff5a14)](https://registry.modelcontextprotocol.io/v0/servers?search=mpesa-daraja-mcp) [![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja-mcp?color=1c1b38&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/) [![License: MIT](https://img.shields.io/badge/license-MIT-2ea043)](LICENSE)
 
-**Agent Skills that teach your agent M-Pesa, and an MCP server that lets it call Daraja safely.**<br>
+**M-Pesa Daraja Agent Kit: Agent Skills that teach your agent M-Pesa, and an MCP server that lets it call Daraja safely.**<br>
 Works with Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, and any agent that supports [Agent Skills](https://agentskills.io) or [MCP](https://modelcontextprotocol.io).
 
-[Choose a setup](#three-ways-to-use-it) &nbsp;&nbsp;|&nbsp;&nbsp; [Quick start](#quick-start) &nbsp;&nbsp;|&nbsp;&nbsp; [What to ask](#what-to-ask-your-agent) &nbsp;&nbsp;|&nbsp;&nbsp; [Safety](#safety) &nbsp;&nbsp;|&nbsp;&nbsp; [Docs](#documentation)
+[Use cases](#use-cases) &nbsp;&nbsp;|&nbsp;&nbsp; [Choose a setup](#three-ways-to-use-it) &nbsp;&nbsp;|&nbsp;&nbsp; [Quick start](#quick-start) &nbsp;&nbsp;|&nbsp;&nbsp; [Safety](#safety) &nbsp;&nbsp;|&nbsp;&nbsp; [Docs](#documentation)
 
 </div>
 
 <br>
+
+## Use cases
+
+<img src="docs/diagrams/use-cases.svg" alt="Build, with the skills in your codebase: checkout, payouts that never pay twice, callback handlers, debugging error codes, go-live. Operate, with the MCP server from chat: collect payments, answer support questions, reconcile, treasury checks, recurring billing. Also: KRA tax remittance, Dynamic QR, simulated C2B payments for tests, and learning Daraja." width="100%">
+
+### Who it helps
+
+| Team | What the kit does for them |
+|---|---|
+| **Developers** | A coding agent that writes correct Daraja code: STK checkout, B2C payouts, callback handlers, retries that never pay twice. It also reviews and fixes an existing integration |
+| **Online shops and SaaS** | Checkout at the till or in the app, Dynamic QR at the counter, subscriptions through Ratiba standing orders |
+| **Support teams** | An agent that answers "did my payment go through?" from the transaction itself, not a guess |
+| **Finance and operations** | Reconciling C2B payments against invoices, balance checks, reversals and status lookups from chat |
+| **Platforms that pay people** | Payouts to drivers, riders, agents and suppliers, safe to retry because every request is idempotent |
+| **Landlords, schools, chamas and SACCOs** | Invoices and reminders through Bill Manager, contributions collected by STK Push |
+| **Businesses filing tax** | KRA remittance through B2B, with the right command and fields |
+| **Anyone learning Daraja** | Sandbox experiments with real responses, and docs that explain why each rule exists |
+
+### What to ask your agent
+
+| Ask | Uses |
+|---|---|
+| *"Add M-Pesa checkout to my Django order flow, with a callback that marks orders paid."* | Skills |
+| *"Send KES 250 to 0712345678 for order #1042 and wait for the result."* | MCP |
+| *"Build a B2C payout job for driver earnings that never pays twice."* | Skills |
+| *"A customer says they paid. Did receipt TJK7Q2X9LM go through?"* | MCP |
+| *"My STK push returns 400.002.02. What's wrong with this request?"* | Skills |
+| *"Pull yesterday's C2B transactions and match them against my invoices."* | Both |
+| *"Set up a monthly KES 500 standing order for this subscriber."* | Both |
+| *"Opt my paybill into Bill Manager and invoice these 20 tenants."* | Both |
 
 ## Three ways to use it
 
@@ -117,18 +147,6 @@ The agent calls `mpesa_check_credentials`, then `mpesa_stk_push_and_wait`, and a
 | `UNKNOWN` | Not known yet, with what to check next. Never retried blindly |
 
 Everything starts in the **sandbox**. No real money moves until you opt in.
-
-## What to ask your agent
-
-| You want to | Ask | Uses |
-|---|---|---|
-| Take a payment at checkout | *"Add M-Pesa checkout to my Django order flow, with a callback that marks orders paid."* | Skills |
-| Charge a customer now | *"Send KES 250 to 0712345678 for order #1042 and wait for the result."* | MCP |
-| Pay out to a phone | *"Build a B2C payout job for driver earnings that never pays twice."* | Skills |
-| Check a payment | *"Did receipt TJK7Q2X9LM go through?"* | MCP |
-| Debug an integration | *"My STK push returns 400.002.02. What's wrong with this request?"* | Skills |
-| Reconcile | *"Pull yesterday's C2B transactions and match them against my invoices."* | Both |
-| Send invoices | *"Opt my paybill into Bill Manager and invoice these 20 tenants."* | Both |
 
 ## How it works
 
