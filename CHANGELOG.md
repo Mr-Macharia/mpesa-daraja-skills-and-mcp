@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- The PyPI project page (`mcp-server/README.md`) now matches the main README: banner, who it's for, a copy-paste install prompt for agents, and a plain-language explanation of `DARAJA_TOOLSETS`.
+
 ## [0.1.2] - 2026-10-21
 
 ### Changed
