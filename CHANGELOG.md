@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- The Claude Code plugin now bundles the MCP server, so `/plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp` gives you the skills and the tools in one step.
+- CI validates every skill against the Agent Skills spec (`skills-ref validate`).
+
 ## [0.1.3] - 2026-10-21
 
 ### Changed
