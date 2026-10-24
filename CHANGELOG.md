@@ -4,10 +4,18 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-25
+
 ### Added
 
 - The Claude Code plugin now bundles the MCP server, so `/plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp` gives you the skills and the tools in one step.
 - CI validates every skill against the Agent Skills spec (`skills-ref validate`).
+- `server.json` documents every environment variable the server reads, including `DARAJA_INITIATOR_PASSWORD`, `DARAJA_CERT_PATH`, `DARAJA_STATE_DB` and `DARAJA_OUTPUT_DIR`.
+- Tests for every tool, and checks that every tool declares all four hints, every env var is documented, and `plugin.json` lists every skill.
+
+### Changed
+
+- Every tool now declares all four MCP hints (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`). `mpesa_bill_manager_cancel_invoice` is now marked destructive.
 
 ## [0.1.3] - 2026-10-21
 
@@ -73,7 +81,8 @@ First public release.
   - Rejected keys get a plain explanation instead of a bare `HTTP 400`.
   - `mpesa_stk_query` keeps Safaricom's reply while a payment is processing, and answers from recorded results (including a callback's receipt) when it has them.
 
-[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.0...v0.1.1

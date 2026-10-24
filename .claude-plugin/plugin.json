@@ -1,6 +1,6 @@
 {
   "name": "mpesa-daraja-skills",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "M-Pesa Daraja Agent Kit: 15 skills (STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja-mcp server. Sandbox by default.",
   "author": {
     "name": "Mr-Macharia",

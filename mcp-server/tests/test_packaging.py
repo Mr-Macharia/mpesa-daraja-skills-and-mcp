@@ -70,3 +70,5 @@ def test_claude_plugin_version_and_server_agree():
     assert not {"skills", "mcpServers"} & entry.keys(), "declare components in plugin.json, not the marketplace entry"
     assert plugin["mcpServers"]["mpesa"] == {"command": "uvx", "args": [PYPROJECT["name"]]}
     assert (root / "icon.png").is_file()
+    skill_dirs = {f"./skills/{p.parent.name}" for p in (HERE.parent / "skills").glob("*/SKILL.md")}
+    assert set(plugin["skills"]) == skill_dirs, "plugin.json must list every skill"
