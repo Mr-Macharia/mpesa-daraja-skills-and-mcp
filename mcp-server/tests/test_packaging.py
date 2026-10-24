@@ -40,6 +40,12 @@ def test_documented_env_vars_exist_in_code():
         assert var["name"] in code, var["name"]
 
 
+def test_env_vars_read_by_code_are_documented():
+    code = "".join(p.read_text() for p in (HERE / "src/mpesa_mcp").glob("*.py"))
+    documented = {v["name"] for v in SERVER["packages"][0]["environmentVariables"]}
+    assert set(re.findall(r"DARAJA_[A-Z_]*[A-Z]", code)) - documented == set()
+
+
 def test_license_shipped_with_package_matches_repo():
     assert (HERE / "LICENSE").read_text() == (HERE.parent / "LICENSE").read_text()
     assert PYPROJECT["license"] == "MIT"

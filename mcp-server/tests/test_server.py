@@ -363,3 +363,63 @@ async def test_bad_keys_get_a_clear_message():
         mock.get("/oauth/v1/generate").respond(400, text="")
         with pytest.raises(Exception, match="rejected the Consumer Key/Secret for the sandbox"):
             await c.token(force=True)
+
+
+async def test_every_tool_declares_all_four_hints():
+    for t in await server.server.list_tools():
+        a = t.annotations
+        hints = (a.read_only_hint, a.destructive_hint, a.idempotent_hint, a.open_world_hint)
+        assert all(isinstance(h, bool) for h in hints), t.name
+
+
+# --------------------------------------------------------------------------- remaining tools
+
+
+def test_generate_stk_password_is_base64_of_parts():
+    import base64
+    out = server.generate_stk_password("174379", "pk", "20261025120000")
+    assert out["timestamp"] == "20261025120000"
+    assert base64.b64decode(out["password"]).decode() == "174379pk20261025120000"
+
+
+async def test_check_credentials_never_returns_token(daraja):
+    out = await server.check_credentials()
+    assert out["ok"] and out["environment"] == "sandbox"
+    assert "T1" not in json.dumps(out)
+
+
+async def test_pull_transactions_payload(daraja):
+    route = daraja.post("/pulltransactions/v1/query").respond(200, json={"ResponseCode": "1000"})
+    await server.pull_transactions("2026-10-01 00:00:00", "2026-10-02 00:00:00", offset=5)
+    assert body(route) == {"ShortCode": "174379", "StartDate": "2026-10-01 00:00:00",
+                           "EndDate": "2026-10-02 00:00:00", "OffSetValue": "5"}
+
+
+ASYNC_ACK = {"OriginatorConversationID": "oc-1", "ConversationID": "AG_1", "ResponseCode": "0"}
+
+
+async def test_transaction_status_needs_an_id_and_returns_accepted(daraja):
+    with pytest.raises(ValueError):
+        await server.transaction_status()
+    route = daraja.post("/mpesa/transactionstatus/v1/query").respond(200, json=ASYNC_ACK)
+    out = await server.transaction_status(transaction_id="NLJ7RT61SV")
+    sent = body(route)
+    assert sent["CommandID"] == "TransactionStatusQuery" and sent["TransactionID"] == "NLJ7RT61SV"
+    assert sent["ResultURL"].startswith("https://")
+    assert out.status == "ACCEPTED"
+
+
+async def test_account_balance_returns_accepted(daraja):
+    route = daraja.post("/mpesa/accountbalance/v1/query").respond(200, json=ASYNC_ACK)
+    out = await server.account_balance()
+    assert body(route)["CommandID"] == "AccountBalance"
+    assert out.status == "ACCEPTED"
+
+
+async def test_bill_manager_optin_and_cancel(daraja):
+    optin = daraja.post("/v1/billmanager-invoice/optin").respond(200, json={"app_key": "AK"})
+    await server.bill_manager_optin("a@b.co", "0722000000", send_reminders=False)
+    assert body(optin)["sendReminders"] == "0" and body(optin)["shortcode"] == "174379"
+    cancel = daraja.post("/v1/billmanager-invoice/cancel-single-invoice").respond(200, json={"rescode": "200"})
+    await server.bill_manager_cancel_invoice("INV-1")
+    assert body(cancel) == {"externalReference": "INV-1"}

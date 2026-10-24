@@ -5,7 +5,7 @@
 <br>
 
 [![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml) [![PyPI](https://img.shields.io/pypi/v/mpesa-daraja-mcp?label=PyPI&color=ff5a14&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/) [![MCP Registry](https://img.shields.io/badge/MCP_Registry-mpesa--daraja--mcp-ff5a14)](https://registry.modelcontextprotocol.io/v0/servers?search=mpesa-daraja-mcp) [![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja-mcp?color=1c1b38&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/) [![License: MIT](https://img.shields.io/badge/license-MIT-2ea043)](LICENSE)
-[![M8ven Score](https://m8ven.ai/badge/mcp/mr-macharia-mpesa-daraja-skills-and-mcp-1htd37?v=26dd533f5d757b7eb4bed8aa2ad0fa62)](https://m8ven.ai/mcp/mr-macharia-mpesa-daraja-skills-and-mcp-1htd37?s=readme)
+[![M8ven Score](https://m8ven.ai/badge/mcp/mr-macharia/mpesa-daraja-skills-and-mcp)](https://m8ven.ai/mcp/mr-macharia/mpesa-daraja-skills-and-mcp?s=readme)
 
 **M-Pesa Daraja Agent Kit: Agent Skills that teach your agent to use Daraja API, and an MCP server that lets it call Daraja safely.**<br>
 Works with Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, and any agent that supports [Agent Skills](https://agentskills.io) or [MCP](https://modelcontextprotocol.io).

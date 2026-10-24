@@ -41,10 +41,12 @@ INSTRUCTIONS = (
     "never retry an ACCEPTED or UNKNOWN payout - check its result first."
 )
 
-READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
-QUERY = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+# Every tool sets all four hints explicitly; some directories reject tools that omit any.
+READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False)
+QUERY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True)
 MOVES_MONEY = ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True)
-WRITES = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=True)
+WRITES = ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=True)
+CANCELS = ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True)
 
 TOOLSETS = ("core", "stk", "c2b", "payouts", "ops", "qr", "ratiba", "billmanager")
 
@@ -930,7 +932,7 @@ async def bill_manager_send_invoice(
     return await _post(c, "/v1/billmanager-invoice/single-invoicing", payload)
 
 
-@tool(WRITES, "billmanager")
+@tool(CANCELS, "billmanager")
 async def bill_manager_cancel_invoice(external_reference: str) -> Any:
     """Cancel an unpaid Bill Manager invoice (partially/fully paid invoices cannot be cancelled)."""
     c = client()

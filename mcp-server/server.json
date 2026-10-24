@@ -90,6 +90,42 @@
           "description": "true to allow production charges and payouts",
           "isRequired": false,
           "isSecret": false
+        },
+        {
+          "name": "DARAJA_INITIATOR_PASSWORD",
+          "description": "Initiator password, encrypted into SecurityCredential at startup (alternative to DARAJA_SECURITY_CREDENTIAL)",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "DARAJA_CERT_PATH",
+          "description": "Path to Safaricom's public certificate, used with DARAJA_INITIATOR_PASSWORD",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_STATE_DB",
+          "description": "Path of the SQLite file that stores request state and callbacks",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_OUTPUT_DIR",
+          "description": "Directory where generated QR PNGs are saved",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_CONFIG_DIR",
+          "description": "Directory holding the saved config (default: user config dir)",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_DOTENV",
+          "description": "Path of a .env file to load instead of the project one",
+          "isRequired": false,
+          "isSecret": false
         }
       ]
     }
