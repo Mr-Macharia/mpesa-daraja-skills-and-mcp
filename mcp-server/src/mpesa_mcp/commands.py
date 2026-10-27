@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import re
 import secrets
@@ -77,8 +78,11 @@ def _version_callback(value: bool) -> None:
 def _root(
     show_version: Annotated[bool, typer.Option("--version", "-V", callback=_version_callback, is_eager=True,
                                                help="Show the version.")] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Log each HTTP request to Daraja.")] = False,
 ) -> None:
     settings.load()
+    if not verbose:
+        logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 # --------------------------------------------------------------------------- #
@@ -120,6 +124,8 @@ def _show_outcome(out: Any, as_json: bool) -> None:
         grid.add_row("note", "duplicate: this key was already sent, nothing new was sent")
     grid.add_row("", "")
     grid.add_row("next", out.message)
+    if out.status == "FAILED" and out.idempotency_key:
+        grid.add_row("retry", f"run the same command with --key {out.idempotency_key}")
     console.print(Panel(grid, border_style=style, expand=False))
 
 

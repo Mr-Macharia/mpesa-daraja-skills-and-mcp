@@ -15,6 +15,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- `mpesa --verbose` shows the HTTP requests to Daraja; they are hidden by default. A failed STK Push shows the `--key` to retry with.
 - The PyPI package is now **`mpesa-daraja`**. `mpesa-daraja-mcp` is a compatibility package that installs it and keeps the old command. `setup` is now `init` (the old name still works).
 - The receiver's log no longer shows the callback path token.
 

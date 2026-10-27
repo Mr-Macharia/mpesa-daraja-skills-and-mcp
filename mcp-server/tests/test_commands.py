@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 
 import pytest
@@ -70,6 +71,23 @@ def test_pay_stk_waits_for_the_callback(isolated):
         server._stk_push = original
     data = json.loads(res.output)
     assert data["status"] == "SUCCESS" and data["receipt"] == "NLJ7RT61SV"
+
+
+def test_failed_stk_shows_how_to_retry_with_the_same_key(isolated):
+    isolated.post("/mpesa/stkpush/v1/processrequest").respond(200, json=STK_ACK)
+    isolated.post("/mpesa/stkpushquery/v1/query").respond(
+        200, json={"ResponseCode": "0", "ResultCode": "1032", "ResultDesc": "Request cancelled by user",
+                   "CheckoutRequestID": "ws_CO_1", "MerchantRequestID": "29115-34620561-1"})
+    res = run("pay", "stk", "0712345678", "10", "--key", "order-9")
+    assert res.exit_code == 0, (res.output, res.exception)
+    assert "FAILED" in res.output and "--key order-9" in res.output
+
+
+@pytest.mark.parametrize("flag, level", [((), logging.WARNING), (("--verbose",), logging.NOTSET)])
+def test_http_request_logs_hidden_unless_verbose(monkeypatch, flag, level):
+    monkeypatch.setattr(logging.getLogger("httpx"), "level", logging.NOTSET)
+    run(*flag, "explain", "0")
+    assert logging.getLogger("httpx").level == level
 
 
 def test_payout_over_threshold_is_refused_without_a_terminal(isolated, monkeypatch):

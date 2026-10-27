@@ -128,7 +128,7 @@ mpesa skills install       # copy the Agent Skills into Claude Code, Codex, Curs
 mpesa upgrade
 ```
 
-Every data command takes `--json`. Payments use the same guardrails as the MCP tools, and approvals are asked in the terminal. `uvx mpesa-daraja` with no arguments is the MCP server on stdio, which is what your agent runs.
+Every data command takes `--json`, and `mpesa --verbose …` logs each HTTP request to Daraja. A failed STK Push shows the `--key` to retry it with. Payments use the same guardrails as the MCP tools, and approvals are asked in the terminal. `uvx mpesa-daraja` with no arguments is the MCP server on stdio, which is what your agent runs.
 
 The server needs no flags or environment variables in your agent's config. Settings are read in this order, highest first:
 
