@@ -27,6 +27,7 @@
     "./skills/daraja-callbacks",
     "./skills/daraja-credentials-security",
     "./skills/daraja-dynamic-qr",
+    "./skills/daraja-payment-design",
     "./skills/daraja-ratiba",
     "./skills/daraja-sandbox-setup",
     "./skills/daraja-stk-push",

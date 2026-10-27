@@ -82,6 +82,7 @@ A cross-cutting skill that every recipe links to:
 - **Reconciliation:** a daily job against Pull Transactions / Account Balance, sorting out orphans and mismatches.
 - **Failure testing and go-live:** sandbox scenarios (cancel, timeout, wrong PIN, duplicate callback, missing callback) and a production go-live checklist.
 - `check_integration.py`: 5–6 high-signal checks (float amounts, paid on `ResponseCode`, no unique receipt constraint, slow callback route, …). The source is in `shared/scripts/`.
+- Built: 6 checks (plus hardcoded secrets and HTTP callback URLs), the schema in `reference.md`, and routing from `mpesa-daraja`. Status: done.
 
 ### 5b. Use-case recipes
 One page each, linking to the per-API skills and to `daraja-payment-design`, each with a short "needs" list for the intake:

@@ -38,6 +38,7 @@ Credentials, passkeys and certificates only work in the environment they were is
 | Sandbox app, test credentials, tunnels, go-live | `daraja-sandbox-setup` |
 | Secrets, SecurityCredential encryption | `daraja-credentials-security` |
 | Error codes and "nothing happened" debugging | `daraja-troubleshooting` |
+| Payment state machine, ledger tables, confirmations, refunds, reconciliation, go-live review | `daraja-payment-design` |
 
 ## Conventions shared by every API
 
@@ -68,11 +69,11 @@ Copy this checklist and tick items off as you go:
 - [ ] 1. Sandbox app + credentials in env/secret store (daraja-sandbox-setup, daraja-credentials-security)
 - [ ] 2. Token helper with caching + 401 retry (daraja-auth)
 - [ ] 3. Request builder for the chosen API; validate_request.py prints OK
-- [ ] 4. Persist request IDs as PENDING before/at send time
+- [ ] 4. Payments and events tables; persist request IDs before/at send time (daraja-payment-design)
 - [ ] 5. Callback receiver: ack fast, store raw, process async, idempotent (daraja-callbacks)
 - [ ] 6. Reconciliation: query anything PENDING too long (daraja-account-ops / stk query)
 - [ ] 7. Test failure paths in sandbox (cancel, timeout, wrong PIN)
-- [ ] 8. Go-live checklist (daraja-sandbox-setup)
+- [ ] 8. `check_integration.py` clean, then the go-live checklist (daraja-payment-design, daraja-sandbox-setup)
 ```
 
 ## MCP tools
