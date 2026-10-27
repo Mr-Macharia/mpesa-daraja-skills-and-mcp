@@ -303,7 +303,20 @@ def main(argv: list[str] | None = None) -> int | None:
     p_setup = sub.add_parser("setup", help="guided setup: keys, live check, save, register with agents")
     p_setup.add_argument("--no-register", action="store_true", help="only save the keys")
     sub.add_parser("status", help="show configuration (masked) and test the keys")
+    p_serve = sub.add_parser("serve", help="run the MCP server (stdio by default)")
+    p_serve.add_argument("--http", action="store_true", help="streamable HTTP for remote agents (needs DARAJA_MCP_TOKEN)")
+    p_serve.add_argument("--host", default=os.environ.get("DARAJA_MCP_HOST", "127.0.0.1"))
+    p_serve.add_argument("--port", type=int, default=int(os.environ.get("DARAJA_MCP_PORT", "8000")))
     args = parser.parse_args(argv)
+    if args.command == "serve" and args.http:
+        from .remote import run
+
+        try:
+            run(args.host, args.port)
+        except RuntimeError as exc:
+            print(exc, file=sys.stderr)
+            return 1
+        return None
     if args.command == "setup":
         try:
             return setup(register=not args.no_register)

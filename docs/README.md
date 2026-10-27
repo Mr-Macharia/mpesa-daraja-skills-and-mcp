@@ -9,6 +9,8 @@ How the Safaricom Daraja API works: the transaction types, the request-and-callb
 ## Using this project
 
 - [Agent setup](clients.md): skills folders, MCP config snippets, config files
+- [Self-hosting](self-hosting.md): Docker, HTTPS, HTTP mode with a bearer token
+- [n8n](n8n.md): use the tools from an n8n AI Agent
 - [How it works](diagrams/how-it-works.svg): architecture diagram
 
 ## How Daraja works

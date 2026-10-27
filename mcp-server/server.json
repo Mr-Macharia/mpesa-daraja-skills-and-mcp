@@ -144,6 +144,24 @@
           "description": "Path of a .env file to load instead of the project one",
           "isRequired": false,
           "isSecret": false
+        },
+        {
+          "name": "DARAJA_MCP_TOKEN",
+          "description": "Bearer token for HTTP mode (32+ random characters)",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "DARAJA_MCP_HOST",
+          "description": "HTTP mode bind address (default 127.0.0.1)",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_MCP_PORT",
+          "description": "HTTP mode port (default 8000)",
+          "isRequired": false,
+          "isSecret": false
         }
       ]
     }

@@ -1,0 +1,31 @@
+# Self-host the M-Pesa Daraja MCP server: `cp deploy/.env.example .env`, fill it in, then
+#   docker compose up -d                    # MCP and callbacks on 127.0.0.1:8000
+#   docker compose --profile https up -d    # plus Caddy with automatic HTTPS on DARAJA_DOMAIN
+# Guide: docs/self-hosting.md
+services:
+  mpesa:
+    build: ./mcp-server
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - mpesa-data:/data
+
+  caddy:
+    image: caddy:2
+    profiles: [https]
+    restart: unless-stopped
+    environment:
+      DARAJA_DOMAIN: ${DARAJA_DOMAIN:?set DARAJA_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on: [mpesa]
+
+volumes:
+  mpesa-data:
+  caddy-data:

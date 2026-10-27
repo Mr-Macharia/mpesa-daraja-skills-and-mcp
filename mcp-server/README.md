@@ -104,6 +104,8 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 | `DARAJA_APPROVAL_THRESHOLD` | | Payouts above this many shillings need a yes in the chat |
 | `DARAJA_ALLOWED_RECIPIENTS` | | Comma list of phones/shortcodes that payouts may go to |
 | `DARAJA_OUTPUT_DIR` | | Where QR PNGs are saved (default `~/.mpesa-mcp/qr`) |
+| `DARAJA_MCP_TOKEN` | HTTP mode | 32+ random characters; clients send `Authorization: Bearer <token>` |
+| `DARAJA_MCP_HOST`, `DARAJA_MCP_PORT` | | HTTP mode bind address and port (default `127.0.0.1:8000`) |
 
 ## Commands and configuration files
 
@@ -122,6 +124,10 @@ The server needs no flags or environment variables in your agent's config. Setti
 The server starts even when unconfigured. Tools then explain what's missing, and `mpesa_setup_status` lists the gaps for each toolset without revealing any values.
 
 To register by hand: `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp`. Every other agent is covered in [docs/clients.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md). The older `mpesa-mcp` command still works.
+
+## Remote access (HTTP mode)
+
+`mpesa-daraja-mcp serve --http` serves MCP at `/mcp` and Daraja callbacks at `/cb/<token>/…` on one port, for n8n, cloud agents and teammates. It needs `DARAJA_MCP_TOKEN`, and starts read-only with every payout needing approval unless you say otherwise. Docker, HTTPS and n8n guides: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/self-hosting.md
 
 ## Results and callbacks
 

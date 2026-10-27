@@ -1,0 +1,4 @@
+# Agents use https://<domain>/mcp; Safaricom posts to https://<domain>/cb/<token>/... Both go to one port.
+{$DARAJA_DOMAIN} {
+	reverse_proxy mpesa:8000
+}

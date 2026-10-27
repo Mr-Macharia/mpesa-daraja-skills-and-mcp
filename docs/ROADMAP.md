@@ -42,10 +42,12 @@ Done when: tests cover hidden tools, the approve/decline/unsupported-client path
 ### 2. Self-hosting and n8n via MCP
 - `Dockerfile` and `docker-compose.yml` that run the server and receiver together, with the result store on a persistent volume.
 - A streamable-HTTP transport mode for remote agents (n8n, cloud agents, teammates).
-- A required bearer token, `MPESA_MCP_TOKEN`. HTTP mode refuses to start without one.
+- A required bearer token, `DARAJA_MCP_TOKEN`. HTTP mode refuses to start without one.
 - Hosted mode starts read-only with the approval threshold on.
 - A deployment guide: a VPS with Caddy for HTTPS, plus Railway/Fly.
 - An n8n guide using the MCP Client Tool node, plus an importable workflow in `examples/n8n/`.
+
+- Built: `DARAJA_MCP_TOKEN` (not `MPESA_`), and callbacks are served on the MCP port so one HTTPS URL covers both. Status: done.
 
 Why: callbacks always arrive at a stable URL, cloud agents can reach the server, the team shares one setup, and results survive restarts. Credentials stay on the user's own server.
 
