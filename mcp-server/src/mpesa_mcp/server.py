@@ -255,8 +255,8 @@ async def _guard_payout(ctx: Context | None, key: str, amount: int, recipient: s
     needs = f"{summary} is above DARAJA_APPROVAL_THRESHOLD (KES {threshold:,}) and needs approval."
     elicitation = types.ClientCapabilities(elicitation=types.ElicitationCapability())
     if ctx is None or not ctx.request_context.session.check_client_capability(elicitation):
-        raise PermissionError(f"{needs} This MCP client cannot show approval prompts, so nothing was sent. "
-                              "Raise the threshold or send it from a client that supports elicitation.")
+        raise PermissionError(f"{needs} This client cannot show approval prompts, so nothing was sent. "
+                              "Raise the threshold, or send it from a terminal or an MCP client that supports elicitation.")
     answer = await ctx.elicit(f"{needs} Send it?", Approval)
     if answer.action != "accept" or not answer.data.approve:
         raise PermissionError(f"Payout not approved ({answer.action}). Nothing was sent.")
@@ -413,7 +413,7 @@ def setup_status() -> dict[str, Any]:
         "missing_core": core,
         "missing_by_toolset": {t: [n for n in needs if not present(n)] for t, needs in TOOLSET_NEEDS.items()},
         "config_file": str(settings.user_config_file()),
-        "how_to_fix": ("Ask the user to run `uvx mpesa-daraja-mcp setup` in a terminal (it prompts for the keys, "
+        "how_to_fix": ("Ask the user to run `mpesa init` (or `uvx mpesa-daraja init`) in a terminal (it prompts for the keys, "
                        f"checks them and saves them), or to add the values to {settings.user_config_file()}, "
                        "then restart the MCP server. Never ask the user to paste secrets into the chat."),
     }

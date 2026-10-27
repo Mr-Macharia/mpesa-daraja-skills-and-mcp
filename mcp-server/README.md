@@ -2,7 +2,9 @@
 
 <img src="https://raw.githubusercontent.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/main/docs/diagrams/banner.svg" alt="M-Pesa Daraja Agent Kit: Agent Skills and an MCP server for Safaricom's Daraja API. You ask your agent to charge a phone number; the customer gets an M-Pesa PIN prompt; the agent reports SUCCESS with the receipt number." width="100%">
 
-# mpesa-daraja-mcp
+# mpesa-daraja
+
+> Renamed from `mpesa-daraja-mcp` in 0.1.5. The old package name still installs this one.
 
 **The MCP server in the M-Pesa Daraja Agent Kit. It lets an AI agent call Safaricom's Daraja API safely.**
 
@@ -25,9 +27,9 @@ It pairs with the [Agent Skills](https://github.com/Mr-Macharia/mpesa-daraja-ski
 **Let your agent do it.** Paste this into Claude Code, Codex, Cursor, Gemini CLI or any coding agent:
 
 ```text
-Add the M-Pesa Daraja MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja-mcp
+Add the M-Pesa Daraja MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja
 It needs no keys in your config. If uv is missing, tell me how to install it first.
-Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja-mcp setup` in my own terminal,
+Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja init` in my own terminal,
 which saves them privately, then to restart you.
 After I restart you, call mpesa_check_credentials and tell me if everything works.
 ```
@@ -35,7 +37,7 @@ After I restart you, call mpesa_check_credentials and tell me if everything work
 **Or do it yourself.** You need [uv](https://docs.astral.sh/uv/). The wizard asks for your [Daraja](https://developer.safaricom.co.ke/) keys (secrets are typed hidden), checks them live with Safaricom, saves them to a file only you can read, and registers the server with Claude Code, Codex, Gemini CLI or Cursor:
 
 ```bash
-uvx mpesa-daraja-mcp setup
+uvx mpesa-daraja init
 ```
 
 Then restart your agent and ask: *"Check my M-Pesa credentials, then send a KES 1 STK push to 0712345678 and tell me when it's paid."* The full Agent Kit, with the skills and more examples, is in the [main README](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#readme).
@@ -109,11 +111,22 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 
 ## Commands and configuration files
 
+Install once with `uv tool install mpesa-daraja` to get the `mpesa` command (or prefix any command with `uvx mpesa-daraja` instead of `mpesa`):
+
 ```bash
-uvx mpesa-daraja-mcp setup     # guided: keys (hidden input), live check, save, register with your agents
-uvx mpesa-daraja-mcp status    # what's configured (masked) + a live key check
-uvx mpesa-daraja-mcp           # the MCP server itself, on stdio: what your agent runs
+mpesa init                 # guided: keys (hidden input), live check, save, register with your agents
+mpesa status               # what's configured (masked), the guardrails, and a live key check
+mpesa dev                  # callback receiver + tunnel (cloudflared or ngrok) + a live log of callbacks
+mpesa serve [--http]       # the MCP server: stdio for local agents, HTTP for remote ones
+mpesa up --domain pay.example.com   # self-host with Docker and automatic HTTPS
+mpesa pay stk 0712345678 10 --ref order-42     # waits for the PIN and shows the outcome
+mpesa pay b2c 0712345678 500 --key refund-42 --refund-of NLJ7RT61SV
+mpesa result <id>   ·   mpesa balance   ·   mpesa explain 1032
+mpesa skills install       # copy the Agent Skills into Claude Code, Codex, Cursor, …
+mpesa upgrade
 ```
+
+Every data command takes `--json`. Payments use the same guardrails as the MCP tools, and approvals are asked in the terminal. `uvx mpesa-daraja` with no arguments is the MCP server on stdio, which is what your agent runs.
 
 The server needs no flags or environment variables in your agent's config. Settings are read in this order, highest first:
 
@@ -123,11 +136,11 @@ The server needs no flags or environment variables in your agent's config. Setti
 
 The server starts even when unconfigured. Tools then explain what's missing, and `mpesa_setup_status` lists the gaps for each toolset without revealing any values.
 
-To register by hand: `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp`. Every other agent is covered in [docs/clients.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md). The older `mpesa-mcp` command still works.
+To register by hand: `claude mcp add --scope user mpesa -- uvx mpesa-daraja`. Every other agent is covered in [docs/clients.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md). The older `mpesa-daraja-mcp` and `mpesa-mcp` commands still work.
 
 ## Remote access (HTTP mode)
 
-`mpesa-daraja-mcp serve --http` serves MCP at `/mcp` and Daraja callbacks at `/cb/<token>/…` on one port, for n8n, cloud agents and teammates. It needs `DARAJA_MCP_TOKEN`, and starts read-only with every payout needing approval unless you say otherwise. Docker, HTTPS and n8n guides: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/self-hosting.md
+`mpesa serve --http` serves MCP at `/mcp` and Daraja callbacks at `/cb/<token>/…` on one port, for n8n, cloud agents and teammates. It needs `DARAJA_MCP_TOKEN`, and starts read-only with every payout needing approval unless you say otherwise. Docker, HTTPS and n8n guides: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/self-hosting.md
 
 ## Results and callbacks
 

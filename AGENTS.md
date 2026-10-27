@@ -5,7 +5,7 @@ Guidance for AI coding agents working in this repository or on M-Pesa Daraja int
 ## Repository layout
 
 - `skills/`: Agent Skills (`SKILL.md` per folder). Start with `skills/mpesa-daraja/SKILL.md`, which routes to the right skill for each Daraja API.
-- `mcp-server/`: the `mpesa-daraja-mcp` MCP server (Python, `src/mpesa_mcp/`).
+- `mcp-server/`: the `mpesa-daraja` MCP server (Python, `src/mpesa_mcp/`).
 - `shared/scripts/`: sources for the skills' command-line scripts.
 - `tools/sync_skills.py`: generates the scripts inside `skills/*/scripts/`.
 

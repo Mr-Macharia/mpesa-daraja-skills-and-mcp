@@ -123,3 +123,12 @@ class Store:
                 ids,
             ).fetchone()
         return (row[0], json.loads(row[1])) if row else None
+
+    def results_after(self, rowid: int = 0, limit: int = 50) -> list[tuple[int, str, str, dict[str, Any]]]:
+        """Callbacks received after rowid, oldest first: (rowid, corr_id, status, parsed). For live logs."""
+        with self._lock:
+            rows = self._db.execute(
+                "SELECT rowid, corr_id, status, parsed FROM results WHERE rowid > ? ORDER BY rowid LIMIT ?",
+                (rowid, limit),
+            ).fetchall()
+        return [(r[0], r[1], r[2], json.loads(r[3])) for r in rows]

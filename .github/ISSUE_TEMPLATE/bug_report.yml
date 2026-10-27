@@ -35,7 +35,7 @@ body:
     id: version
     attributes:
       label: Version
-      placeholder: "mpesa-daraja-mcp 0.1.0, or a commit SHA"
+      placeholder: "mpesa-daraja 0.1.0, or a commit SHA"
   - type: input
     id: agent
     attributes:

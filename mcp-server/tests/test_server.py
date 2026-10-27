@@ -535,3 +535,18 @@ async def test_context_is_not_in_tool_schemas():
     tools = {t.name: t for t in await server.server.list_tools()}
     for name in ("mpesa_b2c_payment", "mpesa_b2b_payment", "mpesa_reverse_transaction"):
         assert "ctx" not in tools[name].input_schema["properties"]
+
+
+def test_receiver_log_hides_the_path_token(caplog):
+    import logging
+    import urllib.request
+
+    rcv = CallbackReceiver(Store(":memory:"), TOKEN, "127.0.0.1", 0).start()
+    try:
+        with caplog.at_level(logging.INFO, logger="mpesa_mcp.receiver"):
+            req = urllib.request.Request(f"http://127.0.0.1:{rcv.port}/cb/{TOKEN}/mpesa/stk/callback",
+                                         data=json.dumps(stk_callback()).encode(), method="POST")
+            urllib.request.urlopen(req, timeout=5).read()
+    finally:
+        rcv.stop()
+    assert "<token>" in caplog.text and TOKEN not in caplog.text

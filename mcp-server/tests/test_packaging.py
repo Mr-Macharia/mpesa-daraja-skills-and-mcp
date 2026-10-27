@@ -72,3 +72,11 @@ def test_claude_plugin_version_and_server_agree():
     assert (root / "icon.png").is_file()
     skill_dirs = {f"./skills/{p.parent.name}" for p in (HERE.parent / "skills").glob("*/SKILL.md")}
     assert set(plugin["skills"]) == skill_dirs, "plugin.json must list every skill"
+
+
+def test_compat_package_tracks_the_main_package():
+    compat = tomllib.loads((HERE / "compat/pyproject.toml").read_text())["project"]
+    assert compat["name"] == "mpesa-daraja-mcp"
+    assert compat["version"] == PYPROJECT["version"]
+    assert compat["dependencies"] == [f"{PYPROJECT['name']}=={PYPROJECT['version']}"]
+    assert compat["scripts"]["mpesa-daraja-mcp"] == PYPROJECT["scripts"][PYPROJECT["name"]]

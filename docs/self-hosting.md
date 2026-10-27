@@ -15,7 +15,7 @@ Your Daraja keys stay on your server. Nobody else holds them.
 
 ## What HTTP mode does
 
-`mpesa-daraja-mcp serve --http` serves MCP over streamable HTTP at `/mcp`, and Daraja callbacks at `/cb/<DARAJA_CALLBACK_TOKEN>/…` on the same port, so one public HTTPS URL covers both.
+`mpesa serve --http` serves MCP over streamable HTTP at `/mcp`, and Daraja callbacks at `/cb/<DARAJA_CALLBACK_TOKEN>/…` on the same port, so one public HTTPS URL covers both.
 
 - **A token is required.** Clients send `Authorization: Bearer <DARAJA_MCP_TOKEN>`. The server refuses to start without a token of 32+ characters. `/healthz` is open, and callbacks are protected by the secret token in their path (Safaricom sends no auth header).
 - **It starts cautious.** Unless you set them, `DARAJA_READ_ONLY=true` (no money tools) and `DARAJA_APPROVAL_THRESHOLD=0` (every payout asks in the chat). Collections (STK Push) never ask, because the customer enters their PIN.

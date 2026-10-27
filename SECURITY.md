@@ -32,7 +32,7 @@ You'll get an acknowledgement within **3 working days**. Confirmed issues are fi
 
 ## Supported versions
 
-Security fixes go to the latest release on PyPI (`mpesa-daraja-mcp`) and to `main`.
+Security fixes go to the latest release on PyPI (`mpesa-daraja`) and to `main`.
 
 ## Hardening guidance for users
 

@@ -79,7 +79,7 @@ class CallbackReceiver:
                 self.wfile.write(body)
 
             def log_message(self, fmt, *args):  # keep stdout clean: it carries the MCP stdio stream
-                log.info("callback %s", fmt % args)
+                log.info("callback %s", (fmt % args).replace(receiver.token, "<token>"))
 
         self._httpd = ThreadingHTTPServer((host, port), Handler)
         self.port = self._httpd.server_address[1]

@@ -67,6 +67,7 @@ mpesa upgrade
 
 - The PyPI package becomes `mpesa-daraja`. `mpesa-daraja-mcp` stays as an alias command and a compatibility package.
 - The CLI shares the guardrails from item 1.
+- Built: `uvx mpesa-daraja` with no arguments is still the stdio server, `setup` maps to `init`, and the config folder keeps its old name. `mpesa dev` saves the tunnel URL to the config file, so the agent's server picks it up on restart. `mpesa up` writes a compose file that installs from PyPI, so it works without the repo. Status: done.
 
 ### 4. Callback forwarding
 - `MPESA_FORWARD_URL`: the receiver POSTs each callback on to the user's app, signed with HMAC (`MPESA_FORWARD_SECRET`). Callbacks are still stored for `mpesa_get_result`.

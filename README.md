@@ -4,7 +4,7 @@
 
 <br>
 
-[![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml) [![PyPI](https://img.shields.io/pypi/v/mpesa-daraja-mcp?label=PyPI&color=ff5a14&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/) [![MCP Registry](https://img.shields.io/badge/MCP_Registry-mpesa--daraja--mcp-ff5a14)](https://registry.modelcontextprotocol.io/v0/servers?search=mpesa-daraja-mcp) [![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja-mcp?color=1c1b38&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/) [![License: MIT](https://img.shields.io/badge/license-MIT-2ea043)](LICENSE)
+[![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml) [![PyPI](https://img.shields.io/pypi/v/mpesa-daraja?label=PyPI&color=ff5a14&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja/) [![MCP Registry](https://img.shields.io/badge/MCP_Registry-mpesa--daraja--mcp-ff5a14)](https://registry.modelcontextprotocol.io/v0/servers?search=mpesa-daraja-mcp) [![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja?color=1c1b38&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja/) [![License: MIT](https://img.shields.io/badge/license-MIT-2ea043)](LICENSE)
 [![M8ven Score](https://m8ven.ai/badge/mcp/mr-macharia/mpesa-daraja-skills-and-mcp)](https://m8ven.ai/mcp/mr-macharia/mpesa-daraja-skills-and-mcp?s=readme)
 
 **M-Pesa Daraja Agent Kit: Agent Skills that teach your agent to use Daraja API, and an MCP server that lets it call Daraja safely.**<br>
@@ -91,7 +91,7 @@ npx skills add \
 <td>
 
 ```bash
-uvx mpesa-daraja-mcp setup
+uvx mpesa-daraja init
 ```
 
 </td>
@@ -113,9 +113,9 @@ Paste this into Claude Code, Codex, Cursor, Gemini CLI or any coding agent:
 Install the M-Pesa Daraja Agent Kit for me:
 1. Install the Agent Skills for yourself: npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp -a <your agent id>
    (agent ids: claude-code, codex, cursor, github-copilot, gemini-cli). Use -g if I want them in every project.
-2. Add the MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja-mcp
+2. Add the MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja
    It needs no keys in your config. If uv is missing, tell me how to install it first.
-3. Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja-mcp setup` in my own terminal,
+3. Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja init` in my own terminal,
    which saves them privately, then to restart you.
 4. After I restart you, call mpesa_check_credentials and tell me if everything works.
 ```
@@ -130,7 +130,7 @@ The plugin installs all 15 skills and the MCP server in one step. The server run
 /plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp
 ```
 
-Then run `uvx mpesa-daraja-mcp setup` once in a terminal to save your Daraja keys. When it offers to add the server to Claude Code, answer **n**: the plugin already did. Restart Claude Code.
+Then run `uvx mpesa-daraja init` once in a terminal to save your Daraja keys. When it offers to add the server to Claude Code, answer **n**: the plugin already did. Restart Claude Code.
 
 ### Or install it yourself
 
@@ -143,7 +143,7 @@ npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp
 **2. Install the MCP server.** Needs [uv](https://docs.astral.sh/uv/).
 
 ```bash
-uvx mpesa-daraja-mcp setup
+uvx mpesa-daraja init
 ```
 
 The wizard asks for your [Daraja](https://developer.safaricom.co.ke/) keys (secrets are typed hidden), checks them live with Safaricom, saves them to a file only you can read, and registers the server with Claude Code, Codex, Gemini CLI or Cursor. Restart your agent when it's done.
@@ -156,12 +156,12 @@ No keys go in these commands; the server reads them from its config file.
 
 | Agent | Command |
 |---|---|
-| Claude Code | `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp` |
-| Codex | `codex mcp add mpesa -- uvx mpesa-daraja-mcp` |
-| Gemini CLI | `gemini mcp add --scope user mpesa uvx mpesa-daraja-mcp` |
+| Claude Code | `claude mcp add --scope user mpesa -- uvx mpesa-daraja` |
+| Codex | `codex mcp add mpesa -- uvx mpesa-daraja` |
+| Gemini CLI | `gemini mcp add --scope user mpesa uvx mpesa-daraja` |
 | Cursor, VS Code, others | JSON snippets in [docs/clients.md](docs/clients.md#2-mcp-server) |
 
-Then run `uvx mpesa-daraja-mcp setup` to save your keys, or write the config file yourself as described in [docs/clients.md](docs/clients.md).
+Then run `uvx mpesa-daraja init` to save your keys, or write the config file yourself as described in [docs/clients.md](docs/clients.md).
 </details>
 
 ### Try it
@@ -194,7 +194,7 @@ M-Pesa Daraja Agent Kit makes M-Pesa payment handling and integration easier for
 
 **[15 Agent Skills](skills).** Every major Daraja API, plus helper skills for callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Each skill bundles tested scripts that validate requests, build STK passwords, encrypt credentials and parse callbacks, so the agent runs known-good code instead of improvising.
 
-**[The MCP server](mcp-server), [`mpesa-daraja-mcp`](https://pypi.org/project/mpesa-daraja-mcp/).** 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call, and an optional built-in callback receiver records results for `mpesa_get_result`.
+**[The MCP server](mcp-server), [`mpesa-daraja`](https://pypi.org/project/mpesa-daraja/).** 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call, and an optional built-in callback receiver records results for `mpesa_get_result`.
 
 **Load only what you need.** Every tool the server offers takes up space in your agent's context, even when it's never called. Set `DARAJA_TOOLSETS` to the groups you use, and the agent sees only those tools. For example, `DARAJA_TOOLSETS=stk` for a shop that only takes STK payments, or `stk,payouts` if it also pays people. The groups are `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba` and `billmanager`; the basic tools (`core`) are always on. Leave it unset to load everything.
 
@@ -254,7 +254,7 @@ Safaricom sends the receipt to your callback URL. Set <code>DARAJA_CALLBACK_BASE
 <details>
 <summary><b>My agent says "Connection closed".</b></summary>
 <br>
-Run <code>uvx mpesa-daraja-mcp status</code>. It lists missing settings and re-tests your keys. Then restart the agent.
+Run <code>uvx mpesa-daraja status</code>. It lists missing settings and re-tests your keys. Then restart the agent.
 </details>
 
 ## Documentation

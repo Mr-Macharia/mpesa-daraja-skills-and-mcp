@@ -137,7 +137,7 @@ def test_status_when_unconfigured(cfg, capsys):
 
 def test_missing_config_message_points_to_setup(cfg, monkeypatch):
     from mpesa_mcp.client import Config
-    with pytest.raises(RuntimeError, match="mpesa-daraja-mcp setup"):
+    with pytest.raises(RuntimeError, match="mpesa init"):
         Config.from_env()
 
 
@@ -169,7 +169,7 @@ GIT = {"url": "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp", "sub
 def test_uvx_from_github_registers_the_github_source():
     cmd = cli.launch_command(GIT, CACHE, CACHE / "bin/python", has_uvx=True)
     assert cmd == ["uvx", "--from", "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#subdirectory=mcp-server",
-                   "mpesa-daraja-mcp"]
+                   "mpesa-daraja"]
 
 
 def test_github_branch_is_kept_but_commit_is_not():
@@ -180,19 +180,19 @@ def test_github_branch_is_kept_but_commit_is_not():
 
 
 def test_uvx_from_pypi_registers_short_command():
-    assert cli.launch_command({}, CACHE, CACHE / "bin/python", has_uvx=True) == ["uvx", "mpesa-daraja-mcp"]
+    assert cli.launch_command({}, CACHE, CACHE / "bin/python", has_uvx=True) == ["uvx", "mpesa-daraja"]
 
 
 def test_uvx_from_local_wheel_registers_that_file():
     url = {"url": "file:///home/u/dist/mpesa_daraja_mcp-0.1.0-py3-none-any.whl", "archive_info": {}}
     cmd = cli.launch_command(url, CACHE, CACHE / "bin/python", has_uvx=True)
-    assert cmd == ["uvx", "--from", "/home/u/dist/mpesa_daraja_mcp-0.1.0-py3-none-any.whl", "mpesa-daraja-mcp"]
+    assert cmd == ["uvx", "--from", "/home/u/dist/mpesa_daraja_mcp-0.1.0-py3-none-any.whl", "mpesa-daraja"]
 
 
 def test_lasting_install_registers_its_own_script_not_a_cache_path(tmp_path):
     venv = tmp_path / "venv"
     (venv / "bin").mkdir(parents=True)
-    script = venv / "bin" / ("mpesa-daraja-mcp.exe" if sys.platform == "win32" else "mpesa-daraja-mcp")
+    script = venv / "bin" / ("mpesa-daraja-mcp.exe" if sys.platform == "win32" else "mpesa-daraja")
     script.write_text("")
     editable = {"url": "file:///home/u/Mpesa-MCP/mcp-server", "dir_info": {"editable": True}}
     assert cli.launch_command(editable, venv, venv / "bin/python", has_uvx=True) == [str(script)]
@@ -217,6 +217,6 @@ def test_claude_replace_clears_local_and_user_scope(monkeypatch):
     ran = []
     monkeypatch.setattr(cli.shutil, "which", lambda name: f"/bin/{name}")
     monkeypatch.setattr(cli.subprocess, "run", lambda cmd, **kw: ran.append(cmd))
-    next(a for a in cli.agents(["uvx", "mpesa-daraja-mcp"]) if a.name == "Claude Code").remove()
+    next(a for a in cli.agents(["uvx", "mpesa-daraja"]) if a.name == "Claude Code").remove()
     assert ["claude", "mcp", "remove", "--scope", "local", "mpesa"] in ran
     assert ["claude", "mcp", "remove", "--scope", "user", "mpesa"] in ran

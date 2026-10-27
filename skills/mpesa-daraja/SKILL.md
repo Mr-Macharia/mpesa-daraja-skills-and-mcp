@@ -77,7 +77,7 @@ Copy this checklist and tick items off as you go:
 
 ## MCP tools
 
-If the `mpesa-daraja-mcp` server is connected (tool names start with `mpesa_`; some clients prefix them with the server name), call Daraja directly instead of writing throwaway scripts. For example:
+If the `mpesa-daraja` server is connected (tool names start with `mpesa_`; some clients prefix them with the server name), call Daraja directly instead of writing throwaway scripts. For example:
 - `mpesa_check_credentials` checks the configured keys.
 - `mpesa_stk_push` and `mpesa_stk_query` run M-Pesa Express.
 - `mpesa_parse_callback` parses a callback payload.
