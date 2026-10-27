@@ -221,3 +221,15 @@ def test_check_integration_finds_the_classic_mistakes(tmp_path):
 def test_check_integration_passes_a_careful_project(tmp_path):
     res = run("daraja-payment-design/scripts/check_integration.py", str(_project(tmp_path, GOOD_APP)))
     assert res.returncode == 0 and res.stdout.startswith("OK"), res.stdout
+
+
+def test_sales_log_tracks_an_order(tmp_path):
+    env = {"PATH": "/usr/bin:/bin", "MPESA_SALES_LOG": str(tmp_path / "sales.csv")}
+    script = "daraja-agent-storefront/scripts/sales_log.py"
+    assert run(script, "add", "A1", "254712345678", "150", "2 mandazi", env=env).returncode == 0
+    assert run(script, "add", "A1", "254712345678", "150", "again", env=env).returncode != 0, "IDs are not reused"
+    assert run(script, "set", "A1", "paid", env=env).returncode != 0, "paid needs a receipt"
+    assert run(script, "set", "A1", "paid", "NLJ7RT61SV", env=env).returncode == 0
+    assert run(script, "set", "A1", "failed", env=env).returncode != 0, "a final order stays final"
+    assert "A1" not in run(script, "open", env=env).stdout
+    assert "NLJ7RT61SV" in run(script, "show", "A1", env=env).stdout

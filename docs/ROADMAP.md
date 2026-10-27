@@ -99,6 +99,7 @@ One page each, linking to the per-API skills and to `daraja-payment-design`, eac
 - A developer-built store gets results through forwarding. An agent-only seller tracks orders through `mpesa_get_result` and a CSV sales log.
 - After a failed or cancelled payment, the customer gets one new prompt with a new idempotency key. Nothing is re-sent while the outcome is unknown.
 - Collecting money needs no approval, because the customer enters their own PIN. Refunds go through the approval step.
+- Built: each recipe is its own skill (`daraja-checkout`, `daraja-payouts`, `daraja-paybill-collections`, `daraja-recurring-billing`, `daraja-agent-storefront`), routed from `mpesa-daraja`; `sales_log.py` is the CSV log. Status: done.
 
 ### 6. Teach-me
 - A learning roadmap and categories, sandbox only. Production credentials are refused.

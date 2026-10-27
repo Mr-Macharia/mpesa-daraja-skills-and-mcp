@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "mpesa-daraja-skills",
-      "description": "M-Pesa Daraja Agent Kit: 15 skills (STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja server. Sandbox by default.",
+      "description": "M-Pesa Daraja Agent Kit: 21 skills (use-case recipes, payment design, STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja server. Sandbox by default.",
       "source": "./",
       "version": "0.1.4"
     }

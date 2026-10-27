@@ -10,6 +10,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - HTTP mode: `mpesa serve --http` with a required bearer token (`DARAJA_MCP_TOKEN`), callbacks on the same port, and cautious hosted defaults. `Dockerfile`, `docker-compose.yml` with a Caddy HTTPS profile, and guides for self-hosting and n8n.
 - Callback forwarding: `DARAJA_FORWARD_URL` and `DARAJA_FORWARD_SECRET` POST each callback on to your app with an HMAC signature, retried in the background.
 - `daraja-payment-design` skill: the payment state machine, an append-only double-entry ledger schema, confirmation handling, reversals versus refunds, daily reconciliation, failure tests and a go-live checklist. Its `check_integration.py` scans a codebase for paid-on-`ResponseCode`, float amounts, non-unique receipts, slow callback handlers, hardcoded secrets and HTTP callback URLs.
+- Use-case recipe skills: `daraja-checkout`, `daraja-payouts`, `daraja-paybill-collections`, `daraja-recurring-billing` and `daraja-agent-storefront` (with `sales_log.py` for agent-only sellers). Each works out what it can, then asks at most three questions.
 - The `mpesa` CLI: `init`, `status`, `dev`, `serve`, `up`, `pay stk|b2c|b2b|reverse`, `result`, `balance`, `explain`, `skills install`, `upgrade`, with `--json` output.
 
 ### Changed

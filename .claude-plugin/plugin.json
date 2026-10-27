@@ -1,7 +1,7 @@
 {
   "name": "mpesa-daraja-skills",
   "version": "0.1.4",
-  "description": "M-Pesa Daraja Agent Kit: 15 skills (STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja MCP server. Sandbox by default.",
+  "description": "M-Pesa Daraja Agent Kit: 21 skills (use-case recipes, payment design, STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja MCP server. Sandbox by default.",
   "author": {
     "name": "Mr-Macharia",
     "url": "https://github.com/Mr-Macharia"
@@ -19,16 +19,21 @@
   ],
   "skills": [
     "./skills/daraja-account-ops",
+    "./skills/daraja-agent-storefront",
     "./skills/daraja-auth",
     "./skills/daraja-b2b",
     "./skills/daraja-b2c",
     "./skills/daraja-bill-manager",
     "./skills/daraja-c2b",
     "./skills/daraja-callbacks",
+    "./skills/daraja-checkout",
     "./skills/daraja-credentials-security",
     "./skills/daraja-dynamic-qr",
+    "./skills/daraja-paybill-collections",
     "./skills/daraja-payment-design",
+    "./skills/daraja-payouts",
     "./skills/daraja-ratiba",
+    "./skills/daraja-recurring-billing",
     "./skills/daraja-sandbox-setup",
     "./skills/daraja-stk-push",
     "./skills/daraja-tax-remittance",

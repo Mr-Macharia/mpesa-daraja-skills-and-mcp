@@ -40,6 +40,16 @@ Credentials, passkeys and certificates only work in the environment they were is
 | Error codes and "nothing happened" debugging | `daraja-troubleshooting` |
 | Payment state machine, ledger tables, confirmations, refunds, reconciliation, go-live review | `daraja-payment-design` |
 
+Building a whole use case rather than one API call? Start from a recipe:
+
+| Use case | Recipe |
+|---|---|
+| Customers pay for orders in an app | `daraja-checkout` |
+| Payroll, disbursements, refunds to phones | `daraja-payouts` |
+| Customers pay a Paybill/Till; match to accounts | `daraja-paybill-collections` |
+| Subscriptions and repeat charges | `daraja-recurring-billing` |
+| An AI agent that sells and takes payment | `daraja-agent-storefront` |
+
 ## Conventions shared by every API
 
 - **Phone**: `2547XXXXXXXX` or `2541XXXXXXXX`: 12 digits, no `+`, no leading `0`. Bill Manager is the exception and uses `07…`.
