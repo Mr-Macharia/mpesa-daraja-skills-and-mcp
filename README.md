@@ -124,7 +124,7 @@ Your agent installs both halves; you only type your Daraja keys into the setup w
 
 ### Claude Code: one plugin for both
 
-The plugin installs all 21 skills and the MCP server in one step. The server runs through [uv](https://docs.astral.sh/uv/), so install that first, and make sure `uvx` is on the PATH Claude Code sees:
+The plugin installs all 22 skills and the MCP server in one step. The server runs through [uv](https://docs.astral.sh/uv/), so install that first, and make sure `uvx` is on the PATH Claude Code sees:
 
 ```text
 /plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp
@@ -192,7 +192,7 @@ M-Pesa Daraja Agent Kit makes M-Pesa payment handling and integration easier for
 
 ## What's inside
 
-**[21 Agent Skills](skills).** Use-case recipes (checkout, payouts, Paybill collections, recurring billing, an agent that sells), a payment-design skill (ledger, refunds, reconciliation, go-live), every major Daraja API, plus helper skills for callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Each skill bundles tested scripts that validate requests, build STK passwords, encrypt credentials and parse callbacks, so the agent runs known-good code instead of improvising.
+**[22 Agent Skills](skills).** Use-case recipes (checkout, payouts, Paybill collections, recurring billing, an agent that sells), a payment-design skill (ledger, refunds, reconciliation, go-live), a sandbox tutor with a build-your-own-gateway track, every major Daraja API, plus helper skills for callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Each skill bundles tested scripts that validate requests, build STK passwords, encrypt credentials and parse callbacks, so the agent runs known-good code instead of improvising.
 
 **[The MCP server](mcp-server), [`mpesa-daraja`](https://pypi.org/project/mpesa-daraja/).** 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call, and an optional built-in callback receiver records results for `mpesa_get_result`.
 

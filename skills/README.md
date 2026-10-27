@@ -19,6 +19,7 @@ Agent Skills for building Safaricom M-Pesa Daraja integrations. Each folder hold
 | [`daraja-sandbox-setup`](daraja-sandbox-setup/SKILL.md) | Sandbox app, test credentials, smoke tests, go-live | |
 | [`daraja-credentials-security`](daraja-credentials-security/SKILL.md) | Secret storage, SecurityCredential generation, leak response | `scripts/security_credential.py` |
 | [`daraja-troubleshooting`](daraja-troubleshooting/SKILL.md) | Error and result codes, debug procedure, retry policy | `scripts/explain_code.py`, `reference.md` |
+| [`daraja-teach-me`](daraja-teach-me/SKILL.md) | Sandbox-only tutor: roadmap by category, lessons with check questions, build-your-own-gateway track | `lessons.md`, `gateway-track.md` |
 
 ## Install
 

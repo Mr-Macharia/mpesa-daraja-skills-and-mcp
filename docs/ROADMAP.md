@@ -105,6 +105,7 @@ One page each, linking to the per-API skills and to `daraja-payment-design`, eac
 - A learning roadmap and categories, sandbox only. Production credentials are refused.
 - A build-your-own-gateway track.
 - Diagrams and plain language, with few analogies.
+- Built: the `daraja-teach-me` skill, with `lessons.md` (categories F, C, K, P, O, D) and `gateway-track.md` (G1–G6), routed from `mpesa-daraja`. Status: done.
 
 ### 7. Agent payments module and Python adapters
 - In `mcp-server/`, reusing `client.py`, the validation code and the guardrails. Usable from any agent framework, the way a web-search tool is.

@@ -50,6 +50,8 @@ Building a whole use case rather than one API call? Start from a recipe:
 | Subscriptions and repeat charges | `daraja-recurring-billing` |
 | An AI agent that sells and takes payment | `daraja-agent-storefront` |
 
+New to Daraja, or want a guided tutorial in the sandbox? Use `daraja-teach-me`.
+
 ## Conventions shared by every API
 
 - **Phone**: `2547XXXXXXXX` or `2541XXXXXXXX`: 12 digits, no `+`, no leading `0`. Bill Manager is the exception and uses `07…`.
