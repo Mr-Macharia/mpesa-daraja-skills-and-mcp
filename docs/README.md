@@ -12,6 +12,7 @@ How the Safaricom Daraja API works: the transaction types, the request-and-callb
 - [Self-hosting](self-hosting.md): Docker, HTTPS, HTTP mode with a bearer token
 - [n8n](n8n.md): use the tools from an n8n AI Agent
 - [Forwarding](forwarding.md): send each callback on to your app, signed
+- [Agent frameworks](agent-frameworks.md): the tools in LangChain, the OpenAI Agents SDK or your own agent
 - [How it works](diagrams/how-it-works.svg): architecture diagram
 
 ## How Daraja works

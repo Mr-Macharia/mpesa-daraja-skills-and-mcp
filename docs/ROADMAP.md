@@ -110,6 +110,7 @@ One page each, linking to the per-API skills and to `daraja-payment-design`, eac
 ### 7. Agent payments module and Python adapters
 - In `mcp-server/`, reusing `client.py`, the validation code and the guardrails. Usable from any agent framework, the way a web-search tool is.
 - Adapters for LangChain and the OpenAI Agents SDK.
+- Built: `mpesa_mcp/agent.py` (`mpesa_tools`, with an `approve` callback that takes the place of elicitation), `mpesa_mcp/integrations/{langchain,openai_agents}.py`, the `[langchain]` and `[openai-agents]` extras, and `docs/agent-frameworks.md`. Status: done.
 
 ### 8. Shared fixtures and the Node library
 - `shared/fixtures/`: JSON cases covering validation, error codes, Daraja spellings and guardrail behaviour. The Python tests consume them.

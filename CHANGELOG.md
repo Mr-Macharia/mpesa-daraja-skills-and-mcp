@@ -12,6 +12,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - `daraja-payment-design` skill: the payment state machine, an append-only double-entry ledger schema, confirmation handling, reversals versus refunds, daily reconciliation, failure tests and a go-live checklist. Its `check_integration.py` scans a codebase for paid-on-`ResponseCode`, float amounts, non-unique receipts, slow callback handlers, hardcoded secrets and HTTP callback URLs.
 - Use-case recipe skills: `daraja-checkout`, `daraja-payouts`, `daraja-paybill-collections`, `daraja-recurring-billing` and `daraja-agent-storefront` (with `sales_log.py` for agent-only sellers). Each works out what it can, then asks at most three questions.
 - `daraja-teach-me` skill: a sandbox-only tutor with a learning roadmap by category, lessons that each end in a sandbox call and a check question, and a build-your-own-gateway track. It refuses production credentials.
+- `mpesa_mcp.agent`: the server's tools and guardrails as plain Python tools for any agent framework, with an `approve` callback for payouts above the threshold. Adapters for LangChain (`[langchain]` extra) and the OpenAI Agents SDK (`[openai-agents]` extra).
 - The `mpesa` CLI: `init`, `status`, `dev`, `serve`, `up`, `pay stk|b2c|b2b|reverse`, `result`, `balance`, `explain`, `skills install`, `upgrade`, with `--json` output.
 
 ### Changed

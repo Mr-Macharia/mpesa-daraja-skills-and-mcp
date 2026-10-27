@@ -184,6 +184,10 @@ Every tool the server offers takes up space in your agent's context, even when i
 
 The groups are `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba` and `billmanager`.
 
+## Use from LangChain, the OpenAI Agents SDK or your own agent
+
+The same tools and guardrails work without a server: `from mpesa_mcp.agent import mpesa_tools`, or the adapters `mpesa_mcp.integrations.langchain` and `mpesa_mcp.integrations.openai_agents` (`pip install "mpesa-daraja[langchain]"` or `[openai-agents]`). See [docs/agent-frameworks.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/agent-frameworks.md).
+
 ## Development
 
 ```bash

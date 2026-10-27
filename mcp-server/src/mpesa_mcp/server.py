@@ -23,6 +23,7 @@ import re
 import time
 import uuid
 from collections.abc import Awaitable, Callable
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any, Literal
 
@@ -238,6 +239,11 @@ class Approval(BaseModel):
     approve: bool
 
 
+# Set by callers outside MCP (mpesa_mcp.agent): asked instead of an elicitation prompt.
+# Receives the summary, returns True to send.
+APPROVER: ContextVar[Callable[[str], bool | Awaitable[bool]] | None] = ContextVar("APPROVER", default=None)
+
+
 async def _guard_payout(ctx: Context | None, key: str, amount: int, recipient: str | None, summary: str) -> None:
     """Allowlist and human-approval checks for money leaving the business.
 
@@ -253,6 +259,14 @@ async def _guard_payout(ctx: Context | None, key: str, amount: int, recipient: s
     if threshold is None or amount <= threshold:
         return
     needs = f"{summary} is above DARAJA_APPROVAL_THRESHOLD (KES {threshold:,}) and needs approval."
+    approver = APPROVER.get()
+    if approver is not None:
+        ok = approver(f"{needs} Send it?")
+        if inspect.isawaitable(ok):
+            ok = await ok
+        if not ok:
+            raise PermissionError("Payout not approved. Nothing was sent.")
+        return
     elicitation = types.ClientCapabilities(elicitation=types.ElicitationCapability())
     if ctx is None or not ctx.request_context.session.check_client_capability(elicitation):
         raise PermissionError(f"{needs} This client cannot show approval prompts, so nothing was sent. "

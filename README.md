@@ -262,6 +262,7 @@ Run <code>uvx mpesa-daraja status</code>. It lists missing settings and re-tests
 | Read | For |
 |---|---|
 | [docs/clients.md](docs/clients.md) | Setup for each agent: skills folders, MCP config, config files |
+| [docs/agent-frameworks.md](docs/agent-frameworks.md) | The same tools in LangChain, the OpenAI Agents SDK or your own agent, without the MCP server |
 | [mcp-server/README.md](mcp-server/README.md) | Every tool and setting, the callback receiver, toolsets |
 | [skills/README.md](skills/README.md) | The skill catalogue, and why each skill is built the way it is |
 | [docs/](docs/README.md) | How Daraja works: transaction types, callbacks, OAuth, credentials, sandbox |
