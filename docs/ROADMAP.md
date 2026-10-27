@@ -68,3 +68,4 @@ After review: bump `mcp-server/pyproject.toml` and `mcp-server/server.json` toge
 ## Deferred
 - A hosted remote MCP and OAuth (conflicts with not holding credentials).
 - Smithery and Glama listings.
+- Documentation website: a separate repo, built after 0.1.5 with polished UI, authoring and explainers.
