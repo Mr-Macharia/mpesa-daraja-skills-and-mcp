@@ -83,7 +83,8 @@ def scan_file(path):
     found = []
     text = "\n".join(lines)
     is_schema = os.path.splitext(path)[1].lower() in SCHEMA_EXT or re.search(r"CREATE TABLE", text, re.I) \
-        or re.search(r"models\.Model\b|mongoose\.Schema\(|new Schema\(|@Entity\b|\.createTable\(|sequelize\.define\(", text)
+        or re.search(r"models\.Model\b|mongoose\.Schema\(|new Schema\(|@Entity\b|\.createTable\("
+                     r"|sequelize\.define\(", text)
     callback_file = bool(CALLBACK_HINT.search(text))
 
     for i, line in enumerate(lines):
@@ -107,8 +108,9 @@ def scan_file(path):
         for i, line in enumerate(lines):
             if SLOW.search(line):
                 after = "\n".join(lines[i + 1:i + 25])
-                if REPLY.search(after) and not re.search(r"queue|enqueue|delay\(|background|celery|job|task|setImmediate",
-                                                         "\n".join(lines[max(0, i - 3):i + 1]), re.I):
+                before = "\n".join(lines[max(0, i - 3):i + 1])
+                if REPLY.search(after) and not re.search(
+                        r"queue|enqueue|delay\(|background|celery|job|task|setImmediate", before, re.I):
                     found.append(("slow-callback", i))
                     break
     return [(check, path, i + 1, lines[i].strip()[:120]) for check, i in found]

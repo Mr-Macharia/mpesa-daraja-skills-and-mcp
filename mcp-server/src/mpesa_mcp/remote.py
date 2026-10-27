@@ -89,9 +89,7 @@ def build_app(host: str = "127.0.0.1"):
     for key, value in HOSTED_DEFAULTS.items():
         if not os.environ.get(key, "").strip():
             os.environ[key] = value
-    from . import server
-
-    from . import forward
+    from . import forward, server
 
     forward.from_env()  # refuse to start with broken forwarding settings
     srv = server.create_server(server.toolsets_from_env())

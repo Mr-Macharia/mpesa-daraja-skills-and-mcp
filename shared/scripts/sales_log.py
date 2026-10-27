@@ -46,7 +46,8 @@ def save(rows):
 
 def show(rows):
     for r in rows:
-        print(f"{r['order_id']:<16} {r['status']:<10} KES {r['amount']:>7}  {r['phone']}  {r['receipt'] or '-':<12} {r['items']}")
+        print(f"{r['order_id']:<16} {r['status']:<10} KES {r['amount']:>7}  {r['phone']}  "
+              f"{r['receipt'] or '-':<12} {r['items']}")
 
 
 def main(args):
@@ -71,7 +72,8 @@ def main(args):
         row = next((r for r in rows if r["order_id"] == order_id), None)
         if row is None:
             sys.exit(f"no order {order_id}")
-        if row["status"] in FINAL and status != row["status"] and not (row["status"] == "paid" and status == "refunded"):
+        refund = row["status"] == "paid" and status == "refunded"
+        if row["status"] in FINAL and status != row["status"] and not refund:
             sys.exit(f"order {order_id} is already {row['status']}; record a new order instead")
         if status == "paid" and len(args) < 4:
             sys.exit("paid needs the M-Pesa receipt from the confirmed result")

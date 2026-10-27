@@ -1,9 +1,9 @@
 import json
 
 import pytest
+from test_server import B2C_ACK, STK_ACK, daraja, fresh_state  # noqa: F401  (fixtures)
 
 from mpesa_mcp import agent, server
-from test_server import B2C_ACK, STK_ACK, daraja, fresh_state  # noqa: F401  (fixtures)
 
 
 def test_same_tools_and_guardrails_as_the_server():
