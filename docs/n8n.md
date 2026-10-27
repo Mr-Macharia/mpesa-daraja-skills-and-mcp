@@ -2,7 +2,7 @@
 
 n8n's AI Agent can call the M-Pesa tools through the **MCP Client Tool** node. The server must be reachable over HTTPS, so [self-host it](self-hosting.md) first.
 
-> Dedicated n8n nodes (STK Push, B2C, an M-Pesa Trigger for callbacks) are coming as `n8n-nodes-mpesa-daraja`. Use this guide for agent workflows today.
+> For plain workflows without an AI agent, install the community nodes [`n8n-nodes-daraja`](../node/packages/n8n-nodes-daraja) instead: STK Push, B2C, B2B, status and an M-Pesa Trigger for callbacks.
 
 ## Import the example
 

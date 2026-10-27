@@ -15,6 +15,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - `mpesa_mcp.agent`: the server's tools and guardrails as plain Python tools for any agent framework, with an `approve` callback for payouts above the threshold. Adapters for LangChain (`[langchain]` extra) and the OpenAI Agents SDK (`[openai-agents]` extra).
 - `shared/fixtures/`: language-neutral cases for phones, amounts, STK passwords, result codes, validation, callbacks and guardrails. The Python and Node packages both run them.
 - The Node library **`mpesa-daraja`** (npm, 0.1.0): STK Push and Query, C2B, B2C, B2B, tax, status, balance, reversal and callbacks, with the same validation, idempotency and guardrails as the MCP server, agent tools (`mpesaTools`) and Vercel AI SDK tools (`mpesa-daraja/ai`). No runtime dependencies.
+- n8n community nodes **`n8n-nodes-daraja`** (npm, 0.1.0): an M-Pesa Daraja action node (STK Push and wait, query, Get Result, B2C, B2B, tax, status, balance, reversal) and an M-Pesa Trigger for callbacks, with the same idempotency and guardrails.
 - The `mpesa` CLI: `init`, `status`, `dev`, `serve`, `up`, `pay stk|b2c|b2b|reverse`, `result`, `balance`, `explain`, `skills install`, `upgrade`, with `--json` output.
 
 ### Changed

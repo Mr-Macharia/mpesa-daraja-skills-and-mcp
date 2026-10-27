@@ -9,6 +9,7 @@ Guidance for AI coding agents working in this repository or on M-Pesa Daraja int
 - `shared/scripts/`: sources for the skills' command-line scripts.
 - `tools/sync_skills.py`: generates the scripts inside `skills/*/scripts/`.
 - `node/packages/mpesa-daraja/`: the Node library (TypeScript, no runtime dependencies).
+- `node/packages/n8n-nodes-daraja/`: n8n community nodes built on the Node library.
 - `shared/fixtures/`: JSON cases both the Python and Node code must pass. Change a rule here first.
 
 ## Rules for M-Pesa work

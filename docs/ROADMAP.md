@@ -4,7 +4,7 @@ Everything below ships on one release day. Work happens on the local branch `rel
 
 Packages on release day:
 - PyPI: `mpesa-daraja` 0.1.5. `mpesa-daraja-mcp` stays published as a small package that depends on it.
-- npm: `mpesa-daraja` 0.1.0 and `n8n-nodes-mpesa-daraja` 0.1.0.
+- npm: `mpesa-daraja` 0.1.0 and `n8n-nodes-daraja` 0.1.0 (`n8n-nodes-mpesa-daraja` is taken on npm).
 
 ## Principles
 
@@ -22,7 +22,7 @@ mcp-server/        Python server, library and CLI
 skills/            Agent Skills
 node/
   packages/mpesa-daraja/            TS library + Vercel AI adapter
-  packages/n8n-nodes-mpesa-daraja/  n8n nodes + M-Pesa Trigger
+  packages/n8n-nodes-daraja/        n8n nodes + M-Pesa Trigger
 shared/fixtures/   JSON test cases both languages must pass
 examples/n8n/      importable workflows
 ```
@@ -118,7 +118,8 @@ One page each, linking to the per-API skills and to `daraja-payment-design`, eac
 - Built: seven fixture files (phones, amounts, STK password, result codes, validation, callbacks, guardrails) run by `mcp-server/tests/test_fixtures.py` and the Node tests. The Node package has no runtime dependencies, a `Store` interface for idempotency (`MemoryStore` by default), `mpesaTools` for any agent and `mpesa-daraja/ai` for the Vercel AI SDK. CI runs it on Node 22 and 24; the release workflow publishes it to npm with provenance. Status: done.
 
 ### 9. n8n nodes
-- `node/packages/n8n-nodes-mpesa-daraja`: action nodes (STK Push, B2C, …) and an M-Pesa Trigger node that fires on callbacks. Built on the Node library.
+- `node/packages/n8n-nodes-daraja`: action nodes (STK Push, B2C, …) and an M-Pesa Trigger node that fires on callbacks. Built on the Node library.
+- Built: named `n8n-nodes-daraja` because `n8n-nodes-mpesa-daraja` is taken on npm. Guardrails live on the credential; above the threshold a payout needs its Approved field set by a human approval step. Requests and results are kept in the workflow's static data. Status: done.
 
 ### 10. Registry listings
 - Smithery and Glama.

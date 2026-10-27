@@ -1,0 +1,55 @@
+{
+  "name": "n8n-nodes-daraja",
+  "version": "0.1.0",
+  "description": "n8n nodes for Safaricom M-Pesa Daraja: STK Push, B2C, B2B, status, balance and reversal, plus an M-Pesa Trigger for callbacks. Idempotent payouts with guardrails.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node -e \"for (const d of ['MpesaDaraja','MpesaDarajaTrigger']) require('fs').copyFileSync('nodes/mpesa.svg', 'dist/nodes/'+d+'/mpesa.svg')\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "n8n-community-node-package",
+    "mpesa",
+    "m-pesa",
+    "daraja",
+    "safaricom",
+    "stk-push",
+    "kenya"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp.git",
+    "directory": "node/packages/n8n-nodes-daraja"
+  },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/MpesaDarajaApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/MpesaDaraja/MpesaDaraja.node.js",
+      "dist/nodes/MpesaDarajaTrigger/MpesaDarajaTrigger.node.js"
+    ]
+  },
+  "dependencies": {
+    "mpesa-daraja": "^0.1.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "n8n-workflow": "^2.16.0",
+    "typescript": "^5.9.0"
+  }
+}

@@ -198,6 +198,8 @@ M-Pesa Daraja Agent Kit makes M-Pesa payment handling and integration easier for
 
 **[The Node library](node/packages/mpesa-daraja), [`mpesa-daraja`](https://www.npmjs.com/package/mpesa-daraja) on npm.** The same Daraja calls, validation, idempotency and guardrails for Node apps, plus tools for the Vercel AI SDK. It passes the same [shared fixtures](shared/fixtures) as the Python package.
 
+**[n8n nodes](node/packages/n8n-nodes-daraja), [`n8n-nodes-daraja`](https://www.npmjs.com/package/n8n-nodes-daraja) on npm.** An M-Pesa Daraja node for STK Push, payouts and status checks, and an M-Pesa Trigger that starts a workflow on each callback. For n8n workflows without an AI agent.
+
 **Load only what you need.** Every tool the server offers takes up space in your agent's context, even when it's never called. Set `DARAJA_TOOLSETS` to the groups you use, and the agent sees only those tools. For example, `DARAJA_TOOLSETS=stk` for a shop that only takes STK payments, or `stk,payouts` if it also pays people. The groups are `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba` and `billmanager`; the basic tools (`core`) are always on. Leave it unset to load everything.
 
 <details>
@@ -266,6 +268,7 @@ Run <code>uvx mpesa-daraja status</code>. It lists missing settings and re-tests
 | [docs/clients.md](docs/clients.md) | Setup for each agent: skills folders, MCP config, config files |
 | [docs/agent-frameworks.md](docs/agent-frameworks.md) | The same tools in LangChain, the OpenAI Agents SDK, the Vercel AI SDK or your own agent, without the MCP server |
 | [node/packages/mpesa-daraja](node/packages/mpesa-daraja) | The Node library: client, callbacks, guardrails and agent tools |
+| [node/packages/n8n-nodes-daraja](node/packages/n8n-nodes-daraja) | n8n community nodes and the M-Pesa Trigger |
 | [mcp-server/README.md](mcp-server/README.md) | Every tool and setting, the callback receiver, toolsets |
 | [skills/README.md](skills/README.md) | The skill catalogue, and why each skill is built the way it is |
 | [docs/](docs/README.md) | How Daraja works: transaction types, callbacks, OAuth, credentials, sandbox |
