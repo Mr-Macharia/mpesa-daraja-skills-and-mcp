@@ -1,0 +1,314 @@
+{
+  "_doc": "parse_callback(payload) == parsed, plus correlation_ids(parsed). `unrecognised` payloads raise.",
+  "cases": [
+    {
+      "name": "STK success",
+      "payload": {
+        "Body": {
+          "stkCallback": {
+            "MerchantRequestID": "29115-34620561-1",
+            "CheckoutRequestID": "ws_CO_191220191020363925",
+            "ResultCode": 0,
+            "ResultDesc": "The service request is processed successfully.",
+            "CallbackMetadata": {
+              "Item": [
+                {
+                  "Name": "Amount",
+                  "Value": 10
+                },
+                {
+                  "Name": "MpesaReceiptNumber",
+                  "Value": "NLJ7RT61SV"
+                },
+                {
+                  "Name": "TransactionDate",
+                  "Value": 20191219102115
+                },
+                {
+                  "Name": "PhoneNumber",
+                  "Value": 254708374149
+                }
+              ]
+            }
+          }
+        }
+      },
+      "parsed": {
+        "kind": "stk",
+        "success": true,
+        "result_code": 0,
+        "result_desc": "The service request is processed successfully.",
+        "merchant_request_id": "29115-34620561-1",
+        "checkout_request_id": "ws_CO_191220191020363925",
+        "amount": 10,
+        "receipt": "NLJ7RT61SV",
+        "transaction_date": 20191219102115,
+        "phone": 254708374149,
+        "explanation": "Success."
+      },
+      "correlation_ids": [
+        "ws_CO_191220191020363925",
+        "29115-34620561-1"
+      ]
+    },
+    {
+      "name": "STK cancelled",
+      "payload": {
+        "Body": {
+          "stkCallback": {
+            "MerchantRequestID": "m1",
+            "CheckoutRequestID": "ws_CO_2",
+            "ResultCode": 1032,
+            "ResultDesc": "Request cancelled by user"
+          }
+        }
+      },
+      "parsed": {
+        "kind": "stk",
+        "success": false,
+        "result_code": 1032,
+        "result_desc": "Request cancelled by user",
+        "merchant_request_id": "m1",
+        "checkout_request_id": "ws_CO_2",
+        "amount": null,
+        "receipt": null,
+        "transaction_date": null,
+        "phone": null,
+        "explanation": "Request cancelled by user."
+      },
+      "correlation_ids": [
+        "ws_CO_2",
+        "m1"
+      ]
+    },
+    {
+      "name": "B2C success",
+      "payload": {
+        "Result": {
+          "ResultType": 0,
+          "ResultCode": 0,
+          "ResultDesc": "The service request is processed successfully.",
+          "OriginatorConversationID": "oc-1",
+          "ConversationID": "AG_20191219_00005797af5d7d75f652",
+          "TransactionID": "NLJ41HAY6Q",
+          "ResultParameters": {
+            "ResultParameter": [
+              {
+                "Key": "TransactionAmount",
+                "Value": 10
+              },
+              {
+                "Key": "TransactionReceipt",
+                "Value": "NLJ41HAY6Q"
+              },
+              {
+                "Key": "ReceiverPartyPublicName",
+                "Value": "254708374149 - John Doe"
+              }
+            ]
+          }
+        }
+      },
+      "parsed": {
+        "kind": "result",
+        "success": true,
+        "result_code": 0,
+        "result_desc": "The service request is processed successfully.",
+        "originator_conversation_id": "oc-1",
+        "conversation_id": "AG_20191219_00005797af5d7d75f652",
+        "transaction_id": "NLJ41HAY6Q",
+        "parameters": {
+          "TransactionAmount": 10,
+          "TransactionReceipt": "NLJ41HAY6Q",
+          "ReceiverPartyPublicName": "254708374149 - John Doe"
+        },
+        "explanation": "Success."
+      },
+      "correlation_ids": [
+        "oc-1",
+        "AG_20191219_00005797af5d7d75f652",
+        "NLJ41HAY6Q"
+      ]
+    },
+    {
+      "name": "B2C failed",
+      "payload": {
+        "Result": {
+          "ResultType": 0,
+          "ResultCode": 2001,
+          "ResultDesc": "The initiator information is invalid.",
+          "OriginatorConversationID": "oc-2",
+          "ConversationID": "AG_2",
+          "TransactionID": "NLJ0000000"
+        }
+      },
+      "parsed": {
+        "kind": "result",
+        "success": false,
+        "result_code": 2001,
+        "result_desc": "The initiator information is invalid.",
+        "originator_conversation_id": "oc-2",
+        "conversation_id": "AG_2",
+        "transaction_id": "NLJ0000000",
+        "parameters": {},
+        "explanation": "Initiator information invalid. STK: customer entered the wrong PIN. B2C/B2B: wrong initiator name/password or certificate."
+      },
+      "correlation_ids": [
+        "oc-2",
+        "AG_2",
+        "NLJ0000000"
+      ]
+    },
+    {
+      "name": "Reversal with alphanumeric code",
+      "payload": {
+        "Result": {
+          "ResultType": 0,
+          "ResultCode": "R000002",
+          "ResultDesc": "The OriginalTransactionID is invalid.",
+          "OriginatorConversationID": "oc-3",
+          "ConversationID": "AG_3",
+          "TransactionID": "NLJ1111111"
+        }
+      },
+      "parsed": {
+        "kind": "result",
+        "success": false,
+        "result_code": "R000002",
+        "result_desc": "The OriginalTransactionID is invalid.",
+        "originator_conversation_id": "oc-3",
+        "conversation_id": "AG_3",
+        "transaction_id": "NLJ1111111",
+        "parameters": {},
+        "explanation": "Reversal: the OriginalTransactionID is invalid."
+      },
+      "correlation_ids": [
+        "oc-3",
+        "AG_3",
+        "NLJ1111111"
+      ]
+    },
+    {
+      "name": "Account balance (single parameter object)",
+      "payload": {
+        "Result": {
+          "ResultType": 0,
+          "ResultCode": 0,
+          "ResultDesc": "ok",
+          "OriginatorConversationID": "oc-4",
+          "ConversationID": "AG_4",
+          "TransactionID": "NLJ2222222",
+          "ResultParameters": {
+            "ResultParameter": {
+              "Key": "AccountBalance",
+              "Value": "Working Account|KES|700000.00|700000.00|0.00|0.00&Utility Account|KES|228037.00|228037.00|0.00|0.00"
+            }
+          }
+        }
+      },
+      "parsed": {
+        "kind": "result",
+        "success": true,
+        "result_code": 0,
+        "result_desc": "ok",
+        "originator_conversation_id": "oc-4",
+        "conversation_id": "AG_4",
+        "transaction_id": "NLJ2222222",
+        "parameters": {
+          "AccountBalance": "Working Account|KES|700000.00|700000.00|0.00|0.00&Utility Account|KES|228037.00|228037.00|0.00|0.00"
+        },
+        "explanation": "Success.",
+        "balances": [
+          {
+            "account": "Working Account",
+            "currency": "KES",
+            "available": 700000.0,
+            "raw": [
+              "700000.00",
+              "700000.00",
+              "0.00",
+              "0.00"
+            ]
+          },
+          {
+            "account": "Utility Account",
+            "currency": "KES",
+            "available": 228037.0,
+            "raw": [
+              "228037.00",
+              "228037.00",
+              "0.00",
+              "0.00"
+            ]
+          }
+        ]
+      },
+      "correlation_ids": [
+        "oc-4",
+        "AG_4",
+        "NLJ2222222"
+      ]
+    },
+    {
+      "name": "C2B confirmation",
+      "payload": {
+        "TransactionType": "Pay Bill",
+        "TransID": "RKTQDM7W6S",
+        "TransTime": "20191122063845",
+        "TransAmount": "10",
+        "BusinessShortCode": "600638",
+        "BillRefNumber": "invoice008",
+        "MSISDN": "25470****149",
+        "FirstName": "John"
+      },
+      "parsed": {
+        "kind": "c2b",
+        "success": true,
+        "transaction_id": "RKTQDM7W6S",
+        "transaction_type": "Pay Bill",
+        "amount": 10.0,
+        "shortcode": "600638",
+        "bill_ref": "invoice008",
+        "msisdn": "25470****149",
+        "time": "20191122063845",
+        "first_name": "John"
+      },
+      "correlation_ids": [
+        "RKTQDM7W6S"
+      ]
+    },
+    {
+      "name": "B2B Express Checkout",
+      "payload": {
+        "resultCode": "0",
+        "resultDesc": "The service request is processed successfully.",
+        "amount": "71.0",
+        "requestId": "404e1aec-19e0-4ce3-973d-bd92e94c8021",
+        "conversationID": "AG_20230426_2010434680d9f5a73766",
+        "transactionId": "RDQ01NFT1Q"
+      },
+      "parsed": {
+        "kind": "b2b_express",
+        "success": true,
+        "result_code": "0",
+        "result_desc": "The service request is processed successfully.",
+        "request_id": "404e1aec-19e0-4ce3-973d-bd92e94c8021",
+        "conversation_id": "AG_20230426_2010434680d9f5a73766",
+        "transaction_id": "RDQ01NFT1Q",
+        "amount": "71.0",
+        "explanation": "Success."
+      },
+      "correlation_ids": [
+        "AG_20230426_2010434680d9f5a73766",
+        "RDQ01NFT1Q",
+        "404e1aec-19e0-4ce3-973d-bd92e94c8021"
+      ]
+    }
+  ],
+  "unrecognised": [
+    {},
+    {
+      "hello": "world"
+    }
+  ]
+}

@@ -115,6 +115,7 @@ One page each, linking to the per-API skills and to `daraja-payment-design`, eac
 ### 8. Shared fixtures and the Node library
 - `shared/fixtures/`: JSON cases covering validation, error codes, Daraja spellings and guardrail behaviour. The Python tests consume them.
 - `node/packages/mpesa-daraja`: the TS client, validation, idempotency, guardrails and callback parsing, plus the Vercel AI SDK adapter. It must pass the shared fixtures.
+- Built: seven fixture files (phones, amounts, STK password, result codes, validation, callbacks, guardrails) run by `mcp-server/tests/test_fixtures.py` and the Node tests. The Node package has no runtime dependencies, a `Store` interface for idempotency (`MemoryStore` by default), `mpesaTools` for any agent and `mpesa-daraja/ai` for the Vercel AI SDK. CI runs it on Node 22 and 24; the release workflow publishes it to npm with provenance. Status: done.
 
 ### 9. n8n nodes
 - `node/packages/n8n-nodes-mpesa-daraja`: action nodes (STK Push, B2C, …) and an M-Pesa Trigger node that fires on callbacks. Built on the Node library.

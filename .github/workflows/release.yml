@@ -35,6 +35,37 @@ jobs:
       - run: uv build mcp-server/compat --out-dir dist   # mpesa-daraja-mcp, which depends on it
       - uses: pypa/gh-action-pypi-publish@release/v1
 
+  npm:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing and provenance: no token stored in the repo
+    defaults:
+      run:
+        working-directory: node
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - name: Publish each package whose version is not on npm yet
+        run: |
+          for dir in packages/*/; do
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already published"
+            else
+              npm publish "./$dir" --provenance --access public
+            fi
+          done
+
   mcp-registry:
     needs: pypi
     runs-on: ubuntu-latest

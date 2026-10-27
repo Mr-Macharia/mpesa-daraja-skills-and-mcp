@@ -39,6 +39,21 @@ from mpesa_mcp.integrations.openai_agents import mpesa_openai_tools
 agent = Agent(name="cashier", instructions=INSTRUCTIONS, tools=mpesa_openai_tools(toolsets={"stk"}))
 ```
 
+## Vercel AI SDK (Node)
+
+The Node library [`mpesa-daraja`](../node/packages/mpesa-daraja) has the same tools, by the same names, for TypeScript agents. It has no MCP server and no Python. Payouts take an `approve` callback in the client options.
+
+```ts
+import { generateText } from "ai";
+import { Daraja } from "mpesa-daraja";
+import { mpesaAiTools, INSTRUCTIONS } from "mpesa-daraja/ai";
+
+const daraja = Daraja.fromEnv(process.env, { approve: async (summary) => askAHuman(summary) });
+await generateText({ model, system: INSTRUCTIONS, tools: mpesaAiTools(daraja), prompt });
+```
+
+`mpesaTools(daraja)` returns the framework-neutral tools (a JSON schema and `execute`) for any other Node framework.
+
 ## Approving payouts
 
 With MCP, a payout above `DARAJA_APPROVAL_THRESHOLD` asks for approval in the chat. Outside MCP, you pass `approve`. It receives a one-line summary and returns `True` to send, and it can be async (for example, to post to Slack and wait for a reply). If you don't pass `approve`, payouts above the threshold are refused and nothing is sent.

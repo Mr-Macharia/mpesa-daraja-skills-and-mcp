@@ -1,0 +1,217 @@
+{
+  "_doc": "Payout guardrails, checked in this order: read-only, live-money lock (production), then for a key not already sent (or last FAILED): allowlist (phones compared as 2547XXXXXXXX; null recipient skips it), approval threshold (amount > threshold asks the approver; none means refuse). expect: send | refuse (error contains `contains`) | duplicate (the stored request comes back, nothing is sent).",
+  "cases": [
+    {
+      "name": "sandbox payout, no limits",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": null,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": null,
+      "expect": "send"
+    },
+    {
+      "name": "production without the live-money switch",
+      "env": "production",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": null,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": null,
+      "expect": "refuse",
+      "contains": "DARAJA_ALLOW_LIVE_MONEY_MOVEMENT"
+    },
+    {
+      "name": "production with the live-money switch",
+      "env": "production",
+      "allow_live": true,
+      "read_only": false,
+      "threshold": null,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": null,
+      "expect": "send"
+    },
+    {
+      "name": "read-only mode",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": true,
+      "threshold": null,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": null,
+      "expect": "refuse",
+      "contains": "DARAJA_READ_ONLY"
+    },
+    {
+      "name": "recipient on the allowlist",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": null,
+      "allowlist": [
+        "0712345678",
+        "600001"
+      ],
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": null,
+      "expect": "send"
+    },
+    {
+      "name": "recipient not on the allowlist",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": null,
+      "allowlist": [
+        "254700000000"
+      ],
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": null,
+      "expect": "refuse",
+      "contains": "DARAJA_ALLOWED_RECIPIENTS"
+    },
+    {
+      "name": "shortcode recipient on the allowlist",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": null,
+      "allowlist": [
+        "600001"
+      ],
+      "amount": 100,
+      "recipient": "600001",
+      "approver": null,
+      "previous_status": null,
+      "expect": "send"
+    },
+    {
+      "name": "reversal ignores the allowlist",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": null,
+      "allowlist": [
+        "254700000000"
+      ],
+      "amount": 100,
+      "recipient": null,
+      "approver": null,
+      "previous_status": null,
+      "expect": "send"
+    },
+    {
+      "name": "at the threshold",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": 100,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": null,
+      "expect": "send"
+    },
+    {
+      "name": "above the threshold, approved",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": 50,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": "yes",
+      "previous_status": null,
+      "expect": "send"
+    },
+    {
+      "name": "above the threshold, declined",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": 50,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": "no",
+      "previous_status": null,
+      "expect": "refuse",
+      "contains": "not approved"
+    },
+    {
+      "name": "above the threshold, no approver",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": 50,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": null,
+      "expect": "refuse",
+      "contains": "needs approval"
+    },
+    {
+      "name": "key already sent and accepted skips the checks",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": 50,
+      "allowlist": [
+        "254700000000"
+      ],
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": "ACCEPTED",
+      "expect": "duplicate"
+    },
+    {
+      "name": "key with unknown outcome is not resent",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": null,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": "UNKNOWN",
+      "expect": "duplicate"
+    },
+    {
+      "name": "key that failed is checked again",
+      "env": "sandbox",
+      "allow_live": false,
+      "read_only": false,
+      "threshold": 50,
+      "allowlist": null,
+      "amount": 100,
+      "recipient": "254712345678",
+      "approver": null,
+      "previous_status": "FAILED",
+      "expect": "refuse",
+      "contains": "needs approval"
+    }
+  ]
+}

@@ -13,6 +13,8 @@ All notable changes to this project are documented here. The format follows [Kee
 - Use-case recipe skills: `daraja-checkout`, `daraja-payouts`, `daraja-paybill-collections`, `daraja-recurring-billing` and `daraja-agent-storefront` (with `sales_log.py` for agent-only sellers). Each works out what it can, then asks at most three questions.
 - `daraja-teach-me` skill: a sandbox-only tutor with a learning roadmap by category, lessons that each end in a sandbox call and a check question, and a build-your-own-gateway track. It refuses production credentials.
 - `mpesa_mcp.agent`: the server's tools and guardrails as plain Python tools for any agent framework, with an `approve` callback for payouts above the threshold. Adapters for LangChain (`[langchain]` extra) and the OpenAI Agents SDK (`[openai-agents]` extra).
+- `shared/fixtures/`: language-neutral cases for phones, amounts, STK passwords, result codes, validation, callbacks and guardrails. The Python and Node packages both run them.
+- The Node library **`mpesa-daraja`** (npm, 0.1.0): STK Push and Query, C2B, B2C, B2B, tax, status, balance, reversal and callbacks, with the same validation, idempotency and guardrails as the MCP server, agent tools (`mpesaTools`) and Vercel AI SDK tools (`mpesa-daraja/ai`). No runtime dependencies.
 - The `mpesa` CLI: `init`, `status`, `dev`, `serve`, `up`, `pay stk|b2c|b2b|reverse`, `result`, `balance`, `explain`, `skills install`, `upgrade`, with `--json` output.
 
 ### Changed

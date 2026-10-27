@@ -1,0 +1,623 @@
+{
+  "_doc": "validate(api, body): `errors` is the exact count; each `contains` string appears in one error message.",
+  "cases": [
+    {
+      "name": "valid STK Push",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 0,
+      "contains": []
+    },
+    {
+      "name": "STK missing Password",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 3,
+      "contains": [
+        "Missing required field Password",
+        "Password does not start with BusinessShortCode once decoded - rebuild it",
+        "Password was built with a different Timestamp than the one in the body"
+      ]
+    },
+    {
+      "name": "STK fractional amount",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 1.5,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "Amount must be a whole number"
+      ]
+    },
+    {
+      "name": "STK zero amount",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 0,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "Amount must be at least 1"
+      ]
+    },
+    {
+      "name": "STK non-numeric amount",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": "ten",
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "Amount is not numeric"
+      ]
+    },
+    {
+      "name": "STK phone with leading 0",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "0712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "0712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 2,
+      "contains": [
+        "PartyA=",
+        "PhoneNumber=",
+        "must be 2547XXXXXXXX"
+      ]
+    },
+    {
+      "name": "STK http callback",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "http://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "CallBackURL must be a public https:// URL"
+      ]
+    },
+    {
+      "name": "STK localhost callback",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://localhost/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "points at a private/local host"
+      ]
+    },
+    {
+      "name": "STK bad timestamp",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "2026-10-27",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 2,
+      "contains": [
+        "Timestamp must be YYYYMMDDHHmmss (EAT)",
+        "Password was built with a different Timestamp than the one in the body"
+      ]
+    },
+    {
+      "name": "STK password from another timestamp",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090001",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "Password was built with a different Timestamp than the one in the body"
+      ]
+    },
+    {
+      "name": "STK long AccountReference",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "INVOICE-1234567890",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "AccountReference longer than 12 characters (long prompts fail with 1025)"
+      ]
+    },
+    {
+      "name": "STK long TransactionDesc",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Order 1042 long description"
+      },
+      "errors": 1,
+      "contains": [
+        "TransactionDesc longer than 13 characters"
+      ]
+    },
+    {
+      "name": "STK unknown TransactionType",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "PayBill",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "TransactionType=",
+        "not valid here"
+      ]
+    },
+    {
+      "name": "STK PartyA differs from PhoneNumber",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "174379",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254700000000",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 1,
+      "contains": [
+        "PartyA and PhoneNumber normally hold the same paying phone number"
+      ]
+    },
+    {
+      "name": "STK bad shortcode",
+      "api": "stk",
+      "body": {
+        "BusinessShortCode": "12",
+        "Password": "MTc0Mzc5dGVzdC1wYXNza2V5MjAyNjEwMjcwOTAwMDA=",
+        "Timestamp": "20261027090000",
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 10,
+        "PartyA": "254712345678",
+        "PartyB": "174379",
+        "PhoneNumber": "254712345678",
+        "CallBackURL": "https://example.com/cb",
+        "AccountReference": "order-1",
+        "TransactionDesc": "Payment"
+      },
+      "errors": 2,
+      "contains": [
+        "should be a 5-7 digit shortcode",
+        "Password does not start with BusinessShortCode"
+      ]
+    },
+    {
+      "name": "valid B2C",
+      "api": "b2c",
+      "body": {
+        "OriginatorConversationID": "oc-1",
+        "InitiatorName": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "BusinessPayment",
+        "Amount": 100,
+        "PartyA": "600000",
+        "PartyB": "254712345678",
+        "Remarks": "Payout",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r",
+        "Occassion": ""
+      },
+      "errors": 0,
+      "contains": []
+    },
+    {
+      "name": "B2C below 10 KES",
+      "api": "b2c",
+      "body": {
+        "OriginatorConversationID": "oc-1",
+        "InitiatorName": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "BusinessPayment",
+        "Amount": 5,
+        "PartyA": "600000",
+        "PartyB": "254712345678",
+        "Remarks": "Payout",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r",
+        "Occassion": ""
+      },
+      "errors": 1,
+      "contains": [
+        "B2C amounts below 10 KES are rejected"
+      ]
+    },
+    {
+      "name": "B2C corrected Occasion spelling",
+      "api": "b2c",
+      "body": {
+        "OriginatorConversationID": "oc-1",
+        "InitiatorName": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "BusinessPayment",
+        "Amount": 100,
+        "PartyA": "600000",
+        "PartyB": "254712345678",
+        "Remarks": "Payout",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r",
+        "Occassion": "",
+        "Occasion": "x"
+      },
+      "errors": 1,
+      "contains": [
+        "should be spelled Occassion"
+      ]
+    },
+    {
+      "name": "B2C unknown CommandID",
+      "api": "b2c",
+      "body": {
+        "OriginatorConversationID": "oc-1",
+        "InitiatorName": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "Salary",
+        "Amount": 100,
+        "PartyA": "600000",
+        "PartyB": "254712345678",
+        "Remarks": "Payout",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r",
+        "Occassion": ""
+      },
+      "errors": 1,
+      "contains": [
+        "CommandID=",
+        "not valid here"
+      ]
+    },
+    {
+      "name": "valid B2B Paybill",
+      "api": "b2b",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "BusinessPayBill",
+        "SenderIdentifierType": "4",
+        "RecieverIdentifierType": "4",
+        "Amount": 100,
+        "PartyA": "600000",
+        "PartyB": "600001",
+        "AccountReference": "inv-1",
+        "Remarks": "Payment",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r"
+      },
+      "errors": 0,
+      "contains": []
+    },
+    {
+      "name": "B2B corrected Receiver spelling",
+      "api": "b2b",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "BusinessPayBill",
+        "SenderIdentifierType": "4",
+        "Amount": 100,
+        "PartyA": "600000",
+        "PartyB": "600001",
+        "AccountReference": "inv-1",
+        "Remarks": "Payment",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r",
+        "ReceiverIdentifierType": "4"
+      },
+      "errors": 2,
+      "contains": [
+        "Missing required field RecieverIdentifierType",
+        "should be spelled RecieverIdentifierType"
+      ]
+    },
+    {
+      "name": "B2B Buy Goods needs identifier 2",
+      "api": "b2b",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "BusinessBuyGoods",
+        "SenderIdentifierType": "4",
+        "RecieverIdentifierType": "4",
+        "Amount": 100,
+        "PartyA": "600000",
+        "PartyB": "600001",
+        "AccountReference": "inv-1",
+        "Remarks": "Payment",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r"
+      },
+      "errors": 1,
+      "contains": [
+        "RecieverIdentifierType should be 2 for BusinessBuyGoods"
+      ]
+    },
+    {
+      "name": "valid tax remittance",
+      "api": "tax",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "PayTaxToKRA",
+        "SenderIdentifierType": "4",
+        "RecieverIdentifierType": "4",
+        "Amount": 100,
+        "PartyA": "600000",
+        "PartyB": "572572",
+        "AccountReference": "inv-1",
+        "Remarks": "Payment",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r"
+      },
+      "errors": 0,
+      "contains": []
+    },
+    {
+      "name": "tax to the wrong shortcode",
+      "api": "tax",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "PayTaxToKRA",
+        "SenderIdentifierType": "4",
+        "RecieverIdentifierType": "4",
+        "Amount": 100,
+        "PartyA": "600000",
+        "PartyB": "600001",
+        "AccountReference": "inv-1",
+        "Remarks": "Payment",
+        "QueueTimeOutURL": "https://example.com/t",
+        "ResultURL": "https://example.com/r"
+      },
+      "errors": 1,
+      "contains": [
+        "PartyB must be KRA's shortcode 572572"
+      ]
+    },
+    {
+      "name": "valid reversal",
+      "api": "reversal",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "TransactionReversal",
+        "TransactionID": "NLJ7RT61SV",
+        "Amount": 100,
+        "ReceiverParty": "600000",
+        "RecieverIdentifierType": "11",
+        "ResultURL": "https://example.com/r",
+        "QueueTimeOutURL": "https://example.com/t",
+        "Remarks": "Refund"
+      },
+      "errors": 0,
+      "contains": []
+    },
+    {
+      "name": "reversal wrong identifier type",
+      "api": "reversal",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "TransactionReversal",
+        "TransactionID": "NLJ7RT61SV",
+        "Amount": 100,
+        "ReceiverParty": "600000",
+        "RecieverIdentifierType": "4",
+        "ResultURL": "https://example.com/r",
+        "QueueTimeOutURL": "https://example.com/t",
+        "Remarks": "Refund"
+      },
+      "errors": 1,
+      "contains": [
+        "Reversal RecieverIdentifierType must be '11'"
+      ]
+    },
+    {
+      "name": "valid transaction status",
+      "api": "status",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "TransactionStatusQuery",
+        "PartyA": "600000",
+        "IdentifierType": "4",
+        "ResultURL": "https://example.com/r",
+        "QueueTimeOutURL": "https://example.com/t",
+        "Remarks": "Check",
+        "TransactionID": "NLJ7RT61SV"
+      },
+      "errors": 0,
+      "contains": []
+    },
+    {
+      "name": "status without an ID",
+      "api": "status",
+      "body": {
+        "Initiator": "testapi",
+        "SecurityCredential": "CRED",
+        "CommandID": "TransactionStatusQuery",
+        "PartyA": "600000",
+        "IdentifierType": "4",
+        "ResultURL": "https://example.com/r",
+        "QueueTimeOutURL": "https://example.com/t",
+        "Remarks": "Check"
+      },
+      "errors": 1,
+      "contains": [
+        "Provide TransactionID or OriginalConversationID"
+      ]
+    },
+    {
+      "name": "valid C2B register",
+      "api": "c2b_register",
+      "body": {
+        "ShortCode": "600000",
+        "ResponseType": "Completed",
+        "ConfirmationURL": "https://example.com/confirm",
+        "ValidationURL": "https://example.com/validate"
+      },
+      "errors": 0,
+      "contains": []
+    },
+    {
+      "name": "C2B URL containing mpesa",
+      "api": "c2b_register",
+      "body": {
+        "ShortCode": "600000",
+        "ResponseType": "Completed",
+        "ConfirmationURL": "https://example.com/mpesa/confirm",
+        "ValidationURL": "https://example.com/validate"
+      },
+      "errors": 1,
+      "contains": [
+        "ConfirmationURL contains a word Daraja rejects"
+      ]
+    },
+    {
+      "name": "unknown api",
+      "api": "nope",
+      "body": {},
+      "errors": 1,
+      "contains": [
+        "Unknown api"
+      ]
+    }
+  ]
+}

@@ -8,6 +8,8 @@ Guidance for AI coding agents working in this repository or on M-Pesa Daraja int
 - `mcp-server/`: the `mpesa-daraja` MCP server (Python, `src/mpesa_mcp/`).
 - `shared/scripts/`: sources for the skills' command-line scripts.
 - `tools/sync_skills.py`: generates the scripts inside `skills/*/scripts/`.
+- `node/packages/mpesa-daraja/`: the Node library (TypeScript, no runtime dependencies).
+- `shared/fixtures/`: JSON cases both the Python and Node code must pass. Change a rule here first.
 
 ## Rules for M-Pesa work
 
@@ -29,6 +31,7 @@ These rules apply whether or not your agent loads the skills:
 pip install -e "mcp-server[dev]"
 python tools/sync_skills.py      # after editing helpers.py, validation.py or shared/scripts/
 pytest mcp-server                # must pass; CI also runs sync_skills.py --check
+cd node && npm install && npm run build && npm test   # Node 22.6+
 ```
 
 - Don't edit files under `skills/*/scripts/` directly: they're generated, and each starts with a `GENERATED` header naming its source.
