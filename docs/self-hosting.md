@@ -48,6 +48,10 @@ Both build `mcp-server/Dockerfile` directly, and they provide HTTPS.
 3. Mount a volume at `/data` so results survive deploys.
 4. Add the variables from `deploy/.env.example` as secrets. Set `DARAJA_CALLBACK_BASE_URL` to the URL the platform gives you, e.g. `https://mpesa-production.up.railway.app`. Skip `DARAJA_DOMAIN`; it is only for Caddy.
 
+## Sending results to your app
+
+Set `DARAJA_FORWARD_URL` and `DARAJA_FORWARD_SECRET`, and every callback is also POSTed, signed, to your app. See [forwarding.md](forwarding.md).
+
 ## Connecting an agent
 
 Any MCP client that supports streamable HTTP:

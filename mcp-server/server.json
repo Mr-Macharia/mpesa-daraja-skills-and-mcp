@@ -162,6 +162,18 @@
           "description": "HTTP mode port (default 8000)",
           "isRequired": false,
           "isSecret": false
+        },
+        {
+          "name": "DARAJA_FORWARD_URL",
+          "description": "Your app's URL: every callback is POSTed on to it, HMAC-signed",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_FORWARD_SECRET",
+          "description": "HMAC secret for forwarded callbacks (16+ characters)",
+          "isRequired": false,
+          "isSecret": true
         }
       ]
     }

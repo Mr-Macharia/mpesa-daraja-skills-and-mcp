@@ -106,6 +106,8 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 | `DARAJA_APPROVAL_THRESHOLD` | | Payouts above this many shillings need a yes in the chat |
 | `DARAJA_ALLOWED_RECIPIENTS` | | Comma list of phones/shortcodes that payouts may go to |
 | `DARAJA_OUTPUT_DIR` | | Where QR PNGs are saved (default `~/.mpesa-mcp/qr`) |
+| `DARAJA_FORWARD_URL` | | Your app's endpoint. Each callback is POSTed on to it, signed. See [forwarding](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/forwarding.md) |
+| `DARAJA_FORWARD_SECRET` | with forwarding | 16+ random characters, used for the `X-Mpesa-Signature` HMAC |
 | `DARAJA_MCP_TOKEN` | HTTP mode | 32+ random characters; clients send `Authorization: Bearer <token>` |
 | `DARAJA_MCP_HOST`, `DARAJA_MCP_PORT` | | HTTP mode bind address and port (default `127.0.0.1:8000`) |
 

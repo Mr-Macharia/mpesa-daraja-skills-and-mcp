@@ -1023,6 +1023,9 @@ server = create_server(toolsets_from_env())
 
 def start_receiver_from_env():
     """Start the built-in callback receiver when DARAJA_CALLBACK_LISTEN=host:port is set."""
+    from . import forward
+
+    forward.from_env()  # fail at startup, not on the first callback, if forwarding is misconfigured
     listen = os.environ.get("DARAJA_CALLBACK_LISTEN", "").strip()
     if not listen:
         return None

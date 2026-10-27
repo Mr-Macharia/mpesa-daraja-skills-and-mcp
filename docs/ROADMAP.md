@@ -71,6 +71,7 @@ mpesa upgrade
 
 ### 4. Callback forwarding
 - `MPESA_FORWARD_URL`: the receiver POSTs each callback on to the user's app, signed with HMAC (`MPESA_FORWARD_SECRET`). Callbacks are still stored for `mpesa_get_result`.
+- Built as `DARAJA_FORWARD_URL` / `DARAJA_FORWARD_SECRET`: background retries, a 5-minute replay window, and verify snippets for Python and Node in `docs/forwarding.md`. Status: done.
 
 ### 5a. `daraja-payment-design` skill
 A cross-cutting skill that every recipe links to:

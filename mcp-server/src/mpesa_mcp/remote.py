@@ -91,6 +91,9 @@ def build_app(host: str = "127.0.0.1"):
             os.environ[key] = value
     from . import server
 
+    from . import forward
+
+    forward.from_env()  # refuse to start with broken forwarding settings
     srv = server.create_server(server.toolsets_from_env())
     callback_token = os.environ.get("DARAJA_CALLBACK_TOKEN", "").strip() or None
     if callback_token and len(callback_token) < 16:
