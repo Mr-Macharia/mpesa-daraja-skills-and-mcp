@@ -30,10 +30,12 @@ examples/n8n/      importable workflows
 ## Items, in build order
 
 ### 1. Guardrails
-- `MPESA_READ_ONLY=1` hides every money-moving tool. For support bots, reconciliation and learning.
-- `MPESA_APPROVAL_THRESHOLD`: payouts above it pause for a yes/no in the chat (MCP elicitation). Off until set. No hard caps by default.
-- `MPESA_ALLOWED_RECIPIENTS`: optional recipient allowlist.
-- Refunds and reversals count as payouts and must quote the original M-Pesa transaction ID.
+- `DARAJA_READ_ONLY=true` hides every money-moving tool. For support bots, reconciliation and learning.
+- `DARAJA_APPROVAL_THRESHOLD`: payouts above it pause for a yes/no in the chat (MCP elicitation). Off until set. No hard caps by default.
+- `DARAJA_ALLOWED_RECIPIENTS`: optional recipient allowlist.
+- Refunds and reversals count as payouts and must quote the original M-Pesa transaction ID (`refund_of` on B2C).
+- Named `DARAJA_*` like every other setting, so they load from config files too.
+- Status: done.
 
 Done when: tests cover hidden tools, the approve/decline/unsupported-client paths, and the allowlist.
 

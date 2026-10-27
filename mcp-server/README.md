@@ -70,6 +70,11 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 
 - Defaults to the **sandbox**.
 - In production, money-moving tools refuse to run unless `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
+- Optional guardrails, all off until set:
+  - `DARAJA_READ_ONLY=true` hides every tool that moves money or writes. Use it for support bots, reconciliation and learning.
+  - `DARAJA_APPROVAL_THRESHOLD=5000`: B2C, B2B, tax and reversals above KES 5,000 pause for a yes/no in the chat (MCP elicitation). Clients that can't show the prompt get a refusal, and nothing is sent. Collections (STK, B2B Express, Ratiba) never prompt, because the payer enters their own PIN.
+  - `DARAJA_ALLOWED_RECIPIENTS=0712345678,600000`: payouts may go only to these phones and shortcodes.
+  - For a B2C refund, pass `refund_of` with the original M-Pesa receipt; it appears in the approval prompt and the remarks.
 - Callback URLs must be HTTPS; C2B URLs with `mpesa`/`safaricom` in them are rejected up front.
 - Tokens and secrets are never returned in tool output.
 - Responses with `ResponseCode "0"` are tagged `_note: ACCEPTED for processing only`, so the agent does not report them as completed payments.
@@ -95,6 +100,9 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 | `DARAJA_CALLBACK_TOKEN` | with receiver | 16+ random characters. Callback URLs become `<base>/cb/<token>/…` |
 | `DARAJA_STATE_DB` | | SQLite file for requests and results (default `~/.mpesa-mcp/state.db`) |
 | `DARAJA_TOOLSETS` | | Comma list of `stk,c2b,payouts,ops,qr,ratiba,billmanager` (`core` is always on). Default: all |
+| `DARAJA_READ_ONLY` | | `true` hides every tool that moves money or writes |
+| `DARAJA_APPROVAL_THRESHOLD` | | Payouts above this many shillings need a yes in the chat |
+| `DARAJA_ALLOWED_RECIPIENTS` | | Comma list of phones/shortcodes that payouts may go to |
 | `DARAJA_OUTPUT_DIR` | | Where QR PNGs are saved (default `~/.mpesa-mcp/qr`) |
 
 ## Commands and configuration files

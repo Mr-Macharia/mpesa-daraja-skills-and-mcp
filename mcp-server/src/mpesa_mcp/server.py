@@ -6,6 +6,10 @@ tools work without credentials; API tools create the client lazily.
 Every money-moving tool is refused in production unless
 DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true, and is idempotent: a repeated call with
 the same idempotency key returns the stored request instead of paying again.
+
+Optional guardrails: DARAJA_READ_ONLY hides every tool that moves money or writes,
+DARAJA_APPROVAL_THRESHOLD asks the user to approve larger payouts in the chat, and
+DARAJA_ALLOWED_RECIPIENTS limits who payouts can go to.
 """
 
 from __future__ import annotations
@@ -23,7 +27,8 @@ from pathlib import Path
 from typing import Any, Literal
 
 import httpx
-from mcp.server.mcpserver import MCPServer
+from mcp import types
+from mcp.server.mcpserver import Context, MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 from pydantic import BaseModel, ConfigDict
@@ -123,17 +128,25 @@ def tool(annotations: ToolAnnotations, toolset: str = "core"):
     return register
 
 
-def create_server(toolsets: set[str] | None = None) -> MCPServer:
-    """Build the server with only the requested toolsets (core is always included)."""
+def create_server(toolsets: set[str] | None = None, read_only: bool | None = None) -> MCPServer:
+    """Build the server with only the requested toolsets (core is always included).
+
+    read_only (default: DARAJA_READ_ONLY) leaves out every tool that moves money or writes.
+    """
+    read_only = read_only_from_env() if read_only is None else read_only
     wanted = set(TOOLSETS) if toolsets is None else {"core", *toolsets}
     unknown = wanted - set(TOOLSETS)
     if unknown:
         raise ValueError(f"Unknown DARAJA_TOOLSETS {sorted(unknown)}; choose from {', '.join(TOOLSETS)}")
     srv = MCPServer("mpesa-daraja", instructions=INSTRUCTIONS)
     for fn, hints, toolset in _REGISTRY:
-        if toolset in wanted:
+        if toolset in wanted and not (read_only and not hints.read_only_hint):
             srv.tool(name=f"mpesa_{fn.__name__}", annotations=hints)(fn)
     return srv
+
+
+def read_only_from_env() -> bool:
+    return os.environ.get("DARAJA_READ_ONLY", "").strip().lower() in {"1", "true", "yes"}
 
 
 def toolsets_from_env() -> set[str] | None:
@@ -193,11 +206,60 @@ async def _post(c: DarajaClient, path: str, body: Any) -> Any:
 
 
 def _guard_money(c: DarajaClient) -> None:
+    if read_only_from_env():
+        raise PermissionError("Refusing to move money: this server runs with DARAJA_READ_ONLY=true.")
     if c.config.env == "production" and not c.config.allow_live_money_movement:
         raise PermissionError(
             "Refusing to move real money: set DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true to enable "
             "production payouts/charges through this server."
         )
+
+
+def approval_threshold() -> int | None:
+    raw = os.environ.get("DARAJA_APPROVAL_THRESHOLD", "").strip()
+    if not raw:
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        raise ValueError(f"DARAJA_APPROVAL_THRESHOLD must be whole shillings, got {raw!r}") from None
+
+
+def allowed_recipients() -> set[str] | None:
+    raw = os.environ.get("DARAJA_ALLOWED_RECIPIENTS", "").strip()
+    if not raw:
+        return None
+    entries = {e.strip() for e in raw.split(",") if e.strip()}
+    # Phones in any accepted format compare as 2547XXXXXXXX; shortcodes compare as written.
+    return {helpers.normalize_phone(e) if len(e) >= 9 else e for e in entries}
+
+
+class Approval(BaseModel):
+    approve: bool
+
+
+async def _guard_payout(ctx: Context | None, key: str, amount: int, recipient: str | None, summary: str) -> None:
+    """Allowlist and human-approval checks for money leaving the business.
+
+    A key that was already sent skips both: _send_once returns the stored request without paying.
+    """
+    previous = state().get_request(key)
+    if previous and previous.status != FAILED:
+        return
+    allowed = allowed_recipients()
+    if allowed is not None and recipient is not None and recipient not in allowed:
+        raise PermissionError(f"Refusing to pay {recipient}: not in DARAJA_ALLOWED_RECIPIENTS. Nothing was sent.")
+    threshold = approval_threshold()
+    if threshold is None or amount <= threshold:
+        return
+    needs = f"{summary} is above DARAJA_APPROVAL_THRESHOLD (KES {threshold:,}) and needs approval."
+    elicitation = types.ClientCapabilities(elicitation=types.ElicitationCapability())
+    if ctx is None or not ctx.request_context.session.check_client_capability(elicitation):
+        raise PermissionError(f"{needs} This MCP client cannot show approval prompts, so nothing was sent. "
+                              "Raise the threshold or send it from a client that supports elicitation.")
+    answer = await ctx.elicit(f"{needs} Send it?", Approval)
+    if answer.action != "accept" or not answer.data.approve:
+        raise PermissionError(f"Payout not approved ({answer.action}). Nothing was sent.")
 
 
 def _initiator(c: DarajaClient) -> tuple[str, str]:
@@ -606,13 +668,19 @@ async def b2c_payment(
     party_a: str | None = None,
     result_url: str | None = None,
     timeout_url: str | None = None,
+    refund_of: str | None = None,
+    ctx: Context | None = None,
 ) -> Outcome:
     """Pay a customer wallet (or Pochi la Biashara with BusinessPayToPochi).
 
     idempotency_key is required (e.g. 'refund-order-1042'): repeating it never pays twice.
+    For a refund, pass refund_of = the original M-Pesa receipt (e.g. 'NLJ7RT61SV').
     """
     c = client()
     _guard_money(c)
+    msisdn = helpers.normalize_phone(phone)
+    what = f"Refund of {refund_of}" if refund_of else "Payout"
+    await _guard_payout(ctx, idempotency_key, amount, msisdn, f"{what}: KES {amount:,} to {msisdn}")
     name, cred = _initiator(c)
     path = "/mpesa/b2pochi/v1/paymentrequest" if command == "BusinessPayToPochi" else "/mpesa/b2c/v3/paymentrequest"
     ocid = str(uuid.uuid4())  # fresh per attempt: Daraja rejects a reused ID even after a failure
@@ -623,8 +691,8 @@ async def b2c_payment(
         "CommandID": command,
         "Amount": helpers.validate_amount(amount, minimum=10),
         "PartyA": party_a or c.config.shortcode,
-        "PartyB": helpers.normalize_phone(phone),
-        "Remarks": remarks[:100] or "Payment",
+        "PartyB": msisdn,
+        "Remarks": (f"Refund {refund_of} {remarks}" if refund_of else remarks)[:100] or "Payment",
         "QueueTimeOutURL": c.config.callback(timeout_url, "/mpesa/b2c/timeout"),
         "ResultURL": c.config.callback(result_url, "/mpesa/b2c/result"),
         "Occassion": occasion[:100],  # Daraja's spelling
@@ -645,6 +713,7 @@ async def b2b_payment(
     party_a: str | None = None,
     result_url: str | None = None,
     timeout_url: str | None = None,
+    ctx: Context | None = None,
 ) -> Outcome:
     """Pay a business: BusinessPayBill (Paybill + account), BusinessBuyGoods (Till), BusinessPayToBulk
     (B2C utility top-up) or PayTaxToKRA (receiver 572572, account_reference = KRA PRN).
@@ -660,6 +729,8 @@ async def b2b_payment(
             raise ValueError("idempotency_key is required for B2B payments (e.g. 'supplier-inv-778')")
     c = client()
     _guard_money(c)
+    await _guard_payout(ctx, idempotency_key, amount, receiver_shortcode,
+                        f"Payment: KES {amount:,} to {receiver_shortcode} ({account_reference})")
     name, cred = _initiator(c)
     body: dict[str, Any] = {
         "Initiator": name,
@@ -778,13 +849,17 @@ async def reverse_transaction(
     receiver_shortcode: str | None = None,
     result_url: str | None = None,
     timeout_url: str | None = None,
+    ctx: Context | None = None,
 ) -> Outcome:
     """Reverse a C2B payment received on your shortcode (needs a human-approved reason).
 
-    One reversal per transaction_id: repeats return the stored request.
+    transaction_id is the original M-Pesa receipt. One reversal per transaction_id: repeats return
+    the stored request.
     """
     c = client()
     _guard_money(c)
+    await _guard_payout(ctx, f"reversal:{transaction_id}", amount, None,
+                        f"Reversal of {transaction_id}: KES {amount:,}")
     name, cred = _initiator(c)
     body = {
         "Initiator": name,

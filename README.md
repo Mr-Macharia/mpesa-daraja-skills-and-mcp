@@ -223,6 +223,7 @@ Offline tools also explain result codes, normalise phone numbers, build STK pass
 | Risk | Safeguard |
 |---|---|
 | Moving real money by accident | Sandbox by default. In production, money tools refuse to run until `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true`, and they're flagged as destructive so clients ask first |
+| An agent paying out too much, or to the wrong person | Optional: `DARAJA_APPROVAL_THRESHOLD` asks you to approve larger payouts in the chat, `DARAJA_ALLOWED_RECIPIENTS` limits who can be paid, and `DARAJA_READ_ONLY=true` removes money tools entirely |
 | Paying twice on a retry | Each money request is stored under an idempotency key. Repeating the key returns the stored outcome; only a definite failure can be re-sent |
 | Reporting "accepted" as "paid" | Only a callback or a status query can produce `SUCCESS` |
 | Malformed requests | Bodies are checked against Daraja's rules before sending, using the same validator as the skills |
