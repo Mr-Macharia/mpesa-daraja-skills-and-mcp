@@ -128,6 +128,10 @@ One page each, linking to the per-API skills and to `daraja-payment-design`, eac
 - `install.sh` (`curl … | sh`) and `install.ps1` (`irm … | iex`). They install `uv` if it's missing, then `uv tool install mpesa-daraja-mcp`. `uvx`, `pipx` and `pip` remain alternatives.
 - Built: served from raw GitHub URLs on `main`, so they work before the website exists (the site can redirect to them later). `MPESA_DARAJA_VERSION` pins a version. CI runs both on fresh Ubuntu, macOS and Windows machines. Status: done.
 
+### 12. More Python adapters
+- Agno, Google ADK and CrewAI, alongside LangChain and the OpenAI Agents SDK.
+- Built: `mpesa_mcp/integrations/{agno,google_adk,crewai}.py`, the `[agno]`, `[google-adk]` and `[crewai]` extras, `[frameworks]` for all five, and a CI job that tests every adapter. CrewAI is held at 1.6.x because later versions pin `mcp<2`. Status: done.
+
 ## Release
 After review: bump `mcp-server/pyproject.toml` and `mcp-server/server.json` together, merge into `main`, tag, and publish all packages on the same day.
 

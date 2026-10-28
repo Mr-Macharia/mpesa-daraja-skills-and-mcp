@@ -96,3 +96,33 @@ async def test_openai_agents_adapter():
     assert tool.name == "mpesa_explain_code"
     assert json.loads(await tool.on_invoke_tool(None, '{"code": "2"}'))["code"] == "2"
     assert "not valid JSON" in await tool.on_invoke_tool(None, "{")
+
+
+async def test_agno_adapter():
+    pytest.importorskip("agno")
+    from agno.tools.function import FunctionCall
+
+    from mpesa_mcp.integrations.agno import mpesa_agno_tools
+
+    (tool,) = mpesa_agno_tools(include={"explain_code"})
+    assert tool.name == "mpesa_explain_code" and tool.parameters["required"] == ["code"]
+    result = await FunctionCall(function=tool, arguments={"code": "1032"}).aexecute()
+    assert json.loads(result.result)["code"] == "1032"
+
+
+async def test_google_adk_adapter():
+    pytest.importorskip("google.adk")
+    from mpesa_mcp.integrations.google_adk import mpesa_adk_tools
+
+    (tool,) = mpesa_adk_tools(include={"explain_code"})
+    assert tool._get_declaration().name == "mpesa_explain_code"
+    assert (await tool.run_async(args={"code": "2"}, tool_context=None))["code"] == "2"
+
+
+def test_crewai_adapter():
+    pytest.importorskip("crewai")
+    from mpesa_mcp.integrations.crewai import mpesa_crewai_tools
+
+    (tool,) = mpesa_crewai_tools(include={"explain_code"})
+    assert tool.name == "mpesa_explain_code"
+    assert tool.run(code="1037")["code"] == "1037"

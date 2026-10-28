@@ -37,6 +37,17 @@ jobs:
       - run: pip install -e "mcp-server[dev]"
       - run: pytest mcp-server
 
+  frameworks:
+    # The agent-framework adapters are heavy installs, so they run once, not across the matrix.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -e "mcp-server[dev,frameworks]"
+      - run: pytest mcp-server/tests/test_agent.py
+
   node:
     runs-on: ubuntu-latest
     strategy:

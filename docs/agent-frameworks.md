@@ -3,7 +3,7 @@
 `mpesa_mcp.agent` gives you the MCP server's tools as plain Python tools, with no server process. You get the same validation and the same guardrails: read-only mode, the production lock, the approval threshold, the recipient allowlist and idempotency keys. Configuration comes from the same place as the server (`mpesa init`, or `DARAJA_*` variables).
 
 ```bash
-pip install "mpesa-daraja-mcp[langchain]"       # or [openai-agents]
+pip install "mpesa-daraja-mcp[langchain]"       # or [openai-agents], [agno], [google-adk], [crewai]
 ```
 
 ## Any framework
@@ -38,6 +38,40 @@ from mpesa_mcp.integrations.openai_agents import mpesa_openai_tools
 
 agent = Agent(name="cashier", instructions=INSTRUCTIONS, tools=mpesa_openai_tools(toolsets={"stk"}))
 ```
+
+## Agno
+
+```python
+from agno.agent import Agent
+from mpesa_mcp.agent import INSTRUCTIONS
+from mpesa_mcp.integrations.agno import mpesa_agno_tools
+
+agent = Agent(instructions=INSTRUCTIONS, tools=mpesa_agno_tools(toolsets={"stk"}))
+```
+
+## Google ADK
+
+```python
+from google.adk.agents import Agent
+from mpesa_mcp.agent import INSTRUCTIONS
+from mpesa_mcp.integrations.google_adk import mpesa_adk_tools
+
+agent = Agent(name="cashier", model="gemini-2.5-flash", instruction=INSTRUCTIONS,
+              tools=mpesa_adk_tools(toolsets={"stk"}))
+```
+
+## CrewAI
+
+```python
+from crewai import Agent
+from mpesa_mcp.agent import INSTRUCTIONS
+from mpesa_mcp.integrations.crewai import mpesa_crewai_tools
+
+agent = Agent(role="Cashier", goal="Collect M-Pesa payments", backstory=INSTRUCTIONS,
+              tools=mpesa_crewai_tools(toolsets={"stk"}))
+```
+
+CrewAI 1.7 and later require `mcp<2`, and this package needs `mcp>=2.3`, so pip installs CrewAI 1.6.x alongside it. To use a newer CrewAI, run the MCP server separately and connect to it with CrewAI's MCP support.
 
 ## Vercel AI SDK (Node)
 

@@ -276,7 +276,7 @@ Run <code>uvx mpesa-daraja-mcp status</code>. It lists missing settings and re-t
 | Read | For |
 |---|---|
 | [docs/clients.md](docs/clients.md) | Setup for each agent: skills folders, MCP config, config files |
-| [docs/agent-frameworks.md](docs/agent-frameworks.md) | The same tools in LangChain, the OpenAI Agents SDK, the Vercel AI SDK or your own agent, without the MCP server |
+| [docs/agent-frameworks.md](docs/agent-frameworks.md) | The same tools in LangChain, the OpenAI Agents SDK, Agno, Google ADK, CrewAI, the Vercel AI SDK or your own agent, without the MCP server |
 | [node/packages/mpesa-daraja](node/packages/mpesa-daraja) | The Node library: client, callbacks, guardrails and agent tools |
 | [node/packages/n8n-nodes-daraja-mpesa](node/packages/n8n-nodes-daraja-mpesa) | n8n community nodes and the M-Pesa Trigger |
 | [mcp-server/README.md](mcp-server/README.md) | Every tool and setting, the callback receiver, toolsets |
