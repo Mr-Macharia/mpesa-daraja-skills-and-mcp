@@ -121,14 +121,11 @@ One page each, linking to the per-API skills and to `daraja-payment-design`, eac
 - `node/packages/n8n-nodes-daraja-mpesa`: action nodes (STK Push, B2C, …) and an M-Pesa Trigger node that fires on callbacks. Built on the Node library.
 - Built: named `n8n-nodes-daraja-mpesa` because `n8n-nodes-mpesa-daraja` is taken on npm. Guardrails live on the credential; above the threshold a payout needs its Approved field set by a human approval step. Requests and results are kept in the workflow's static data. Status: done.
 
-### 10. Registry listings
-- Smithery and Glama.
-
-### 11. One-line install
+### 10. One-line install
 - `install.sh` (`curl … | sh`) and `install.ps1` (`irm … | iex`). They install `uv` if it's missing, then `uv tool install mpesa-daraja-mcp`. `uvx`, `pipx` and `pip` remain alternatives.
 - Built: served from raw GitHub URLs on `main`, so they work before the website exists (the site can redirect to them later). `MPESA_DARAJA_VERSION` pins a version. CI runs both on fresh Ubuntu, macOS and Windows machines. Status: done.
 
-### 12. More Python adapters
+### 11. More Python adapters
 - Agno, Google ADK and CrewAI, alongside LangChain and the OpenAI Agents SDK.
 - Built: `mpesa_mcp/integrations/{agno,google_adk,crewai}.py`, the `[agno]`, `[google-adk]` and `[crewai]` extras, `[frameworks]` for all five, and a CI job that tests every adapter. CrewAI is held at 1.6.x because later versions pin `mcp<2`. Status: done.
 
