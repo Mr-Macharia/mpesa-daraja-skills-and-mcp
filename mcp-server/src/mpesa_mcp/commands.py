@@ -32,7 +32,7 @@ from rich.table import Table
 
 from . import cli, settings
 
-PACKAGE = "mpesa-daraja"
+PACKAGE = "mpesa-daraja-mcp"
 REPO = "Mr-Macharia/mpesa-daraja-skills-and-mcp"
 
 app = typer.Typer(

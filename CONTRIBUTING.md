@@ -43,7 +43,7 @@ python tools/sync_skills.py       # regenerate skill scripts from their sources
 pytest mcp-server                 # tests
 ```
 
-To try the server against the real sandbox, create a free app on the [Daraja portal](https://developer.safaricom.co.ke/) and run `uvx mpesa-daraja init`, or copy [`.env.example`](.env.example) to `.env`. Never commit `.env`.
+To try the server against the real sandbox, create a free app on the [Daraja portal](https://developer.safaricom.co.ke/) and run `uvx mpesa-daraja-mcp init`, or copy [`.env.example`](.env.example) to `.env`. Never commit `.env`.
 
 ### Where things live
 

@@ -36,7 +36,7 @@ Claude Code users can install the **plugin** instead. It bundles all the skills 
 /plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp
 ```
 
-On older Claude Code versions, use two steps: `/plugin marketplace add Mr-Macharia/mpesa-daraja-skills-and-mcp`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`. Either way, run `uvx mpesa-daraja init` once to save your keys, and answer **n** when it offers to add the server to Claude Code, so you don't end up with two copies.
+On older Claude Code versions, use two steps: `/plugin marketplace add Mr-Macharia/mpesa-daraja-skills-and-mcp`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`. Either way, run `uvx mpesa-daraja-mcp init` once to save your keys, and answer **n** when it offers to add the server to Claude Code, so you don't end up with two copies.
 
 Each skill is self-contained, so you can install just the ones you need.
 
@@ -47,13 +47,13 @@ You need [uv](https://docs.astral.sh/uv/) (one-time install: `curl -LsSf https:/
 ### Easiest: the setup wizard
 
 ```bash
-uvx mpesa-daraja init
+uvx mpesa-daraja-mcp init
 ```
 
 It asks for your Daraja keys (secrets are typed hidden) and checks them live with Safaricom, then saves them to a private config file. It then offers to add the server to every agent it finds: Claude Code, Codex, Gemini CLI and Cursor. Restart your agent and you're done.
 
 - Re-run it any time to change a value; pressing Enter keeps the current one.
-- `uvx mpesa-daraja status` shows what's configured, with values masked, and re-tests the keys.
+- `uvx mpesa-daraja-mcp status` shows what's configured, with values masked, and re-tests the keys.
 
 ### Or: add the server, then fill in the config file
 
@@ -61,12 +61,12 @@ The `add` command needs no keys:
 
 | Agent | Command |
 |---|---|
-| Claude Code | `claude mcp add --scope user mpesa -- uvx mpesa-daraja` |
-| Codex | `codex mcp add mpesa -- uvx mpesa-daraja` |
-| Gemini CLI | `gemini mcp add --scope user mpesa uvx mpesa-daraja` |
-| Cursor (`~/.cursor/mcp.json`) | `{"mcpServers": {"mpesa": {"type": "stdio", "command": "uvx", "args": ["mpesa-daraja"]}}}` |
-| VS Code (`.vscode/mcp.json`) | `{"servers": {"mpesa": {"type": "stdio", "command": "uvx", "args": ["mpesa-daraja"]}}}` |
-| Others (`mcpServers` JSON) | `{"mcpServers": {"mpesa": {"command": "uvx", "args": ["mpesa-daraja"]}}}` |
+| Claude Code | `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp` |
+| Codex | `codex mcp add mpesa -- uvx mpesa-daraja-mcp` |
+| Gemini CLI | `gemini mcp add --scope user mpesa uvx mpesa-daraja-mcp` |
+| Cursor (`~/.cursor/mcp.json`) | `{"mcpServers": {"mpesa": {"type": "stdio", "command": "uvx", "args": ["mpesa-daraja-mcp"]}}}` |
+| VS Code (`.vscode/mcp.json`) | `{"servers": {"mpesa": {"type": "stdio", "command": "uvx", "args": ["mpesa-daraja-mcp"]}}}` |
+| Others (`mcpServers` JSON) | `{"mcpServers": {"mpesa": {"command": "uvx", "args": ["mpesa-daraja-mcp"]}}}` |
 
 Then put your keys in one of these. The server reads them on start; restart it after editing.
 
@@ -89,9 +89,9 @@ DARAJA_PASSKEY=...
 Real environment variables take priority over both files. Use them if your client manages secrets for you:
 
 ```bash
-claude mcp add mpesa -e DARAJA_CONSUMER_KEY=... -e DARAJA_CONSUMER_SECRET=... -- uvx mpesa-daraja
-codex mcp add mpesa --env DARAJA_CONSUMER_KEY=... --env DARAJA_CONSUMER_SECRET=... -- uvx mpesa-daraja
-gemini mcp add -e DARAJA_CONSUMER_KEY=... -e DARAJA_CONSUMER_SECRET=... mpesa uvx mpesa-daraja
+claude mcp add mpesa -e DARAJA_CONSUMER_KEY=... -e DARAJA_CONSUMER_SECRET=... -- uvx mpesa-daraja-mcp
+codex mcp add mpesa --env DARAJA_CONSUMER_KEY=... --env DARAJA_CONSUMER_SECRET=... -- uvx mpesa-daraja-mcp
+gemini mcp add -e DARAJA_CONSUMER_KEY=... -e DARAJA_CONSUMER_SECRET=... mpesa uvx mpesa-daraja-mcp
 ```
 
 VS Code can prompt for secrets and store them securely:
@@ -106,7 +106,7 @@ VS Code can prompt for secrets and store them securely:
     "mpesa": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["mpesa-daraja"],
+      "args": ["mpesa-daraja-mcp"],
       "env": { "DARAJA_CONSUMER_KEY": "${input:mpesa-key}", "DARAJA_CONSUMER_SECRET": "${input:mpesa-secret}" }
     }
   }

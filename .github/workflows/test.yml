@@ -70,3 +70,24 @@ jobs:
           import asyncio
           from mpesa_mcp import server
           print(len(asyncio.run(server.server.list_tools())), 'tools')"
+
+  install:
+    # Runs the one-line installers on fresh machines without uv.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - if: runner.os != 'Windows'
+        run: |
+          sh install.sh
+          export PATH="$HOME/.local/bin:$PATH"
+          uv tool list | grep mpesa-daraja-mcp
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./install.ps1
+          $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
+          uv tool list | Select-String mpesa-daraja-mcp

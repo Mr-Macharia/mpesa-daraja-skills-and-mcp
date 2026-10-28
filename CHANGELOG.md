@@ -21,7 +21,8 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Changed
 
 - `mpesa --verbose` shows the HTTP requests to Daraja; they are hidden by default. A failed STK Push shows the `--key` to retry with.
-- The PyPI package is now **`mpesa-daraja`**. `mpesa-daraja-mcp` is a compatibility package that installs it and keeps the old command. `setup` is now `init` (the old name still works).
+- New `mpesa` CLI, installed by the `mpesa-daraja-mcp` package (`mpesa-daraja` on PyPI belongs to another project). `uvx mpesa-daraja-mcp` still starts the server. `setup` is now `init` (the old name still works).
+- One-line installers: `install.sh` (macOS, Linux) and `install.ps1` (Windows) install uv if needed, then `uv tool install mpesa-daraja-mcp`.
 - The receiver's log no longer shows the callback path token.
 
 ## [0.1.4] - 2026-10-25

@@ -95,6 +95,6 @@ def write_user_config(values: dict[str, str]) -> Path:
 def missing_message(names: list[str]) -> str:
     return (
         f"Missing Daraja configuration: {', '.join(names)}. "
-        f"Run `mpesa init` (or `uvx mpesa-daraja init`) in a terminal, or add the values to {user_config_file()} "
+        f"Run `mpesa init` (or `uvx mpesa-daraja-mcp init`) in a terminal, or add the values to {user_config_file()} "
         "(or a project .env), then restart the MCP server."
     )

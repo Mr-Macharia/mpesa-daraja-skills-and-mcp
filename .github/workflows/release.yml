@@ -32,7 +32,6 @@ jobs:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - run: uv build mcp-server --out-dir dist
-      - run: uv build mcp-server/compat --out-dir dist   # mpesa-daraja-mcp, which depends on it
       - uses: pypa/gh-action-pypi-publish@release/v1
 
   npm:

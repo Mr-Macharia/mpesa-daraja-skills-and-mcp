@@ -3,7 +3,7 @@
 Everything below ships on one release day. Work happens on the local branch `release/0.1.5`, one commit per item. `pytest mcp-server` and `python tools/sync_skills.py --check` pass at every commit, and so do the `node/` tests once they exist. Nothing is pushed or tagged until the whole list is done.
 
 Packages on release day:
-- PyPI: `mpesa-daraja` 0.1.5. `mpesa-daraja-mcp` stays published as a small package that depends on it.
+- PyPI: `mpesa-daraja-mcp` 0.1.5 (`mpesa-daraja` on PyPI belongs to another project).
 - npm: `mpesa-daraja` 0.1.0 and `n8n-nodes-daraja-mpesa` 0.1.0 (`n8n-nodes-mpesa-daraja` is taken on npm).
 
 ## Principles
@@ -65,9 +65,9 @@ mpesa skills install      copy skills into Claude/Cursor/etc.
 mpesa upgrade
 ```
 
-- The PyPI package becomes `mpesa-daraja`. `mpesa-daraja-mcp` stays as an alias command and a compatibility package.
+- The PyPI package stays `mpesa-daraja-mcp` (`mpesa-daraja` is taken on PyPI); it adds the `mpesa` CLI, with `mpesa-daraja` and `mpesa-mcp` as alias commands.
 - The CLI shares the guardrails from item 1.
-- Built: `uvx mpesa-daraja` with no arguments is still the stdio server, `setup` maps to `init`, and the config folder keeps its old name. `mpesa dev` saves the tunnel URL to the config file, so the agent's server picks it up on restart. `mpesa up` writes a compose file that installs from PyPI, so it works without the repo. Status: done.
+- Built: `uvx mpesa-daraja-mcp` with no arguments is still the stdio server, `setup` maps to `init`, and the config folder keeps its old name. `mpesa dev` saves the tunnel URL to the config file, so the agent's server picks it up on restart. `mpesa up` writes a compose file that installs from PyPI, so it works without the repo. Status: done.
 
 ### 4. Callback forwarding
 - `MPESA_FORWARD_URL`: the receiver POSTs each callback on to the user's app, signed with HMAC (`MPESA_FORWARD_SECRET`). Callbacks are still stored for `mpesa_get_result`.
@@ -125,7 +125,8 @@ One page each, linking to the per-API skills and to `daraja-payment-design`, eac
 - Smithery and Glama.
 
 ### 11. One-line install
-- `install.sh` (`curl … | sh`) and `install.ps1` (`irm … | iex`). They install `uv` if it's missing, then `uv tool install mpesa-daraja`. Built after the website so the URLs point at it. `uvx`, `pipx` and `pip` remain alternatives.
+- `install.sh` (`curl … | sh`) and `install.ps1` (`irm … | iex`). They install `uv` if it's missing, then `uv tool install mpesa-daraja-mcp`. `uvx`, `pipx` and `pip` remain alternatives.
+- Built: served from raw GitHub URLs on `main`, so they work before the website exists (the site can redirect to them later). `MPESA_DARAJA_VERSION` pins a version. CI runs both on fresh Ubuntu, macOS and Windows machines. Status: done.
 
 ## Release
 After review: bump `mcp-server/pyproject.toml` and `mcp-server/server.json` together, merge into `main`, tag, and publish all packages on the same day.

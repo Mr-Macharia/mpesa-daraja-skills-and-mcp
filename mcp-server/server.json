@@ -12,7 +12,7 @@
   "packages": [
     {
       "registryType": "pypi",
-      "identifier": "mpesa-daraja",
+      "identifier": "mpesa-daraja-mcp",
       "version": "0.1.4",
       "runtimeHint": "uvx",
       "transport": {

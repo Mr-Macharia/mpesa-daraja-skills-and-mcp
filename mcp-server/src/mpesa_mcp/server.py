@@ -428,7 +428,7 @@ def setup_status() -> dict[str, Any]:
         "missing_core": core,
         "missing_by_toolset": {t: [n for n in needs if not present(n)] for t, needs in TOOLSET_NEEDS.items()},
         "config_file": str(settings.user_config_file()),
-        "how_to_fix": ("Ask the user to run `mpesa init` (or `uvx mpesa-daraja init`) in a terminal "
+        "how_to_fix": ("Ask the user to run `mpesa init` (or `uvx mpesa-daraja-mcp init`) in a terminal "
                        "(it prompts for the keys, "
                        f"checks them and saves them), or to add the values to {settings.user_config_file()}, "
                        "then restart the MCP server. Never ask the user to paste secrets into the chat."),

@@ -3,7 +3,7 @@
 `mpesa_mcp.agent` gives you the MCP server's tools as plain Python tools, with no server process. You get the same validation and the same guardrails: read-only mode, the production lock, the approval threshold, the recipient allowlist and idempotency keys. Configuration comes from the same place as the server (`mpesa init`, or `DARAJA_*` variables).
 
 ```bash
-pip install "mpesa-daraja[langchain]"       # or [openai-agents]
+pip install "mpesa-daraja-mcp[langchain]"       # or [openai-agents]
 ```
 
 ## Any framework

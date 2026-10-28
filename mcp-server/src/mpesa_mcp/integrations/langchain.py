@@ -1,6 +1,6 @@
 """M-Pesa tools as LangChain tools (also works with LangGraph).
 
-    pip install "mpesa-daraja[langchain]"
+    pip install "mpesa-daraja-mcp[langchain]"
 
     from mpesa_mcp.integrations.langchain import mpesa_langchain_tools
     tools = mpesa_langchain_tools(toolsets={"stk"})
@@ -13,7 +13,7 @@ from typing import Any
 try:
     from langchain_core.tools import StructuredTool
 except ImportError as exc:  # pragma: no cover
-    raise ImportError('LangChain is not installed: pip install "mpesa-daraja[langchain]"') from exc
+    raise ImportError('LangChain is not installed: pip install "mpesa-daraja-mcp[langchain]"') from exc
 
 from ..agent import AgentTool, mpesa_tools
 

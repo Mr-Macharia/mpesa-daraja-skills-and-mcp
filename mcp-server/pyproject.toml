@@ -1,5 +1,5 @@
 [project]
-name = "mpesa-daraja"
+name = "mpesa-daraja-mcp"
 version = "0.1.4"
 description = "M-Pesa Daraja toolkit: MCP server and `mpesa` CLI for STK Push, C2B, B2C, B2B, status, balance, reversal, QR, Ratiba, Bill Manager"
 readme = "README.md"
@@ -36,8 +36,9 @@ dev = ["pytest>=8", "pytest-asyncio>=0.23", "respx>=0.21", "pyyaml>=6", "jsonsch
 
 [project.scripts]
 # `mpesa` is the CLI. uvx runs the script named like the package, which starts the server when given
-# no arguments. mpesa-mcp is kept for existing configs; mpesa-daraja-mcp comes from compat/.
+# no arguments. mpesa-daraja and mpesa-mcp are aliases kept for existing configs.
 mpesa = "mpesa_mcp.commands:main"
+mpesa-daraja-mcp = "mpesa_mcp.cli:entry"
 mpesa-daraja = "mpesa_mcp.cli:entry"
 mpesa-mcp = "mpesa_mcp.cli:entry"
 

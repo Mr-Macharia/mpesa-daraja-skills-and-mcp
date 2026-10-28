@@ -45,7 +45,7 @@
     "mpesa": {
       "command": "uvx",
       "args": [
-        "mpesa-daraja"
+        "mpesa-daraja-mcp"
       ]
     }
   },

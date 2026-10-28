@@ -1,6 +1,6 @@
 """M-Pesa tools for the OpenAI Agents SDK.
 
-    pip install "mpesa-daraja[openai-agents]"
+    pip install "mpesa-daraja-mcp[openai-agents]"
 
     from agents import Agent
     from mpesa_mcp.agent import INSTRUCTIONS
@@ -16,7 +16,7 @@ from typing import Any
 try:
     from agents import FunctionTool
 except ImportError as exc:  # pragma: no cover
-    raise ImportError('The OpenAI Agents SDK is not installed: pip install "mpesa-daraja[openai-agents]"') from exc
+    raise ImportError('The OpenAI Agents SDK is not installed: pip install "mpesa-daraja-mcp[openai-agents]"') from exc
 
 from ..agent import AgentTool, mpesa_tools
 

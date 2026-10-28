@@ -1,7 +1,7 @@
 """Setup, status and agent registration, shared by the `mpesa` CLI (commands.py).
 
-    mpesa-daraja                start the MCP server on stdio (what MCP clients run)
-    mpesa-daraja <command>      the same as `mpesa <command>`
+    mpesa-daraja-mcp            start the MCP server on stdio (what MCP clients run)
+    mpesa-daraja-mcp <command>  the same as `mpesa <command>`
 """
 
 from __future__ import annotations
@@ -68,7 +68,7 @@ def check_keys(env: str, key: str, secret: str) -> tuple[bool, str]:
 # --------------------------------------------------------------------------- #
 
 
-PACKAGE = "mpesa-daraja"
+PACKAGE = "mpesa-daraja-mcp"
 
 
 def _direct_url() -> dict | None:

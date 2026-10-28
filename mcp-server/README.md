@@ -27,9 +27,9 @@ It pairs with the [Agent Skills](https://github.com/Mr-Macharia/mpesa-daraja-ski
 **Let your agent do it.** Paste this into Claude Code, Codex, Cursor, Gemini CLI or any coding agent:
 
 ```text
-Add the M-Pesa Daraja MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja
+Add the M-Pesa Daraja MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja-mcp
 It needs no keys in your config. If uv is missing, tell me how to install it first.
-Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja init` in my own terminal,
+Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja-mcp init` in my own terminal,
 which saves them privately, then to restart you.
 After I restart you, call mpesa_check_credentials and tell me if everything works.
 ```
@@ -37,7 +37,7 @@ After I restart you, call mpesa_check_credentials and tell me if everything work
 **Or do it yourself.** You need [uv](https://docs.astral.sh/uv/). The wizard asks for your [Daraja](https://developer.safaricom.co.ke/) keys (secrets are typed hidden), checks them live with Safaricom, saves them to a file only you can read, and registers the server with Claude Code, Codex, Gemini CLI or Cursor:
 
 ```bash
-uvx mpesa-daraja init
+uvx mpesa-daraja-mcp init
 ```
 
 Then restart your agent and ask: *"Check my M-Pesa credentials, then send a KES 1 STK push to 0712345678 and tell me when it's paid."* The full Agent Kit, with the skills and more examples, is in the [main README](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp#readme).
@@ -113,7 +113,7 @@ Tool annotations mark money-moving tools as `destructiveHint`, so MCP clients as
 
 ## Commands and configuration files
 
-Install once with `uv tool install mpesa-daraja` to get the `mpesa` command (or prefix any command with `uvx mpesa-daraja` instead of `mpesa`):
+Install once with `uv tool install mpesa-daraja-mcp` to get the `mpesa` command (or prefix any command with `uvx mpesa-daraja-mcp` instead of `mpesa`):
 
 ```bash
 mpesa init                 # guided: keys (hidden input), live check, save, register with your agents
@@ -128,7 +128,7 @@ mpesa skills install       # copy the Agent Skills into Claude Code, Codex, Curs
 mpesa upgrade
 ```
 
-Every data command takes `--json`, and `mpesa --verbose …` logs each HTTP request to Daraja. A failed STK Push shows the `--key` to retry it with. Payments use the same guardrails as the MCP tools, and approvals are asked in the terminal. `uvx mpesa-daraja` with no arguments is the MCP server on stdio, which is what your agent runs.
+Every data command takes `--json`, and `mpesa --verbose …` logs each HTTP request to Daraja. A failed STK Push shows the `--key` to retry it with. Payments use the same guardrails as the MCP tools, and approvals are asked in the terminal. `uvx mpesa-daraja-mcp` with no arguments is the MCP server on stdio, which is what your agent runs.
 
 The server needs no flags or environment variables in your agent's config. Settings are read in this order, highest first:
 
@@ -138,7 +138,7 @@ The server needs no flags or environment variables in your agent's config. Setti
 
 The server starts even when unconfigured. Tools then explain what's missing, and `mpesa_setup_status` lists the gaps for each toolset without revealing any values.
 
-To register by hand: `claude mcp add --scope user mpesa -- uvx mpesa-daraja`. Every other agent is covered in [docs/clients.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md). The older `mpesa-daraja-mcp` and `mpesa-mcp` commands still work.
+To register by hand: `claude mcp add --scope user mpesa -- uvx mpesa-daraja-mcp`. Every other agent is covered in [docs/clients.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md). The `mpesa-daraja` and `mpesa-mcp` commands are aliases.
 
 ## Remote access (HTTP mode)
 
@@ -186,7 +186,7 @@ The groups are `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba` and `billmanager`.
 
 ## Use from LangChain, the OpenAI Agents SDK or your own agent
 
-The same tools and guardrails work without a server: `from mpesa_mcp.agent import mpesa_tools`, or the adapters `mpesa_mcp.integrations.langchain` and `mpesa_mcp.integrations.openai_agents` (`pip install "mpesa-daraja[langchain]"` or `[openai-agents]`). See [docs/agent-frameworks.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/agent-frameworks.md).
+The same tools and guardrails work without a server: `from mpesa_mcp.agent import mpesa_tools`, or the adapters `mpesa_mcp.integrations.langchain` and `mpesa_mcp.integrations.openai_agents` (`pip install "mpesa-daraja-mcp[langchain]"` or `[openai-agents]`). See [docs/agent-frameworks.md](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/agent-frameworks.md).
 
 ## Development
 
