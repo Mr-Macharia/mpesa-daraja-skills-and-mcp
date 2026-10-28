@@ -1,11 +1,11 @@
-# n8n-nodes-daraja
+# n8n-nodes-daraja-mpesa
 
 n8n community nodes for Safaricom M-Pesa Daraja, built on the [`mpesa-daraja`](https://www.npmjs.com/package/mpesa-daraja) Node library.
 
 - **M-Pesa Daraja**: STK Push, STK Push and Wait, STK Query, Get Result, B2C, B2B (Paybill, Till, KRA tax), Transaction Status, Account Balance, Reverse Transaction.
 - **M-Pesa Trigger**: starts a workflow when Daraja posts a callback, and replies to Daraja straight away.
 
-Install in n8n: **Settings → Community Nodes → Install** → `n8n-nodes-daraja`.
+Install in n8n: **Settings → Community Nodes → Install** → `n8n-nodes-daraja-mpesa`.
 
 ## Setup
 

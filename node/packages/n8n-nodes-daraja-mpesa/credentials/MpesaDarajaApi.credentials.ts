@@ -5,7 +5,7 @@ const secret = { typeOptions: { password: true } };
 export class MpesaDarajaApi implements ICredentialType {
   name = "mpesaDarajaApi";
   displayName = "M-Pesa Daraja API";
-  documentationUrl = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/tree/main/node/packages/n8n-nodes-daraja";
+  documentationUrl = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/tree/main/node/packages/n8n-nodes-daraja-mpesa";
   properties: INodeProperties[] = [
     {
       displayName: "Environment", name: "environment", type: "options", default: "sandbox",

@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-daraja",
+  "name": "n8n-nodes-daraja-mpesa",
   "version": "0.1.0",
   "description": "n8n nodes for Safaricom M-Pesa Daraja: STK Push, B2C, B2B, status, balance and reversal, plus an M-Pesa Trigger for callbacks. Idempotent payouts with guardrails.",
   "license": "MIT",
@@ -29,7 +29,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp.git",
-    "directory": "node/packages/n8n-nodes-daraja"
+    "directory": "node/packages/n8n-nodes-daraja-mpesa"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
