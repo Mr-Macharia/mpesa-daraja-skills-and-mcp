@@ -1,6 +1,6 @@
 # mpesa-daraja (Node)
 
-A Safaricom M-Pesa Daraja client for Node.js 20+ with no runtime dependencies. It covers STK Push, STK Query, C2B, B2C, B2B, KRA tax, Transaction Status, Account Balance, Reversal and callbacks. The safety rules from the [`mpesa-daraja` MCP server](https://pypi.org/project/mpesa-daraja/) come with it:
+A Safaricom M-Pesa Daraja client for Node.js 20+ with no runtime dependencies. It covers STK Push, STK Query, C2B, B2C, B2B, KRA tax, Transaction Status, Account Balance, Reversal and callbacks. The safety rules from the [`mpesa-daraja-mcp` MCP server](https://pypi.org/project/mpesa-daraja-mcp/) come with it:
 
 - **Local validation.** Requests Daraja would reject fail before they're sent, including Daraja's own spellings `RecieverIdentifierType` and `Occassion`.
 - **Idempotency.** Each money request is sent at most once per key. A request whose outcome is unknown is never sent again automatically.

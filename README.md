@@ -4,7 +4,7 @@
 
 <br>
 
-[![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml) [![PyPI](https://img.shields.io/pypi/v/mpesa-daraja?label=PyPI&color=ff5a14&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja/) [![MCP Registry](https://img.shields.io/badge/MCP_Registry-mpesa--daraja--mcp-ff5a14)](https://registry.modelcontextprotocol.io/v0/servers?search=mpesa-daraja-mcp) [![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja?color=1c1b38&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja/) [![License: MIT](https://img.shields.io/badge/license-MIT-2ea043)](LICENSE)
+[![CI](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/actions/workflows/test.yml) [![PyPI](https://img.shields.io/pypi/v/mpesa-daraja-mcp?label=PyPI&color=ff5a14&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/) [![MCP Registry](https://img.shields.io/badge/MCP_Registry-mpesa--daraja--mcp-ff5a14)](https://registry.modelcontextprotocol.io/v0/servers?search=mpesa-daraja-mcp) [![Python](https://img.shields.io/pypi/pyversions/mpesa-daraja-mcp?color=1c1b38&cacheSeconds=3600)](https://pypi.org/project/mpesa-daraja-mcp/) [![License: MIT](https://img.shields.io/badge/license-MIT-2ea043)](LICENSE)
 [![M8ven Score](https://m8ven.ai/badge/mcp/mr-macharia/mpesa-daraja-skills-and-mcp)](https://m8ven.ai/mcp/mr-macharia/mpesa-daraja-skills-and-mcp?s=readme)
 
 **M-Pesa Daraja Agent Kit: Agent Skills that teach your agent to use Daraja API, and an MCP server that lets it call Daraja safely.**<br>
@@ -204,7 +204,7 @@ M-Pesa Daraja Agent Kit makes M-Pesa payment handling and integration easier for
 
 **[22 Agent Skills](skills).** Use-case recipes (checkout, payouts, Paybill collections, recurring billing, an agent that sells), a payment-design skill (ledger, refunds, reconciliation, go-live), a sandbox tutor with a build-your-own-gateway track, every major Daraja API, plus helper skills for callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Each skill bundles tested scripts that validate requests, build STK passwords, encrypt credentials and parse callbacks, so the agent runs known-good code instead of improvising.
 
-**[The MCP server](mcp-server), [`mpesa-daraja`](https://pypi.org/project/mpesa-daraja/).** 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call, and an optional built-in callback receiver records results for `mpesa_get_result`.
+**[The MCP server](mcp-server), [`mpesa-daraja-mcp`](https://pypi.org/project/mpesa-daraja-mcp/).** 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call, and an optional built-in callback receiver records results for `mpesa_get_result`.
 
 **[The Node library](node/packages/mpesa-daraja), [`mpesa-daraja`](https://www.npmjs.com/package/mpesa-daraja) on npm.** The same Daraja calls, validation, idempotency and guardrails for Node apps, plus tools for the Vercel AI SDK. It passes the same [shared fixtures](shared/fixtures) as the Python package.
 

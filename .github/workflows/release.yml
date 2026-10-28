@@ -80,7 +80,7 @@ jobs:
         run: |
           version=$(python3 -c "import json;print(json.load(open('mcp-server/server.json'))['version'])")
           for i in $(seq 1 30); do
-            curl -sf "https://pypi.org/pypi/mpesa-daraja/$version/json" >/dev/null && exit 0
+            curl -sf "https://pypi.org/pypi/mpesa-daraja-mcp/$version/json" >/dev/null && exit 0
             sleep 10
           done
           echo "PyPI release not visible after 5 minutes"; exit 1
