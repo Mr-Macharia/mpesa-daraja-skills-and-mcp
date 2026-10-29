@@ -12,13 +12,11 @@ fi
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
     esc=$(printf '\033')
-    # Gradient from amber to the site's accent (#e85d04) to deep red, in 256 colours so every terminal shows it.
-    c1="${esc}[38;5;220m"; c2="${esc}[38;5;214m"; c3="${esc}[38;5;208m"
-    c4="${esc}[38;5;202m"; c5="${esc}[38;5;166m"; c6="${esc}[38;5;124m"
+    # The site's accent is #e85d04; 208 is its nearest 256-colour match, so every terminal shows it.
     orange="${esc}[38;5;208m"; green="${esc}[38;5;114m"; red="${esc}[38;5;196m"
     bold="${esc}[1m"; dim="${esc}[2m"; reset="${esc}[0m"
 else
-    c1=""; c2=""; c3=""; c4=""; c5=""; c6=""; orange=""; green=""; red=""; bold=""; dim=""; reset=""
+    esc=""; orange=""; green=""; red=""; bold=""; dim=""; reset=""
 fi
 
 say() { printf '%s\n' "$*"; }
@@ -46,14 +44,68 @@ quiet() {
 }
 
 say ""
-say "  ${c1}███╗   ███╗      ██████╗ ███████╗███████╗ █████╗ ${reset}"
-say "  ${c2}████╗ ████║      ██╔══██╗██╔════╝██╔════╝██╔══██╗${reset}"
-say "  ${c3}██╔████╔██║█████╗██████╔╝█████╗  ███████╗███████║${reset}"
-say "  ${c4}██║╚██╔╝██║╚════╝██╔═══╝ ██╔══╝  ╚════██║██╔══██║${reset}"
-say "  ${c5}██║ ╚═╝ ██║      ██║     ███████╗███████║██║  ██║${reset}"
-say "  ${c6}╚═╝     ╚═╝      ╚═╝     ╚══════╝╚══════╝╚═╝  ╚═╝${reset}"
-say ""
-say "  ${bold}Daraja agent kit${reset}  ${dim}Skills • MCP server • CLI • Node • n8n${reset}"
+# The plugin icon (.claude-plugin/icon.png) as a grid: o = orange, g = grey, . = empty.
+# awk draws two grid rows per terminal line with half blocks, with the name beside it.
+awk -v esc="$esc" -v t1="${orange}${bold}M-Pesa Daraja${reset}" -v t2="${bold}agent kit${reset}" \
+    -v t3="${dim}Skills • MCP server • CLI${reset}" -v t4="${dim}Node • n8n • Python agents${reset}" '
+function fg(c) { return esc == "" ? "" : esc "[38;5;" (c == "o" ? 208 : 242) "m" }
+function bg(c) { return esc == "" ? "" : esc "[48;5;" (c == "o" ? 208 : 242) "m" }
+{ rows[NR] = $0 }
+END {
+    reset = esc == "" ? "" : esc "[0m"
+    mid = int(NR / 4); side[mid - 1] = t1; side[mid] = t2; side[mid + 2] = t3; side[mid + 3] = t4
+    for (r = 1; r <= NR; r += 2) {
+        top = rows[r]; bot = rows[r + 1]; out = ""
+        for (i = 1; i <= length(top); i++) {
+            ct = substr(top, i, 1); cb = substr(bot, i, 1)
+            if (ct == "." && cb == ".") out = out " "
+            else if (ct == cb) out = out fg(ct) "█" reset
+            else if (cb == ".") out = out fg(ct) "▀" reset
+            else if (ct == ".") out = out fg(cb) "▄" reset
+            else out = out fg(ct) bg(cb) "▀" reset
+        }
+        print "  " out "    " side[(r + 1) / 2]
+    }
+}' <<'ICON'
+...................ooo............
+..................oooo............
+.................oo..oo...........
+.................ooo.og...........
+...............oo.ooooggg.........
+.............ooo.ggooo..ggg.......
+...........ooo...g.o.o....gg......
+......oooooo....g..o..o....gggggg.
+.....oo..oo....gg..o..o.....ggg.gg
+.....oo..oggggggggoogg.oggggggg.gg
+......oooo....g...oo...o...ooggggg
+......goooo..g....oo...oooooo.ggg.
+.....gg.g.oo.g....oo...oooo.......
+.....g..g..oo.....oo..ooo.........
+....gg..ggg.ooo...o..ooo..........
+....g...gg...oooooooooo...........
+..ggg.gg.g....oooooooo............
+.gggggg..g....ooo..ooo............
+gg..g.oooooooooo....oooo..........
+gg..gooooooooooo....ooooo.........
+.ggggg...g....ooo..ooo............
+..ggg.gg.g....oooooooo............
+....g..ggg...oooooooooo...........
+....gg..ggg.ooo..oo..ooo..........
+.....g..g..ooo....oo..ooo.........
+.....gg.g.oo......oo...ooo........
+......gogoo..g....oo....oooo...g..
+......oooo....g...oo...o...ooggggg
+.....oo..oggggggggoogg.o.gggggg.gg
+.....oo..o.g...gg.oo..o...ggggg.gg
+......oooooo....g..o..o.....gggggg
+.......oo..ooo..gg.o.oo...ggg..g..
+.............oo..ggo.o..ggg.......
+...............oo.gooo.gg.........
+.................ooooog...........
+.................oo..oo...........
+..................o..o............
+..................oooo............
+ICON
 say ""
 top "Installer"
 if command -v uv >/dev/null 2>&1; then

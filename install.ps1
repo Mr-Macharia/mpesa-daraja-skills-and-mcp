@@ -13,7 +13,7 @@ function C([int]$n) { if ($e) { "$e[38;5;${n}m" } else { "" } }
 $reset = if ($e) { "$e[0m" } else { "" }
 $bold = if ($e) { "$e[1m" } else { "" }
 $dim = if ($e) { "$e[2m" } else { "" }
-# Gradient from amber to the site's accent (#e85d04) to deep red, in 256 colours.
+# The site's accent is #e85d04; 208 is its nearest 256-colour match.
 $orange = C 208; $green = C 114; $red = C 196
 function Line([string]$text) { Write-Host "  $orange│$reset  $text" }
 function Ok([string]$text) { Line "$green✓$reset $text" }
@@ -32,19 +32,67 @@ function Quiet([scriptblock]$cmd, [string]$what) {
     }
 }
 
-$logo = @(
-    "███╗   ███╗      ██████╗ ███████╗███████╗ █████╗ ",
-    "████╗ ████║      ██╔══██╗██╔════╝██╔════╝██╔══██╗",
-    "██╔████╔██║█████╗██████╔╝█████╗  ███████╗███████║",
-    "██║╚██╔╝██║╚════╝██╔═══╝ ██╔══╝  ╚════██║██╔══██║",
-    "██║ ╚═╝ ██║      ██║     ███████╗███████║██║  ██║",
-    "╚═╝     ╚═╝      ╚═╝     ╚══════╝╚══════╝╚═╝  ╚═╝"
+# The plugin icon (.claude-plugin/icon.png) as a grid: o = orange, g = grey, . = empty.
+# Two grid rows per line with half blocks, with the name beside it.
+$icon = @(
+    "",
+    "...................ooo............",
+    "..................oooo............",
+    ".................oo..oo...........",
+    ".................ooo.og...........",
+    "...............oo.ooooggg.........",
+    ".............ooo.ggooo..ggg.......",
+    "...........ooo...g.o.o....gg......",
+    "......oooooo....g..o..o....gggggg.",
+    ".....oo..oo....gg..o..o.....ggg.gg",
+    ".....oo..oggggggggoogg.oggggggg.gg",
+    "......oooo....g...oo...o...ooggggg",
+    "......goooo..g....oo...oooooo.ggg.",
+    ".....gg.g.oo.g....oo...oooo.......",
+    ".....g..g..oo.....oo..ooo.........",
+    "....gg..ggg.ooo...o..ooo..........",
+    "....g...gg...oooooooooo...........",
+    "..ggg.gg.g....oooooooo............",
+    ".gggggg..g....ooo..ooo............",
+    "gg..g.oooooooooo....oooo..........",
+    "gg..gooooooooooo....ooooo.........",
+    ".ggggg...g....ooo..ooo............",
+    "..ggg.gg.g....oooooooo............",
+    "....g..ggg...oooooooooo...........",
+    "....gg..ggg.ooo..oo..ooo..........",
+    ".....g..g..ooo....oo..ooo.........",
+    ".....gg.g.oo......oo...ooo........",
+    "......gogoo..g....oo....oooo...g..",
+    "......oooo....g...oo...o...ooggggg",
+    ".....oo..oggggggggoogg.o.gggggg.gg",
+    ".....oo..o.g...gg.oo..o...ggggg.gg",
+    "......oooooo....g..o..o.....gggggg",
+    ".......oo..ooo..gg.o.oo...ggg..g..",
+    ".............oo..ggo.o..ggg.......",
+    "...............oo.gooo.gg.........",
+    ".................ooooog...........",
+    ".................oo..oo...........",
+    "..................o..o............",
+    "..................oooo............"
 )
-$shades = 220, 214, 208, 202, 166, 124
+function Fg([string]$c) { if ($c -eq "o") { $orange } else { C 242 } }
+function Bg([string]$c) { if (-not $e) { "" } elseif ($c -eq "o") { "$e[48;5;208m" } else { "$e[48;5;242m" } }
+$mid = [int][math]::Floor($icon.Count / 4)
+$side = @{ ($mid - 1) = "$orange${bold}M-Pesa Daraja$reset"; $mid = "${bold}agent kit$reset"
+    ($mid + 2) = "${dim}Skills • MCP server • CLI$reset"; ($mid + 3) = "${dim}Node • n8n • Python agents$reset" }
 Write-Host ""
-for ($i = 0; $i -lt $logo.Count; $i++) { Write-Host "  $(C $shades[$i])$($logo[$i])$reset" }
-Write-Host ""
-Write-Host "  ${bold}Daraja agent kit$reset  ${dim}Skills • MCP server • CLI • Node • n8n$reset"
+for ($r = 0; $r -lt $icon.Count; $r += 2) {
+    $top = $icon[$r]; $bot = $icon[$r + 1]; $out = ""
+    for ($i = 0; $i -lt $top.Length; $i++) {
+        $ct = [string]$top[$i]; $cb = [string]$bot[$i]
+        if ($ct -eq "." -and $cb -eq ".") { $out += " " }
+        elseif ($ct -eq $cb) { $out += "$(Fg $ct)█$reset" }
+        elseif ($cb -eq ".") { $out += "$(Fg $ct)▀$reset" }
+        elseif ($ct -eq ".") { $out += "$(Fg $cb)▄$reset" }
+        else { $out += "$(Fg $ct)$(Bg $cb)▀$reset" }
+    }
+    Write-Host "  $out    $($side[[int](($r + 2) / 2)])"
+}
 Write-Host ""
 Top "Installer"
 
