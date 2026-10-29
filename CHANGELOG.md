@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-29
+
 ### Added
 
 - `mpesa` with no command, in a terminal, opens a launcher: the icon, what is configured (environment, keys, callbacks, guardrails; no secrets) and an arrow-key menu of commands. Without a terminal it still prints the help.
@@ -117,7 +119,8 @@ First public release.
   - Rejected keys get a plain explanation instead of a bare `HTTP 400`.
   - `mpesa_stk_query` keeps Safaricom's reply while a payment is processing, and answers from recorded results (including a callback's receipt) when it has them.
 
-[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.2...v0.1.3
