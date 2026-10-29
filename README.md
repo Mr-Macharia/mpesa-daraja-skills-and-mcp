@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src=".claude-plugin/icon.png" alt="M-Pesa Daraja Agent Kit logo" width="120">
-
 <img src="docs/diagrams/banner.svg" alt="M-Pesa Daraja Agent Kit: Agent Skills and an MCP server for Safaricom's Daraja API. You ask your agent to charge a phone number; the customer gets an M-Pesa PIN prompt; the agent reports SUCCESS with the receipt number." width="100%">
 
 <br>
@@ -10,11 +8,15 @@
 [![npm mpesa-daraja](https://img.shields.io/npm/v/mpesa-daraja?label=npm%20mpesa-daraja&color=ff5a14&cacheSeconds=3600)](https://www.npmjs.com/package/mpesa-daraja) [![n8n nodes](https://img.shields.io/npm/v/n8n-nodes-daraja-mpesa?label=n8n%20nodes&color=ff5a14&cacheSeconds=3600)](https://www.npmjs.com/package/n8n-nodes-daraja-mpesa) [![Docs](https://img.shields.io/badge/docs-agent--kit.gichogumacharia.tech-1c1b38)](https://agent-kit.gichogumacharia.tech/)
 [![M8ven Score](https://m8ven.ai/badge/mcp/mr-macharia/mpesa-daraja-skills-and-mcp)](https://m8ven.ai/mcp/mr-macharia/mpesa-daraja-skills-and-mcp?s=readme)
 
+
+<img src=".claude-plugin/icon.png" alt="M-Pesa Daraja Agent Kit logo" width="120">
+
 **M-Pesa Daraja Agent Kit: Agent Skills that teach your agent to use Daraja API, and an MCP server that lets it call Daraja safely.**<br>
 Plus the `mpesa` CLI, a Node library with Vercel AI SDK tools, n8n nodes, and adapters for LangChain, OpenAI Agents, Agno, Google ADK and CrewAI.<br>
 Works with Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, and any agent that supports [Agent Skills](https://agentskills.io) or [MCP](https://modelcontextprotocol.io).
 
 [Website](https://agent-kit.gichogumacharia.tech/) &nbsp;&nbsp;|&nbsp;&nbsp; [Use cases](#use-cases) &nbsp;&nbsp;|&nbsp;&nbsp; [Choose a setup](#three-ways-to-use-it) &nbsp;&nbsp;|&nbsp;&nbsp; [Quick start](#quick-start) &nbsp;&nbsp;|&nbsp;&nbsp; [Safety](#safety) &nbsp;&nbsp;|&nbsp;&nbsp; [Docs](#documentation)
+
 
 </div>
 
