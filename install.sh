@@ -1,6 +1,6 @@
 #!/bin/sh
 # Installs the mpesa-daraja CLI and MCP server (macOS and Linux).
-#   curl -LsSf https://raw.githubusercontent.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/main/install.sh | sh
+#   curl -LsSf https://agent-kit.gichogumacharia.tech/install.sh | sh
 # Set MPESA_DARAJA_VERSION=0.1.5 to pin a version. Installs uv first if it's missing.
 # Set MPESA_NO_INIT=1 to skip the offer to run `mpesa init`. Colour is off when NO_COLOR is set or output isn't a terminal.
 set -eu

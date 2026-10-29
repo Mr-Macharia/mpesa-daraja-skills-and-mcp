@@ -145,11 +145,11 @@ npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp
 Or install the `mpesa` CLI with one line (it installs uv if it's missing):
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/main/install.sh | sh   # macOS, Linux
+curl -LsSf https://agent-kit.gichogumacharia.tech/install.sh | sh   # macOS, Linux
 ```
 
 ```powershell
-irm https://raw.githubusercontent.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/main/install.ps1 | iex   # Windows
+irm https://agent-kit.gichogumacharia.tech/install.ps1 | iex   # Windows
 ```
 
 ```bash

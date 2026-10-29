@@ -1,5 +1,5 @@
 # Installs the mpesa-daraja CLI and MCP server (Windows).
-#   irm https://raw.githubusercontent.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/main/install.ps1 | iex
+#   irm https://agent-kit.gichogumacharia.tech/install.ps1 | iex
 # Set $env:MPESA_DARAJA_VERSION = "0.1.5" to pin a version. Installs uv first if it's missing.
 # Set $env:MPESA_NO_INIT = "1" to skip the offer to run `mpesa init`. Colour is off when NO_COLOR is set.
 $ErrorActionPreference = "Stop"
