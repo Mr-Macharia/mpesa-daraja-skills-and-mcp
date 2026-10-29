@@ -146,3 +146,95 @@ def test_legacy_entry_point_maps_setup_to_init(monkeypatch):
     with pytest.raises(SystemExit) as exit_:
         cli.main(["setup", "--no-register"])
     assert exit_.value.code == 0 and called == [False]
+
+
+def test_no_command_without_a_terminal_prints_help():
+    res = runner.invoke(commands.app, [])
+    assert res.exit_code == 0
+    assert "Usage" in res.output and "init" in res.output
+
+
+def test_launcher_puts_setup_first_until_keys_are_saved():
+    from mpesa_mcp import launcher
+
+    assert launcher.menu(configured=False)[0][0] == "init"
+    assert launcher.menu(configured=True)[0][0] == "status"
+
+
+def test_launcher_status_line_never_shows_secrets(monkeypatch):
+    from mpesa_mcp import launcher
+
+    monkeypatch.setenv("DARAJA_CONSUMER_KEY", "supersecretkey123")
+    monkeypatch.setenv("DARAJA_CONSUMER_SECRET", "supersecretvalue456")
+    monkeypatch.setenv("DARAJA_APPROVAL_THRESHOLD", "1000")
+    line = launcher.status_line().plain
+    assert "keys ✓" in line and "approval" in line
+    assert "supersecret" not in line
+
+
+def test_stk_screen_marks_accepted_as_not_paid_and_shows_the_receipt():
+    from types import SimpleNamespace
+
+    from rich.console import Console
+
+    def show(*args, **kw):
+        c = Console(width=100, record=True)
+        c.print(commands._stk_screen(*args, phone="254708374149", amount=10, **kw))
+        return c.export_text()
+
+    waiting = show(2, 12)
+    assert "accepted is not paid" in waiting and "12s of up to" in waiting
+    paid = SimpleNamespace(status="SUCCESS", receipt="NLJ7RT61SV", explanation=None)
+    assert "NLJ7RT61SV" in show(3, 30, paid) and "Paid / completed" in show(3, 30, paid)
+    rejected = SimpleNamespace(status="FAILED", receipt=None, explanation="Invalid phone")
+    text = show(1, 1, rejected)
+    assert "Invalid phone" in text and "accepted is not paid" not in text
+
+
+def test_dev_screen_waits_then_counts_callbacks():
+    from rich.console import Console
+
+    def show(events):
+        c = Console(width=120, record=True)
+        c.print(commands._dev_screen(("https://x.trycloudflare.com", 8787, True), events))
+        return c.export_text()
+
+    empty = show([])
+    assert "Waiting for callbacks" in empty and "restart your agent" in empty
+    paid = {"kind": "stk", "amount": 10, "receipt": "NLJ7RT61SV"}
+    text = show([("10:00:00", "SUCCESS", "ws_CO_1", paid), ("10:00:05", "FAILED", "ws_CO_2", {"kind": "stk"})])
+    assert "1 success" in text and "1 failed" in text and "NLJ7RT61SV" in text and "Latest · ws_CO_2" in text
+
+
+def test_dev_screen_shows_the_url_a_log_and_the_latest_callback():
+    from rich.console import Console
+
+    c = Console(width=120, record=True)
+    c.print(commands._dev_screen(("https://x.trycloudflare.com", 8787, True), []))
+    empty = c.export_text()
+    assert "x.trycloudflare.com" in empty and "Waiting for callbacks" in empty and "restart your agent" in empty
+    events = [("10:00:00", "SUCCESS", "ws_CO_1", {"kind": "stk", "receipt": "NLJ7RT61SV"}),
+              ("10:00:05", "FAILED", "ws_CO_2", {"kind": "stk", "explanation": "Cancelled by user"})]
+    c.print(commands._dev_screen(("https://x.trycloudflare.com", 8787, False), events))
+    text = c.export_text()
+    assert "1 success" in text and "1 failed" in text and "Latest · ws_CO_2" in text
+
+
+def test_setup_rail_marks_done_current_and_next():
+    from rich.console import Console
+
+    c = Console(width=120, record=True)
+    c.print(commands.setup_rail(2))
+    assert c.export_text().strip() == "● Keys ── ● Check ── ● Save ── ○ Agents ── ○ Done"
+
+
+def test_stk_screen_does_not_tick_the_pin_step_when_the_outcome_is_unknown():
+    from types import SimpleNamespace
+
+    from rich.console import Console
+
+    c = Console(width=100, record=True)
+    unknown = SimpleNamespace(status="UNKNOWN", receipt=None, explanation=None)
+    c.print(commands._stk_screen(3, 90, unknown, phone="254708374149", amount=1))
+    pin_line = next(line for line in c.export_text().splitlines() if "Customer enters PIN" in line)
+    assert "✓" not in pin_line and "no answer in time" in pin_line

@@ -26,11 +26,13 @@ from types import SimpleNamespace
 from typing import Annotated, Any
 
 import typer
-from rich.console import Console
+from rich.console import Console, Group
+from rich.json import JSON
+from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 
-from . import cli, settings
+from . import cli, settings, ui
 
 PACKAGE = "mpesa-daraja-mcp"
 REPO = "Mr-Macharia/mpesa-daraja-skills-and-mcp"
@@ -38,7 +40,7 @@ REPO = "Mr-Macharia/mpesa-daraja-skills-and-mcp"
 app = typer.Typer(
     name="mpesa",
     help="[bold green]M-Pesa Daraja[/] from your terminal: set up, test callbacks, take payments, self-host.",
-    no_args_is_help=True,
+    invoke_without_command=True,
     rich_markup_mode="rich",
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -76,6 +78,7 @@ def _version_callback(value: bool) -> None:
 
 @app.callback()
 def _root(
+    ctx: typer.Context,
     show_version: Annotated[bool, typer.Option("--version", "-V", callback=_version_callback, is_eager=True,
                                                help="Show the version.")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Log each HTTP request to Daraja.")] = False,
@@ -83,6 +86,43 @@ def _root(
     settings.load()
     if not verbose:
         logging.getLogger("httpx").setLevel(logging.WARNING)
+    if ctx.invoked_subcommand is None:
+        # No command: the launcher in a terminal, the help everywhere else (pipes, scripts, CI).
+        if _interactive() and sys.stdout.isatty():
+            _launch(ctx)
+        else:
+            console.print(ctx.get_help())
+        raise typer.Exit()
+
+
+def _launch(ctx: typer.Context) -> None:
+    from . import launcher
+
+    def pay() -> None:
+        phone = launcher.ask_text("Phone to send the prompt to (2547XXXXXXXX or 07…):")
+        amount = phone and launcher.ask_text("Amount in shillings:", "1", lambda v: v.isdigit() and int(v) > 0
+                                             or "Whole shillings, 1 or more")
+        if phone and amount:
+            pay_stk(phone, int(amount))
+
+    def lookup() -> None:
+        if key := launcher.ask_text("Idempotency key or Daraja ID:"):
+            result(key)
+
+    def code() -> None:
+        if value := launcher.ask_text("Result code (e.g. 1032):"):
+            explain(value)
+
+    launcher.run(console, {
+        "init": lambda: init(),
+        "status": lambda: status(),
+        "stk": pay,
+        "dev": lambda: dev(),
+        "result": lookup,
+        "explain": code,
+        "skills": lambda: skills_install(),
+        "help": lambda: console.print(ctx.get_help()),
+    })
 
 
 # --------------------------------------------------------------------------- #
@@ -126,7 +166,9 @@ def _show_outcome(out: Any, as_json: bool) -> None:
     grid.add_row("next", out.message)
     if out.status == "FAILED" and out.idempotency_key:
         grid.add_row("retry", f"run the same command with --key {out.idempotency_key}")
-    console.print(Panel(grid, border_style=style, expand=False))
+    if out.status in ("ACCEPTED", "UNKNOWN") and out.idempotency_key:
+        grid.add_row("check", f"mpesa result {out.idempotency_key}")
+    console.print(ui.panel(grid, title="Result", style=style, width=min(console.width, 100)))
 
 
 def _run_tool(coro, as_json: bool):
@@ -160,12 +202,58 @@ class TerminalApproval:
 # --------------------------------------------------------------------------- #
 
 
+def setup_rail(step: int) -> str:
+    """Progress through setup, e.g. ● Keys ── ● Check ── ○ Save ── ○ Agents ── ○ Done."""
+    parts = []
+    for i, name in enumerate(cli.SETUP_STEPS):
+        if i < step:
+            parts.append(f"[green]●[/] [dim]{name}[/]")
+        elif i == step:
+            parts.append(f"[bold {ui.ORANGE}]● {name}[/]")
+        else:
+            parts.append(f"[dim]○ {name}[/]")
+    return " [dim]──[/] ".join(parts)
+
+
+def _init_wizard(register: bool) -> int:
+    """`mpesa init` in a terminal: the same steps as cli.setup, with styled prompts and a progress rail."""
+    import questionary
+
+    from .launcher import STYLE
+
+    def answer(value: str | None) -> str:
+        if value is None:  # Ctrl+C in a questionary prompt
+            raise KeyboardInterrupt
+        return value
+
+    def ask(question: str) -> str:
+        return answer(questionary.text(question.rstrip(": ").rstrip(), style=STYLE, qmark="›").ask())
+
+    def ask_secret(question: str) -> str:
+        return answer(questionary.password(question.rstrip(": ").rstrip(), style=STYLE, qmark="›").ask())
+
+    def say(text: str) -> None:
+        text = text.replace("✓", "[green]✓[/]").replace("✗", "[red]✗[/]")
+        console.print(text, highlight=False)
+
+    def on_step(step: int) -> None:
+        console.print()
+        console.print(ui.panel(setup_rail(step), title=f"Step {step + 1} of {len(cli.SETUP_STEPS)}"))
+
+    console.print()
+    console.print(ui.banner())
+    return cli.setup(ask=ask, ask_secret=ask_secret, register=register, verify=cli.check_keys, say=say,
+                     on_step=on_step)
+
+
 @app.command(rich_help_panel="Setup")
 def init(
     no_register: Annotated[bool, typer.Option("--no-register", help="Only save the keys.")] = False,
 ) -> None:
     """Guided setup: keys, live check, save, and add the server to your agents."""
     try:
+        if _interactive() and console.is_terminal:
+            raise typer.Exit(_init_wizard(register=not no_register))
         raise typer.Exit(cli.setup(register=not no_register))
     except (KeyboardInterrupt, EOFError):
         err.print("\nCancelled; nothing changed.")
@@ -283,6 +371,35 @@ def _describe(parsed: dict[str, Any]) -> str:
     return " · ".join(bits)
 
 
+def _dev_screen(info: tuple[str, int, bool], events: list[tuple[str, str, str, dict[str, Any]]]) -> Group:
+    """`mpesa dev`: where callbacks go, a live log of them, and the latest one in full."""
+    public, port, changed = info
+    head = Table.grid(padding=(0, 2))
+    head.add_column(style="dim")
+    head.add_column()
+    head.add_row("public URL", f"[bold]{public}[/]")
+    head.add_row("receiver", f"http://127.0.0.1:{port}/cb/<token>/…")
+    head.add_row("saved to", str(settings.user_config_file()))
+    if changed:
+        head.add_row("", "[yellow]The URL changed: restart your agent so its M-Pesa server uses it.[/]")
+    counts = {s: sum(1 for e in events if e[1] == s) for s in ("SUCCESS", "FAILED", "UNKNOWN")}
+    tally = "  ".join(f"[{ui.STATUS_STYLE[s]}]{n} {s.lower()}[/]" for s, n in counts.items())
+    log = Table(box=None, padding=(0, 2), show_header=bool(events), header_style="dim")
+    for col in ("time", "status", "id", "what"):
+        log.add_column(col)
+    for stamp, status_, corr, parsed in events[-12:]:
+        style = STATUS_STYLE.get(status_, "white")
+        log.add_row(f"[dim]{stamp}[/]", f"[{style}]{status_}[/]", corr, _describe(parsed))
+    parts: list[Any] = [ui.panel(head, title="mpesa dev", subtitle="Ctrl+C to stop"),
+                        ui.panel(log if events else "[dim]Waiting for callbacks… send a test payment from another "
+                                 "terminal: mpesa pay stk 2547XXXXXXXX 1[/]",
+                                 title=f"Callbacks · {len(events)}", subtitle=tally if events else "")]
+    if events:
+        latest = JSON(json.dumps(events[-1][3], default=str))
+        parts.append(ui.panel(latest, title=f"Latest · {events[-1][2]}", style="dim"))
+    return Group(*parts)
+
+
 @app.command(rich_help_panel="Run")
 def dev(
     port: Annotated[int, typer.Option(help="Local port for the callback receiver.")] = 8787,
@@ -308,27 +425,20 @@ def dev(
                 tunnel, public = start_tunnel(port)
         changed = current.get("DARAJA_CALLBACK_BASE_URL") != public
         settings.write_user_config({"DARAJA_CALLBACK_BASE_URL": public, "DARAJA_CALLBACK_TOKEN": token})
-        grid = Table.grid(padding=(0, 2))
-        grid.add_column(style="dim")
-        grid.add_column()
-        grid.add_row("public URL", public)
-        grid.add_row("receiver", f"http://127.0.0.1:{port}/cb/<token>/…")
-        grid.add_row("saved to", str(settings.user_config_file()))
-        if changed:
-            grid.add_row("", "[yellow]The URL changed: restart your agent so its M-Pesa server uses it.[/]")
-        console.print(Panel(grid, title="[bold green]mpesa dev[/]", subtitle="Ctrl+C to stop", expand=False))
         last = (store.results_after(0, 10_000) or [(0,)])[-1][0]
-        while True:
-            shown: list[dict[str, Any]] = []
-            for rowid, corr, status_, parsed in store.results_after(last):
-                last = rowid
-                if parsed in shown:  # one callback is stored once per correlation ID
-                    continue
-                shown.append(parsed)
-                style = STATUS_STYLE.get(status_, "white")
-                stamp = time.strftime("%H:%M:%S")
-                console.print(f"[dim]{stamp}[/] [{style}]{status_:<8}[/] {corr}  {_describe(parsed)}")
-            time.sleep(0.5)
+        events: list[tuple[str, str, str, dict[str, Any]]] = []
+        info = (public, port, changed)
+        with Live(_dev_screen(info, events), console=console, refresh_per_second=4) as live:
+            while True:
+                shown: list[dict[str, Any]] = []
+                for rowid, corr, status_, parsed in store.results_after(last):
+                    last = rowid
+                    if parsed in shown:  # one callback is stored once per correlation ID
+                        continue
+                    shown.append(parsed)
+                    events.append((time.strftime("%H:%M:%S"), status_, corr, parsed))
+                live.update(_dev_screen(info, events))
+                time.sleep(0.5)
     except RuntimeError as exc:
         _fail(str(exc))
     except KeyboardInterrupt:
@@ -418,6 +528,58 @@ def up(
 # --------------------------------------------------------------------------- #
 
 
+STK_STAGES = ("Sent to Safaricom", "Accepted by Daraja", "Customer enters PIN", "Result")
+
+
+def _stk_screen(stage: int, elapsed: float, out: Any = None, phone: str = "", amount: int = 0) -> Panel:
+    """The STK Push as four stages that light up as they happen. Stage 1 (accepted) is not paid."""
+    from rich.spinner import Spinner
+
+    from . import server
+
+    grid = Table.grid(padding=(0, 2))
+    grid.add_column(width=2)
+    grid.add_column()
+    grid.add_column(style="dim")
+    for i, label in enumerate(STK_STAGES):
+        note = ""
+        if i == 2 and stage == 3 and out is not None and out.status != "SUCCESS":
+            # Only a success proves the customer finished; otherwise say what is known about the PIN step.
+            mark, note = ("[red]✗[/]", "") if out.status == "FAILED" else ("[magenta]?[/]", "no answer in time")
+        elif i < stage:
+            mark: Any = "[green]✓[/]"
+            note = "accepted is not paid" if i == 1 else ""
+        elif i == stage and out is None:
+            mark = Spinner("dots", style=ui.ORANGE)
+            note = f"{int(elapsed)}s of up to {server.STK_WAIT_DEFAULT_S}s" if i == 2 else ""
+        elif i == stage:
+            style = ui.STATUS_STYLE.get(out.status, "white")
+            mark = {"SUCCESS": "[green]✓[/]", "FAILED": "[red]✗[/]"}.get(out.status, f"[{style}]?[/]")
+            label = f"[bold {style}]{STATUS_NOTE.get(out.status, out.status).capitalize()}[/]"
+            note = out.receipt or out.explanation or ""
+        else:
+            mark, label = "[dim]○[/]", f"[dim]{label}[/]"
+        grid.add_row(mark, label, note)
+    return ui.panel(grid, title=f"STK Push · KES {amount:,} → {phone}", subtitle="Ctrl+C stops waiting, not the payment")
+
+
+async def _stk_live(phone: str, amount: int, reference: str, key: str):
+    from . import server
+
+    started = time.monotonic()
+    task = asyncio.create_task(server.stk_push_and_wait(phone, amount, reference, idempotency_key=key))
+    with Live(_stk_screen(0, 0, phone=phone, amount=amount), console=console, refresh_per_second=10) as live:
+        while not task.done():
+            rec = server.state().get_request(key)
+            stage = 2 if rec and rec.status == "ACCEPTED" else 0
+            live.update(_stk_screen(stage, time.monotonic() - started, phone=phone, amount=amount))
+            await asyncio.sleep(0.1)
+        out = task.result()
+        accepted = bool(out.ids.get("checkout_request_id"))  # Daraja took it; otherwise it stopped at stage 1
+        live.update(_stk_screen(3 if accepted else 1, time.monotonic() - started, out, phone=phone, amount=amount))
+    return out
+
+
 @pay_app.command("stk")
 def pay_stk(
     phone: Annotated[str, typer.Argument(help="Customer phone, e.g. 0712345678.")],
@@ -430,9 +592,11 @@ def pay_stk(
     """Send an STK Push PIN prompt to a customer's phone."""
     from . import server
 
-    if wait:
-        with console.status("Waiting for the customer to enter their PIN…") if not as_json else _nothing():
-            out = _run_tool(server.stk_push_and_wait(phone, amount, reference, idempotency_key=key), as_json)
+    if wait and not as_json and console.is_terminal:
+        key = key or f"cli-stk-{secrets.token_hex(4)}"  # so the screen can follow the request in the store
+        out = _run_tool(_stk_live(phone, amount, reference, key), as_json)
+    elif wait:
+        out = _run_tool(server.stk_push_and_wait(phone, amount, reference, idempotency_key=key), as_json)
     else:
         out = _run_tool(server.stk_push(phone, amount, reference, idempotency_key=key), as_json)
     _show_outcome(out, as_json)

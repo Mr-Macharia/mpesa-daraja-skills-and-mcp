@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-29
+
+### Added
+
+- `mpesa` with no command, in a terminal, opens a launcher: the icon, what is configured (environment, keys, callbacks, guardrails; no secrets) and an arrow-key menu of commands. Without a terminal it still prints the help.
+- `mpesa pay stk` shows the payment as a live screen: sent, accepted by Daraja (marked "accepted is not paid"), waiting for the PIN with a timer, then the result and receipt. `--json` and non-terminal output are unchanged.
+- `mpesa dev` is a live dashboard: the public URL, a callback log with success/failed/unknown totals, and the latest callback in full.
+- `mpesa init` in a terminal is a styled wizard with a progress rail (Keys, Check, Save, Agents, Done) and hidden secret prompts.
+- One look across the CLI and installers: the site's orange (`#e85d04`), the plugin icon drawn in the terminal, and rounded panels.
+
+### Changed
+
+- The one-line installers show the icon, quiet uv output (shown only on failure) and offer to run `mpesa init` (skip with `MPESA_NO_INIT=1`; never asked in CI).
+- New dependency: `questionary` (arrow-key menus and prompts).
+
 ## [0.1.5] - 2026-10-29
 
 ### Added
@@ -104,7 +119,8 @@ First public release.
   - Rejected keys get a plain explanation instead of a bare `HTTP 400`.
   - `mpesa_stk_query` keeps Safaricom's reply while a payment is processing, and answers from recorded results (including a callback's receipt) when it has them.
 
-[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.2...v0.1.3
