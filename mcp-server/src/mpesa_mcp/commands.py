@@ -26,7 +26,9 @@ from types import SimpleNamespace
 from typing import Annotated, Any
 
 import typer
-from rich.console import Console
+from rich.console import Console, Group
+from rich.json import JSON
+from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 
@@ -321,6 +323,35 @@ def _describe(parsed: dict[str, Any]) -> str:
     return " · ".join(bits)
 
 
+def _dev_screen(info: tuple[str, int, bool], events: list[tuple[str, str, str, dict[str, Any]]]) -> Group:
+    """`mpesa dev`: where callbacks go, a live log of them, and the latest one in full."""
+    public, port, changed = info
+    head = Table.grid(padding=(0, 2))
+    head.add_column(style="dim")
+    head.add_column()
+    head.add_row("public URL", f"[bold]{public}[/]")
+    head.add_row("receiver", f"http://127.0.0.1:{port}/cb/<token>/…")
+    head.add_row("saved to", str(settings.user_config_file()))
+    if changed:
+        head.add_row("", "[yellow]The URL changed: restart your agent so its M-Pesa server uses it.[/]")
+    counts = {s: sum(1 for e in events if e[1] == s) for s in ("SUCCESS", "FAILED", "UNKNOWN")}
+    tally = "  ".join(f"[{ui.STATUS_STYLE[s]}]{n} {s.lower()}[/]" for s, n in counts.items())
+    log = Table(box=None, padding=(0, 2), show_header=bool(events), header_style="dim")
+    for col in ("time", "status", "id", "what"):
+        log.add_column(col)
+    for stamp, status_, corr, parsed in events[-12:]:
+        style = STATUS_STYLE.get(status_, "white")
+        log.add_row(f"[dim]{stamp}[/]", f"[{style}]{status_}[/]", corr, _describe(parsed))
+    parts: list[Any] = [ui.panel(head, title="mpesa dev", subtitle="Ctrl+C to stop"),
+                        ui.panel(log if events else "[dim]Waiting for callbacks… send a test payment from another "
+                                 "terminal: mpesa pay stk 2547XXXXXXXX 1[/]",
+                                 title=f"Callbacks · {len(events)}", subtitle=tally if events else "")]
+    if events:
+        latest = JSON(json.dumps(events[-1][3], default=str))
+        parts.append(ui.panel(latest, title=f"Latest · {events[-1][2]}", style="dim"))
+    return Group(*parts)
+
+
 @app.command(rich_help_panel="Run")
 def dev(
     port: Annotated[int, typer.Option(help="Local port for the callback receiver.")] = 8787,
@@ -346,27 +377,20 @@ def dev(
                 tunnel, public = start_tunnel(port)
         changed = current.get("DARAJA_CALLBACK_BASE_URL") != public
         settings.write_user_config({"DARAJA_CALLBACK_BASE_URL": public, "DARAJA_CALLBACK_TOKEN": token})
-        grid = Table.grid(padding=(0, 2))
-        grid.add_column(style="dim")
-        grid.add_column()
-        grid.add_row("public URL", public)
-        grid.add_row("receiver", f"http://127.0.0.1:{port}/cb/<token>/…")
-        grid.add_row("saved to", str(settings.user_config_file()))
-        if changed:
-            grid.add_row("", "[yellow]The URL changed: restart your agent so its M-Pesa server uses it.[/]")
-        console.print(Panel(grid, title="[bold green]mpesa dev[/]", subtitle="Ctrl+C to stop", expand=False))
         last = (store.results_after(0, 10_000) or [(0,)])[-1][0]
-        while True:
-            shown: list[dict[str, Any]] = []
-            for rowid, corr, status_, parsed in store.results_after(last):
-                last = rowid
-                if parsed in shown:  # one callback is stored once per correlation ID
-                    continue
-                shown.append(parsed)
-                style = STATUS_STYLE.get(status_, "white")
-                stamp = time.strftime("%H:%M:%S")
-                console.print(f"[dim]{stamp}[/] [{style}]{status_:<8}[/] {corr}  {_describe(parsed)}")
-            time.sleep(0.5)
+        events: list[tuple[str, str, str, dict[str, Any]]] = []
+        info = (public, port, changed)
+        with Live(_dev_screen(info, events), console=console, refresh_per_second=4) as live:
+            while True:
+                shown: list[dict[str, Any]] = []
+                for rowid, corr, status_, parsed in store.results_after(last):
+                    last = rowid
+                    if parsed in shown:  # one callback is stored once per correlation ID
+                        continue
+                    shown.append(parsed)
+                    events.append((time.strftime("%H:%M:%S"), status_, corr, parsed))
+                live.update(_dev_screen(info, events))
+                time.sleep(0.5)
     except RuntimeError as exc:
         _fail(str(exc))
     except KeyboardInterrupt:
@@ -489,8 +513,6 @@ def _stk_screen(stage: int, elapsed: float, out: Any = None, phone: str = "", am
 
 
 async def _stk_live(phone: str, amount: int, reference: str, key: str):
-    from rich.live import Live
-
     from . import server
 
     started = time.monotonic()

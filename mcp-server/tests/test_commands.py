@@ -189,3 +189,32 @@ def test_stk_screen_marks_accepted_as_not_paid_and_shows_the_receipt():
     rejected = SimpleNamespace(status="FAILED", receipt=None, explanation="Invalid phone")
     text = show(1, 1, rejected)
     assert "Invalid phone" in text and "accepted is not paid" not in text
+
+
+def test_dev_screen_waits_then_counts_callbacks():
+    from rich.console import Console
+
+    def show(events):
+        c = Console(width=120, record=True)
+        c.print(commands._dev_screen(("https://x.trycloudflare.com", 8787, True), events))
+        return c.export_text()
+
+    empty = show([])
+    assert "Waiting for callbacks" in empty and "restart your agent" in empty
+    paid = {"kind": "stk", "amount": 10, "receipt": "NLJ7RT61SV"}
+    text = show([("10:00:00", "SUCCESS", "ws_CO_1", paid), ("10:00:05", "FAILED", "ws_CO_2", {"kind": "stk"})])
+    assert "1 success" in text and "1 failed" in text and "NLJ7RT61SV" in text and "Latest · ws_CO_2" in text
+
+
+def test_dev_screen_shows_the_url_a_log_and_the_latest_callback():
+    from rich.console import Console
+
+    c = Console(width=120, record=True)
+    c.print(commands._dev_screen(("https://x.trycloudflare.com", 8787, True), []))
+    empty = c.export_text()
+    assert "x.trycloudflare.com" in empty and "Waiting for callbacks" in empty and "restart your agent" in empty
+    events = [("10:00:00", "SUCCESS", "ws_CO_1", {"kind": "stk", "receipt": "NLJ7RT61SV"}),
+              ("10:00:05", "FAILED", "ws_CO_2", {"kind": "stk", "explanation": "Cancelled by user"})]
+    c.print(commands._dev_screen(("https://x.trycloudflare.com", 8787, False), events))
+    text = c.export_text()
+    assert "1 success" in text and "1 failed" in text and "Latest · ws_CO_2" in text
