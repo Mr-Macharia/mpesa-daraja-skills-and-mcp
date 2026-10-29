@@ -1,7 +1,7 @@
 [project]
 name = "mpesa-daraja-mcp"
-version = "0.1.4"
-description = "MCP server for Safaricom M-Pesa Daraja: STK Push, C2B, B2C, B2B, status, balance, reversal, QR, Ratiba, Bill Manager"
+version = "0.1.5"
+description = "M-Pesa Daraja toolkit: MCP server and `mpesa` CLI for STK Push, C2B, B2C, B2B, status, balance, reversal, QR, Ratiba, Bill Manager"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -20,7 +20,7 @@ classifiers = [
   "Topic :: Office/Business :: Financial",
   "Topic :: Software Development :: Libraries",
 ]
-dependencies = ["mcp>=2.3,<3", "httpx>=0.27", "cryptography>=42"]
+dependencies = ["mcp>=2.3,<3", "httpx>=0.27", "cryptography>=42", "typer>=0.12", "rich>=13"]
 
 [project.urls]
 Homepage = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp"
@@ -30,11 +30,22 @@ Changelog = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/mai
 Documentation = "https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md"
 
 [project.optional-dependencies]
+langchain = ["langchain-core>=0.3"]
+openai-agents = ["openai-agents>=0.2"]
+agno = ["agno>=2"]
+google-adk = ["google-adk>=1.10"]
+# CrewAI 1.7 and later pin mcp<2, so pip picks 1.6.x next to this package.
+crewai = ["crewai>=1.6"]
+# All five adapters, for the frameworks CI job.
+frameworks = ["mpesa-daraja-mcp[langchain,openai-agents,agno,google-adk,crewai]"]
 dev = ["pytest>=8", "pytest-asyncio>=0.23", "respx>=0.21", "pyyaml>=6", "jsonschema>=4", "tomli>=2; python_version < '3.11'"]
 
 [project.scripts]
-# uvx runs the script named like the package; mpesa-mcp is kept for existing configs.
+# `mpesa` is the CLI. uvx runs the script named like the package, which starts the server when given
+# no arguments. mpesa-daraja and mpesa-mcp are aliases kept for existing configs.
+mpesa = "mpesa_mcp.commands:main"
 mpesa-daraja-mcp = "mpesa_mcp.cli:entry"
+mpesa-daraja = "mpesa_mcp.cli:entry"
 mpesa-mcp = "mpesa_mcp.cli:entry"
 
 [build-system]

@@ -91,7 +91,7 @@ npx skills add \
 <td>
 
 ```bash
-uvx mpesa-daraja-mcp setup
+uvx mpesa-daraja-mcp init
 ```
 
 </td>
@@ -115,7 +115,7 @@ Install the M-Pesa Daraja Agent Kit for me:
    (agent ids: claude-code, codex, cursor, github-copilot, gemini-cli). Use -g if I want them in every project.
 2. Add the MCP server to yourself, named "mpesa", with the command: uvx mpesa-daraja-mcp
    It needs no keys in your config. If uv is missing, tell me how to install it first.
-3. Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja-mcp setup` in my own terminal,
+3. Don't ask me for my Daraja keys. Tell me to run `uvx mpesa-daraja-mcp init` in my own terminal,
    which saves them privately, then to restart you.
 4. After I restart you, call mpesa_check_credentials and tell me if everything works.
 ```
@@ -124,13 +124,13 @@ Your agent installs both halves; you only type your Daraja keys into the setup w
 
 ### Claude Code: one plugin for both
 
-The plugin installs all 15 skills and the MCP server in one step. The server runs through [uv](https://docs.astral.sh/uv/), so install that first, and make sure `uvx` is on the PATH Claude Code sees:
+The plugin installs all 22 skills and the MCP server in one step. The server runs through [uv](https://docs.astral.sh/uv/), so install that first, and make sure `uvx` is on the PATH Claude Code sees:
 
 ```text
 /plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp
 ```
 
-Then run `uvx mpesa-daraja-mcp setup` once in a terminal to save your Daraja keys. When it offers to add the server to Claude Code, answer **n**: the plugin already did. Restart Claude Code.
+Then run `uvx mpesa-daraja-mcp init` once in a terminal to save your Daraja keys. When it offers to add the server to Claude Code, answer **n**: the plugin already did. Restart Claude Code.
 
 ### Or install it yourself
 
@@ -142,8 +142,18 @@ npx skills add Mr-Macharia/mpesa-daraja-skills-and-mcp
 
 **2. Install the MCP server.** Needs [uv](https://docs.astral.sh/uv/).
 
+Or install the `mpesa` CLI with one line (it installs uv if it's missing):
+
 ```bash
-uvx mpesa-daraja-mcp setup
+curl -LsSf https://raw.githubusercontent.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/main/install.sh | sh   # macOS, Linux
+```
+
+```powershell
+irm https://raw.githubusercontent.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/main/install.ps1 | iex   # Windows
+```
+
+```bash
+uvx mpesa-daraja-mcp init
 ```
 
 The wizard asks for your [Daraja](https://developer.safaricom.co.ke/) keys (secrets are typed hidden), checks them live with Safaricom, saves them to a file only you can read, and registers the server with Claude Code, Codex, Gemini CLI or Cursor. Restart your agent when it's done.
@@ -161,7 +171,7 @@ No keys go in these commands; the server reads them from its config file.
 | Gemini CLI | `gemini mcp add --scope user mpesa uvx mpesa-daraja-mcp` |
 | Cursor, VS Code, others | JSON snippets in [docs/clients.md](docs/clients.md#2-mcp-server) |
 
-Then run `uvx mpesa-daraja-mcp setup` to save your keys, or write the config file yourself as described in [docs/clients.md](docs/clients.md).
+Then run `uvx mpesa-daraja-mcp init` to save your keys, or write the config file yourself as described in [docs/clients.md](docs/clients.md).
 </details>
 
 ### Try it
@@ -192,9 +202,13 @@ M-Pesa Daraja Agent Kit makes M-Pesa payment handling and integration easier for
 
 ## What's inside
 
-**[15 Agent Skills](skills).** Every major Daraja API, plus helper skills for callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Each skill bundles tested scripts that validate requests, build STK passwords, encrypt credentials and parse callbacks, so the agent runs known-good code instead of improvising.
+**[22 Agent Skills](skills).** Use-case recipes (checkout, payouts, Paybill collections, recurring billing, an agent that sells), a payment-design skill (ledger, refunds, reconciliation, go-live), a sandbox tutor with a build-your-own-gateway track, every major Daraja API, plus helper skills for callbacks, sandbox setup and go-live, credentials and security, and troubleshooting. Each skill bundles tested scripts that validate requests, build STK passwords, encrypt credentials and parse callbacks, so the agent runs known-good code instead of improvising.
 
 **[The MCP server](mcp-server), [`mpesa-daraja-mcp`](https://pypi.org/project/mpesa-daraja-mcp/).** 24 `mpesa_*` tools. `mpesa_stk_push_and_wait` returns a payment's final outcome in one call, and an optional built-in callback receiver records results for `mpesa_get_result`.
+
+**[The Node library](node/packages/mpesa-daraja), [`mpesa-daraja`](https://www.npmjs.com/package/mpesa-daraja) on npm.** The same Daraja calls, validation, idempotency and guardrails for Node apps, plus tools for the Vercel AI SDK. It passes the same [shared fixtures](shared/fixtures) as the Python package.
+
+**[n8n nodes](node/packages/n8n-nodes-daraja-mpesa), [`n8n-nodes-daraja-mpesa`](https://www.npmjs.com/package/n8n-nodes-daraja-mpesa) on npm.** An M-Pesa Daraja node for STK Push, payouts and status checks, and an M-Pesa Trigger that starts a workflow on each callback. For n8n workflows without an AI agent.
 
 **Load only what you need.** Every tool the server offers takes up space in your agent's context, even when it's never called. Set `DARAJA_TOOLSETS` to the groups you use, and the agent sees only those tools. For example, `DARAJA_TOOLSETS=stk` for a shop that only takes STK payments, or `stk,payouts` if it also pays people. The groups are `stk`, `c2b`, `payouts`, `ops`, `qr`, `ratiba` and `billmanager`; the basic tools (`core`) are always on. Leave it unset to load everything.
 
@@ -223,6 +237,7 @@ Offline tools also explain result codes, normalise phone numbers, build STK pass
 | Risk | Safeguard |
 |---|---|
 | Moving real money by accident | Sandbox by default. In production, money tools refuse to run until `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true`, and they're flagged as destructive so clients ask first |
+| An agent paying out too much, or to the wrong person | Optional: `DARAJA_APPROVAL_THRESHOLD` asks you to approve larger payouts in the chat, `DARAJA_ALLOWED_RECIPIENTS` limits who can be paid, and `DARAJA_READ_ONLY=true` removes money tools entirely |
 | Paying twice on a retry | Each money request is stored under an idempotency key. Repeating the key returns the stored outcome; only a definite failure can be re-sent |
 | Reporting "accepted" as "paid" | Only a callback or a status query can produce `SUCCESS` |
 | Malformed requests | Bodies are checked against Daraja's rules before sending, using the same validator as the skills |
@@ -261,6 +276,9 @@ Run <code>uvx mpesa-daraja-mcp status</code>. It lists missing settings and re-t
 | Read | For |
 |---|---|
 | [docs/clients.md](docs/clients.md) | Setup for each agent: skills folders, MCP config, config files |
+| [docs/agent-frameworks.md](docs/agent-frameworks.md) | The same tools in LangChain, the OpenAI Agents SDK, Agno, Google ADK, CrewAI, the Vercel AI SDK or your own agent, without the MCP server |
+| [node/packages/mpesa-daraja](node/packages/mpesa-daraja) | The Node library: client, callbacks, guardrails and agent tools |
+| [node/packages/n8n-nodes-daraja-mpesa](node/packages/n8n-nodes-daraja-mpesa) | n8n community nodes and the M-Pesa Trigger |
 | [mcp-server/README.md](mcp-server/README.md) | Every tool and setting, the callback receiver, toolsets |
 | [skills/README.md](skills/README.md) | The skill catalogue, and why each skill is built the way it is |
 | [docs/](docs/README.md) | How Daraja works: transaction types, callbacks, OAuth, credentials, sandbox |

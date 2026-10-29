@@ -17,7 +17,7 @@ import logging
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import helpers
+from . import forward, helpers
 from .store import FAILED, SUCCESS, UNKNOWN, Store
 
 log = logging.getLogger("mpesa_mcp.receiver")
@@ -47,6 +47,12 @@ def record_callback(store: Store, path: str, payload: dict) -> dict:
         status = SUCCESS if parsed.get("success") else FAILED
     parsed["callback_path"] = path
     store.add_result(helpers.correlation_ids(parsed), status, parsed)
+    try:
+        forwarder = forward.from_env()
+        if forwarder:
+            forwarder.submit({"path": path, "status": status, "parsed": parsed, "raw": payload})
+    except RuntimeError as exc:  # misconfigured forwarding must not cost Safaricom its acknowledgement
+        log.error("not forwarding: %s", exc)
     return parsed
 
 
@@ -79,7 +85,7 @@ class CallbackReceiver:
                 self.wfile.write(body)
 
             def log_message(self, fmt, *args):  # keep stdout clean: it carries the MCP stdio stream
-                log.info("callback %s", fmt % args)
+                log.info("callback %s", (fmt % args).replace(receiver.token, "<token>"))
 
         self._httpd = ThreadingHTTPServer((host, port), Handler)
         self.port = self._httpd.server_address[1]

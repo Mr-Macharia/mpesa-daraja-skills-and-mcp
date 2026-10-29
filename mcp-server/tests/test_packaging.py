@@ -72,3 +72,4 @@ def test_claude_plugin_version_and_server_agree():
     assert (root / "icon.png").is_file()
     skill_dirs = {f"./skills/{p.parent.name}" for p in (HERE.parent / "skills").glob("*/SKILL.md")}
     assert set(plugin["skills"]) == skill_dirs, "plugin.json must list every skill"
+

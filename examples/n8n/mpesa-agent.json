@@ -1,0 +1,56 @@
+{
+  "name": "M-Pesa agent (MCP)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "8a1f0c52-0000-4000-8000-000000000001",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "webhookId": "mpesa-agent-chat"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You help with M-Pesa payments through the mpesa tools. status ACCEPTED means Safaricom accepted the request, not that it is paid: only SUCCESS from mpesa_get_result or mpesa_stk_push_and_wait is paid. Never resend a payout whose outcome is ACCEPTED or UNKNOWN; check mpesa_get_result first and reuse the same idempotency_key. Phones are 2547XXXXXXXX, amounts whole shillings."
+        }
+      },
+      "id": "8a1f0c52-0000-4000-8000-000000000002",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4o-mini" },
+        "options": {}
+      },
+      "id": "8a1f0c52-0000-4000-8000-000000000003",
+      "name": "Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [160, 220]
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://mpesa.example.com/mcp",
+        "serverTransport": "httpStreamable",
+        "authentication": "bearerAuth",
+        "include": "all"
+      },
+      "id": "8a1f0c52-0000-4000-8000-000000000004",
+      "name": "M-Pesa MCP",
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [400, 220]
+    }
+  ],
+  "connections": {
+    "When chat message received": { "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]] },
+    "Chat Model": { "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]] },
+    "M-Pesa MCP": { "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]] }
+  },
+  "settings": {}
+}

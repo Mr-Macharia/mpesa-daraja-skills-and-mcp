@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Skills and an MCP server for Safaricom's M-Pesa Daraja API",
-    "version": "0.1.4"
+    "version": "0.1.5"
   },
   "plugins": [
     {
       "name": "mpesa-daraja-skills",
-      "description": "M-Pesa Daraja Agent Kit: 15 skills (STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja-mcp server. Sandbox by default.",
+      "description": "M-Pesa Daraja Agent Kit: 22 skills (use-case recipes, payment design, a sandbox tutor, STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja server. Sandbox by default.",
       "source": "./",
-      "version": "0.1.4"
+      "version": "0.1.5"
     }
   ]
 }

@@ -1,0 +1,59 @@
+{
+  "name": "mpesa-daraja",
+  "version": "0.1.0",
+  "description": "Safaricom M-Pesa Daraja client for Node: STK Push, B2C, B2B, status, reversal and callbacks, with validation, idempotency and payout guardrails. Includes Vercel AI SDK tools.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./ai": {
+      "types": "./dist/ai.d.ts",
+      "default": "./dist/ai.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "mpesa",
+    "m-pesa",
+    "daraja",
+    "safaricom",
+    "stk-push",
+    "payments",
+    "kenya",
+    "ai-sdk",
+    "agents"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp.git",
+    "directory": "node/packages/mpesa-daraja"
+  },
+  "peerDependencies": {
+    "ai": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "ai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "ai": "^5.0.0",
+    "typescript": "^5.9.0"
+  }
+}

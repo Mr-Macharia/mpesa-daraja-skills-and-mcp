@@ -423,3 +423,130 @@ async def test_bill_manager_optin_and_cancel(daraja):
     cancel = daraja.post("/v1/billmanager-invoice/cancel-single-invoice").respond(200, json={"rescode": "200"})
     await server.bill_manager_cancel_invoice("INV-1")
     assert body(cancel) == {"externalReference": "INV-1"}
+
+
+# ------------------------------------------------------------------ guardrails
+
+B2C_ACK = {"ConversationID": "AG_1", "OriginatorConversationID": "oc1", "ResponseCode": "0"}
+
+
+class FakeCtx:
+    """Stands in for the MCP Context: records prompts and answers with a canned elicitation result."""
+
+    def __init__(self, answer=None, supports=True):
+        from types import SimpleNamespace
+
+        self.answer, self.prompts = answer, []
+        self.request_context = SimpleNamespace(session=SimpleNamespace(check_client_capability=lambda _: supports))
+
+    async def elicit(self, message, schema):
+        self.prompts.append(message)
+        return self.answer
+
+
+def accepted(approve=True):
+    from mcp.server.elicitation import AcceptedElicitation
+
+    return AcceptedElicitation(data=server.Approval(approve=approve))
+
+
+async def test_read_only_hides_tools_that_move_money_or_write(monkeypatch):
+    names = {t.name for t in await server.create_server(read_only=True).list_tools()}
+    assert {"mpesa_get_result", "mpesa_stk_query", "mpesa_transaction_status", "mpesa_explain_code"} <= names
+    assert not names & {"mpesa_stk_push", "mpesa_b2c_payment", "mpesa_reverse_transaction",
+                        "mpesa_c2b_simulate", "mpesa_bill_manager_send_invoice"}
+    monkeypatch.setenv("DARAJA_READ_ONLY", "true")
+    assert "mpesa_b2c_payment" not in {t.name for t in await server.create_server().list_tools()}
+
+
+async def test_read_only_refuses_direct_calls(daraja, monkeypatch):
+    monkeypatch.setenv("DARAJA_READ_ONLY", "1")
+    with pytest.raises(PermissionError, match="READ_ONLY"):
+        await server.stk_push("0712345678", 1, "ref")
+
+
+async def test_payout_under_threshold_needs_no_prompt(daraja, monkeypatch):
+    monkeypatch.setenv("DARAJA_APPROVAL_THRESHOLD", "1000")
+    daraja.post("/mpesa/b2c/v3/paymentrequest").respond(200, json=B2C_ACK)
+    ctx = FakeCtx(answer=accepted(False))
+    out = await server.b2c_payment("0712345678", 1000, "r", "k1", ctx=ctx)
+    assert out.status == "ACCEPTED" and ctx.prompts == []
+
+
+async def test_payout_over_threshold_sent_when_approved(daraja, monkeypatch):
+    monkeypatch.setenv("DARAJA_APPROVAL_THRESHOLD", "1000")
+    route = daraja.post("/mpesa/b2c/v3/paymentrequest").respond(200, json=B2C_ACK)
+    ctx = FakeCtx(answer=accepted(True))
+    out = await server.b2c_payment("0712345678", 5000, "r", "k1", refund_of="NLJ7RT61SV", ctx=ctx)
+    assert out.status == "ACCEPTED" and route.called
+    assert "Refund of NLJ7RT61SV: KES 5,000 to 254712345678" in ctx.prompts[0]
+    assert body(route)["Remarks"].startswith("Refund NLJ7RT61SV")
+    # A repeat with the same key returns the stored request without asking again.
+    again = await server.b2c_payment("0712345678", 5000, "r", "k1", ctx=ctx)
+    assert again.duplicate and len(ctx.prompts) == 1
+
+
+@pytest.mark.parametrize("answer", ["declined", "cancelled", "no"])
+async def test_payout_over_threshold_not_sent_unless_approved(daraja, monkeypatch, answer):
+    from mcp.server.elicitation import CancelledElicitation, DeclinedElicitation
+
+    monkeypatch.setenv("DARAJA_APPROVAL_THRESHOLD", "1000")
+    route = daraja.post("/mpesa/reversal/v1/request").respond(200, json=B2C_ACK)
+    result = {"declined": DeclinedElicitation(), "cancelled": CancelledElicitation(), "no": accepted(False)}[answer]
+    with pytest.raises(PermissionError, match="not approved"):
+        await server.reverse_transaction("NLJ7RT61SV", 5000, "duplicate charge", ctx=FakeCtx(answer=result))
+    assert not route.called
+
+
+async def test_payout_over_threshold_refused_without_elicitation(daraja, monkeypatch):
+    monkeypatch.setenv("DARAJA_APPROVAL_THRESHOLD", "1000")
+    route = daraja.post("/mpesa/b2b/v1/paymentrequest").respond(200, json=B2C_ACK)
+    for ctx in (None, FakeCtx(supports=False)):
+        with pytest.raises(PermissionError, match="cannot show approval prompts"):
+            await server.b2b_payment("600000", 5000, "inv-1", idempotency_key="b1", ctx=ctx)
+    assert not route.called
+
+
+async def test_collections_never_prompt(daraja, monkeypatch):
+    monkeypatch.setenv("DARAJA_APPROVAL_THRESHOLD", "1")
+    daraja.post("/mpesa/stkpush/v1/processrequest").respond(200, json=STK_ACK)
+    assert (await server.stk_push("0712345678", 5000, "order-1")).status == "ACCEPTED"
+
+
+async def test_allowlist_limits_payout_recipients(daraja, monkeypatch):
+    monkeypatch.setenv("DARAJA_ALLOWED_RECIPIENTS", "0712345678, 600000")
+    daraja.post("/mpesa/b2c/v3/paymentrequest").respond(200, json=B2C_ACK)
+    daraja.post("/mpesa/b2b/v1/paymentrequest").respond(200, json=B2C_ACK)
+    assert (await server.b2c_payment("+254712345678", 100, "r", "a1")).status == "ACCEPTED"
+    assert (await server.b2b_payment("600000", 100, "inv", idempotency_key="a2")).status == "ACCEPTED"
+    with pytest.raises(PermissionError, match="DARAJA_ALLOWED_RECIPIENTS"):
+        await server.b2c_payment("0799999999", 100, "r", "a3")
+    with pytest.raises(PermissionError, match="DARAJA_ALLOWED_RECIPIENTS"):
+        await server.b2b_payment("600111", 100, "inv", idempotency_key="a4")
+
+
+def test_bad_threshold_is_explained(monkeypatch):
+    monkeypatch.setenv("DARAJA_APPROVAL_THRESHOLD", "5k")
+    with pytest.raises(ValueError, match="whole shillings"):
+        server.approval_threshold()
+
+
+async def test_context_is_not_in_tool_schemas():
+    tools = {t.name: t for t in await server.server.list_tools()}
+    for name in ("mpesa_b2c_payment", "mpesa_b2b_payment", "mpesa_reverse_transaction"):
+        assert "ctx" not in tools[name].input_schema["properties"]
+
+
+def test_receiver_log_hides_the_path_token(caplog):
+    import logging
+    import urllib.request
+
+    rcv = CallbackReceiver(Store(":memory:"), TOKEN, "127.0.0.1", 0).start()
+    try:
+        with caplog.at_level(logging.INFO, logger="mpesa_mcp.receiver"):
+            req = urllib.request.Request(f"http://127.0.0.1:{rcv.port}/cb/{TOKEN}/mpesa/stk/callback",
+                                         data=json.dumps(stk_callback()).encode(), method="POST")
+            urllib.request.urlopen(req, timeout=5).read()
+    finally:
+        rcv.stop()
+    assert "<token>" in caplog.text and TOKEN not in caplog.text

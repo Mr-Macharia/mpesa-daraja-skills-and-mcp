@@ -1,13 +1,11 @@
-"""Command line: run the MCP server (default), or `setup` / `status` for humans.
+"""Setup, status and agent registration, shared by the `mpesa` CLI (commands.py).
 
     mpesa-daraja-mcp            start the MCP server on stdio (what MCP clients run)
-    mpesa-daraja-mcp setup      guided setup: keys, live check, save, register with agents
-    mpesa-daraja-mcp status     show what is configured (values masked) and test the keys
+    mpesa-daraja-mcp <command>  the same as `mpesa <command>`
 """
 
 from __future__ import annotations
 
-import argparse
 import asyncio
 import getpass
 import json
@@ -290,7 +288,7 @@ def status(verify: Callable[[str, str, str], tuple[bool, str]] = check_keys) -> 
         print(f"  {label:<32}{shown}{source}")
     key, secret = os.environ.get("DARAJA_CONSUMER_KEY", ""), os.environ.get("DARAJA_CONSUMER_SECRET", "")
     if not (key and secret):
-        print("\n✗ Not configured. Run: mpesa-daraja-mcp setup")
+        print("\n✗ Not configured. Run: mpesa init")
         return 1
     ok, message = verify(os.environ.get("DARAJA_ENV", "sandbox").strip().lower() or "sandbox", key, secret)
     print(f"\n{'✓' if ok else '✗'} {message}")
@@ -298,24 +296,18 @@ def status(verify: Callable[[str, str, str], tuple[bool, str]] = check_keys) -> 
 
 
 def main(argv: list[str] | None = None) -> int | None:
-    parser = argparse.ArgumentParser(prog="mpesa-daraja-mcp", description="M-Pesa Daraja MCP server")
-    sub = parser.add_subparsers(dest="command")
-    p_setup = sub.add_parser("setup", help="guided setup: keys, live check, save, register with agents")
-    p_setup.add_argument("--no-register", action="store_true", help="only save the keys")
-    sub.add_parser("status", help="show configuration (masked) and test the keys")
-    args = parser.parse_args(argv)
-    if args.command == "setup":
-        try:
-            return setup(register=not args.no_register)
-        except (KeyboardInterrupt, EOFError):
-            print("\nCancelled; nothing changed.")
-            return 1
-    if args.command == "status":
-        return status()
-    from .server import main as serve
+    """No arguments: run the stdio server (what MCP clients do). Otherwise the `mpesa` commands."""
+    argv = sys.argv[1:] if argv is None else argv
+    if not argv:
+        from .server import main as serve
 
-    serve()
-    return None
+        serve()
+        return None
+    if argv[0] == "setup":  # the 0.1.4 name of `init`
+        argv = ["init", *argv[1:]]
+    from .commands import app
+
+    return app(argv, prog_name="mpesa")  # click prints usage errors and exits with their code
 
 
 def entry() -> None:

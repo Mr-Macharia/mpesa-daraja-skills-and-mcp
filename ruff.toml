@@ -13,6 +13,9 @@ select = ["E", "F", "W", "I", "B", "UP"]
 "mcp-server/src/mpesa_mcp/helpers.py" = ["E501"]
 # SVG markup and diagram specs read best one element per line.
 "docs/diagrams/build.py" = ["E501"]
+# Typer options (one per line) and test-file fixtures read best unwrapped.
+"mcp-server/src/mpesa_mcp/commands.py" = ["E501"]
+"mcp-server/tests/*.py" = ["E501", "F811"]
 
 [lint.isort]
 known-first-party = ["mpesa_mcp"]

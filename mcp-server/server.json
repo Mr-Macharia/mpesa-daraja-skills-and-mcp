@@ -8,12 +8,12 @@
     "source": "github",
     "subfolder": "mcp-server"
   },
-  "version": "0.1.4",
+  "version": "0.1.5",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "mpesa-daraja-mcp",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
@@ -86,6 +86,24 @@
           "isSecret": false
         },
         {
+          "name": "DARAJA_READ_ONLY",
+          "description": "true hides every tool that moves money or writes",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_APPROVAL_THRESHOLD",
+          "description": "Payouts above this many shillings need approval in the chat",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_ALLOWED_RECIPIENTS",
+          "description": "Comma list of phones/shortcodes that payouts may go to",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
           "name": "DARAJA_ALLOW_LIVE_MONEY_MOVEMENT",
           "description": "true to allow production charges and payouts",
           "isRequired": false,
@@ -126,6 +144,36 @@
           "description": "Path of a .env file to load instead of the project one",
           "isRequired": false,
           "isSecret": false
+        },
+        {
+          "name": "DARAJA_MCP_TOKEN",
+          "description": "Bearer token for HTTP mode (32+ random characters)",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "DARAJA_MCP_HOST",
+          "description": "HTTP mode bind address (default 127.0.0.1)",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_MCP_PORT",
+          "description": "HTTP mode port (default 8000)",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_FORWARD_URL",
+          "description": "Your app's URL: every callback is POSTed on to it, HMAC-signed",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "DARAJA_FORWARD_SECRET",
+          "description": "HMAC secret for forwarded callbacks (16+ characters)",
+          "isRequired": false,
+          "isSecret": true
         }
       ]
     }

@@ -1,0 +1,55 @@
+{
+  "_doc": "validate_amount: whole shillings at or above the minimum; returns the integer.",
+  "cases": [
+    {
+      "amount": 1,
+      "minimum": 1,
+      "ok": 1
+    },
+    {
+      "amount": 10,
+      "minimum": 1,
+      "ok": 10
+    },
+    {
+      "amount": "10",
+      "minimum": 1,
+      "ok": 10
+    },
+    {
+      "amount": 10.0,
+      "minimum": 1,
+      "ok": 10
+    },
+    {
+      "amount": 1.5,
+      "minimum": 1,
+      "error": true
+    },
+    {
+      "amount": 0,
+      "minimum": 1,
+      "error": true
+    },
+    {
+      "amount": -5,
+      "minimum": 1,
+      "error": true
+    },
+    {
+      "amount": "abc",
+      "minimum": 1,
+      "error": true
+    },
+    {
+      "amount": 9,
+      "minimum": 10,
+      "error": true
+    },
+    {
+      "amount": 10,
+      "minimum": 10,
+      "ok": 10
+    }
+  ]
+}

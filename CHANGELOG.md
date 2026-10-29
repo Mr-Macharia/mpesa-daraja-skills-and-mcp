@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-10-29
+
+### Added
+
+- Guardrails: `DARAJA_READ_ONLY`, `DARAJA_APPROVAL_THRESHOLD` (payouts above it ask for approval in the chat via MCP elicitation) and `DARAJA_ALLOWED_RECIPIENTS`. B2C takes `refund_of` for refunds.
+- HTTP mode: `mpesa serve --http` with a required bearer token (`DARAJA_MCP_TOKEN`), callbacks on the same port, and cautious hosted defaults. `Dockerfile`, `docker-compose.yml` with a Caddy HTTPS profile, and guides for self-hosting and n8n.
+- Callback forwarding: `DARAJA_FORWARD_URL` and `DARAJA_FORWARD_SECRET` POST each callback on to your app with an HMAC signature, retried in the background.
+- `daraja-payment-design` skill: the payment state machine, an append-only double-entry ledger schema, confirmation handling, reversals versus refunds, daily reconciliation, failure tests and a go-live checklist. Its `check_integration.py` scans a codebase for paid-on-`ResponseCode`, float amounts, non-unique receipts, slow callback handlers, hardcoded secrets and HTTP callback URLs.
+- Use-case recipe skills: `daraja-checkout`, `daraja-payouts`, `daraja-paybill-collections`, `daraja-recurring-billing` and `daraja-agent-storefront` (with `sales_log.py` for agent-only sellers). Each works out what it can, then asks at most three questions.
+- `daraja-teach-me` skill: a sandbox-only tutor with a learning roadmap by category, lessons that each end in a sandbox call and a check question, and a build-your-own-gateway track. It refuses production credentials.
+- `mpesa_mcp.agent`: the server's tools and guardrails as plain Python tools for any agent framework, with an `approve` callback for payouts above the threshold. Adapters for LangChain, the OpenAI Agents SDK, Agno, Google ADK and CrewAI (extras `[langchain]`, `[openai-agents]`, `[agno]`, `[google-adk]`, `[crewai]`, or `[frameworks]` for all five).
+- `shared/fixtures/`: language-neutral cases for phones, amounts, STK passwords, result codes, validation, callbacks and guardrails. The Python and Node packages both run them.
+- The Node library **`mpesa-daraja`** (npm, 0.1.0): STK Push and Query, C2B, B2C, B2B, tax, status, balance, reversal and callbacks, with the same validation, idempotency and guardrails as the MCP server, agent tools (`mpesaTools`) and Vercel AI SDK tools (`mpesa-daraja/ai`). No runtime dependencies.
+- n8n community nodes **`n8n-nodes-daraja-mpesa`** (npm, 0.1.0): an M-Pesa Daraja action node (STK Push and wait, query, Get Result, B2C, B2B, tax, status, balance, reversal) and an M-Pesa Trigger for callbacks, with the same idempotency and guardrails.
+- The `mpesa` CLI: `init`, `status`, `dev`, `serve`, `up`, `pay stk|b2c|b2b|reverse`, `result`, `balance`, `explain`, `skills install`, `upgrade`, with `--json` output.
+
+### Changed
+
+- `mpesa --verbose` shows the HTTP requests to Daraja; they are hidden by default. A failed STK Push shows the `--key` to retry with.
+- New `mpesa` CLI, installed by the `mpesa-daraja-mcp` package (`mpesa-daraja` on PyPI belongs to another project). `uvx mpesa-daraja-mcp` still starts the server. `setup` is now `init` (the old name still works).
+- One-line installers: `install.sh` (macOS, Linux) and `install.ps1` (Windows) install uv if needed, then `uv tool install mpesa-daraja-mcp`.
+- The receiver's log no longer shows the callback path token.
+
 ## [0.1.4] - 2026-10-25
 
 ### Added
@@ -81,7 +104,8 @@ First public release.
   - Rejected keys get a plain explanation instead of a bare `HTTP 400`.
   - `mpesa_stk_query` keeps Safaricom's reply while a payment is processing, and answers from recorded results (including a callback's receipt) when it has them.
 
-[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.1...v0.1.2

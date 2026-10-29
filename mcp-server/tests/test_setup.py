@@ -137,7 +137,7 @@ def test_status_when_unconfigured(cfg, capsys):
 
 def test_missing_config_message_points_to_setup(cfg, monkeypatch):
     from mpesa_mcp.client import Config
-    with pytest.raises(RuntimeError, match="mpesa-daraja-mcp setup"):
+    with pytest.raises(RuntimeError, match="mpesa init"):
         Config.from_env()
 
 

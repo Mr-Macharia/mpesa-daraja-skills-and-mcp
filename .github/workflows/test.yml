@@ -37,6 +37,35 @@ jobs:
       - run: pip install -e "mcp-server[dev]"
       - run: pytest mcp-server
 
+  frameworks:
+    # The agent-framework adapters are heavy installs, so they run once, not across the matrix.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -e "mcp-server[dev,frameworks]"
+      - run: pytest mcp-server/tests/test_agent.py
+
+  node:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["22", "24"]
+    defaults:
+      run:
+        working-directory: node
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -52,3 +81,24 @@ jobs:
           import asyncio
           from mpesa_mcp import server
           print(len(asyncio.run(server.server.list_tools())), 'tools')"
+
+  install:
+    # Runs the one-line installers on fresh machines without uv.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - if: runner.os != 'Windows'
+        run: |
+          sh install.sh
+          export PATH="$HOME/.local/bin:$PATH"
+          uv tool list | grep mpesa-daraja-mcp
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./install.ps1
+          $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
+          uv tool list | Select-String mpesa-daraja-mcp

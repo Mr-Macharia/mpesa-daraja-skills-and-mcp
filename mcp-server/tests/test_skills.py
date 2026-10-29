@@ -166,3 +166,70 @@ def test_evals_reference_real_skills():
         for s in case["skills"]:
             assert (ROOT / "skills" / s / "SKILL.md").exists(), s
         assert len(case["expected_behavior"]) >= 2
+
+
+BAD_APP = {
+    "app.js": '''
+const consumerSecret = "AbCdEfGhIjKlMnOpQrStUvWx";
+app.post("/pay", async (req, res) => {
+  const r = await stkPush({ Amount: 10.5, CallBackURL: "http://shop.example.com/cb" });
+  if (r.ResponseCode === "0") {
+    await db.orders.update({ id: req.body.id, status: "paid" });
+  }
+});
+app.post("/mpesa/callback", async (req, res) => {
+  const cb = req.body.Body.stkCallback;
+  await sendEmail(cb.CheckoutRequestID);
+  res.json({ ResultCode: 0, ResultDesc: "Accepted" });
+});
+''',
+    "schema.sql": "CREATE TABLE payments (\n  id SERIAL PRIMARY KEY,\n  amount DECIMAL(10,2),\n  mpesa_receipt TEXT\n);\n",
+}
+GOOD_APP = {
+    "app.py": '''
+import os
+SECRET = os.environ["DARAJA_CONSUMER_SECRET"]
+
+def start(order):
+    resp = stk_push(Amount=int(order.amount), CallBackURL="https://shop.example.com/cb/tok")
+    if resp["ResponseCode"] == "0":
+        order.state = "accepted"   # paid only when the callback says ResultCode 0
+
+def callback(request):
+    events.insert(request.body)
+    queue.enqueue(process_callback, request.body)
+    return {"ResultCode": 0, "ResultDesc": "Accepted"}
+''',
+    "schema.sql": "CREATE TABLE payments (\n  id SERIAL PRIMARY KEY,\n  amount BIGINT NOT NULL,\n  mpesa_receipt TEXT UNIQUE\n);\n",
+}
+
+
+def _project(tmp_path, files):
+    for name, text in files.items():
+        (tmp_path / name).write_text(text)
+    return tmp_path
+
+
+def test_check_integration_finds_the_classic_mistakes(tmp_path):
+    res = run("daraja-payment-design/scripts/check_integration.py", str(_project(tmp_path, BAD_APP)), "--json")
+    checks = {f["check"] for f in json.loads(res.stdout)}
+    assert res.returncode == 1
+    assert checks == {"paid-on-ack", "float-amount", "receipt-not-unique", "slow-callback",
+                      "hardcoded-secret", "http-callback"}
+
+
+def test_check_integration_passes_a_careful_project(tmp_path):
+    res = run("daraja-payment-design/scripts/check_integration.py", str(_project(tmp_path, GOOD_APP)))
+    assert res.returncode == 0 and res.stdout.startswith("OK"), res.stdout
+
+
+def test_sales_log_tracks_an_order(tmp_path):
+    env = {"PATH": "/usr/bin:/bin", "MPESA_SALES_LOG": str(tmp_path / "sales.csv")}
+    script = "daraja-agent-storefront/scripts/sales_log.py"
+    assert run(script, "add", "A1", "254712345678", "150", "2 mandazi", env=env).returncode == 0
+    assert run(script, "add", "A1", "254712345678", "150", "again", env=env).returncode != 0, "IDs are not reused"
+    assert run(script, "set", "A1", "paid", env=env).returncode != 0, "paid needs a receipt"
+    assert run(script, "set", "A1", "paid", "NLJ7RT61SV", env=env).returncode == 0
+    assert run(script, "set", "A1", "failed", env=env).returncode != 0, "a final order stays final"
+    assert "A1" not in run(script, "open", env=env).stdout
+    assert "NLJ7RT61SV" in run(script, "show", "A1", env=env).stdout

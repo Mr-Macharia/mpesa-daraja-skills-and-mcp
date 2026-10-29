@@ -3,7 +3,7 @@
 Two pieces, installed separately:
 
 - **Skills**: instructions and scripts the agent reads. Use them with any agent that supports the open [Agent Skills](https://agentskills.io) format.
-- **MCP server** (`mpesa-daraja-mcp`): tools that call Daraja. Use it with any MCP client.
+- **MCP server** (`mpesa-daraja`): tools that call Daraja. Use it with any MCP client.
 
 Both start in the **sandbox**. Production money movement stays off unless you set `DARAJA_ALLOW_LIVE_MONEY_MOVEMENT=true`.
 
@@ -36,7 +36,7 @@ Claude Code users can install the **plugin** instead. It bundles all the skills 
 /plugin install mpesa-daraja-skills --marketplace Mr-Macharia/mpesa-daraja-skills-and-mcp
 ```
 
-On older Claude Code versions, use two steps: `/plugin marketplace add Mr-Macharia/mpesa-daraja-skills-and-mcp`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`. Either way, run `uvx mpesa-daraja-mcp setup` once to save your keys, and answer **n** when it offers to add the server to Claude Code, so you don't end up with two copies.
+On older Claude Code versions, use two steps: `/plugin marketplace add Mr-Macharia/mpesa-daraja-skills-and-mcp`, then `/plugin install mpesa-daraja-skills@mpesa-daraja`. Either way, run `uvx mpesa-daraja-mcp init` once to save your keys, and answer **n** when it offers to add the server to Claude Code, so you don't end up with two copies.
 
 Each skill is self-contained, so you can install just the ones you need.
 
@@ -47,7 +47,7 @@ You need [uv](https://docs.astral.sh/uv/) (one-time install: `curl -LsSf https:/
 ### Easiest: the setup wizard
 
 ```bash
-uvx mpesa-daraja-mcp setup
+uvx mpesa-daraja-mcp init
 ```
 
 It asks for your Daraja keys (secrets are typed hidden) and checks them live with Safaricom, then saves them to a private config file. It then offers to add the server to every agent it finds: Claude Code, Codex, Gemini CLI and Cursor. Restart your agent and you're done.

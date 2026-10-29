@@ -38,6 +38,19 @@ Credentials, passkeys and certificates only work in the environment they were is
 | Sandbox app, test credentials, tunnels, go-live | `daraja-sandbox-setup` |
 | Secrets, SecurityCredential encryption | `daraja-credentials-security` |
 | Error codes and "nothing happened" debugging | `daraja-troubleshooting` |
+| Payment state machine, ledger tables, confirmations, refunds, reconciliation, go-live review | `daraja-payment-design` |
+
+Building a whole use case rather than one API call? Start from a recipe:
+
+| Use case | Recipe |
+|---|---|
+| Customers pay for orders in an app | `daraja-checkout` |
+| Payroll, disbursements, refunds to phones | `daraja-payouts` |
+| Customers pay a Paybill/Till; match to accounts | `daraja-paybill-collections` |
+| Subscriptions and repeat charges | `daraja-recurring-billing` |
+| An AI agent that sells and takes payment | `daraja-agent-storefront` |
+
+New to Daraja, or want a guided tutorial in the sandbox? Use `daraja-teach-me`.
 
 ## Conventions shared by every API
 
@@ -68,16 +81,16 @@ Copy this checklist and tick items off as you go:
 - [ ] 1. Sandbox app + credentials in env/secret store (daraja-sandbox-setup, daraja-credentials-security)
 - [ ] 2. Token helper with caching + 401 retry (daraja-auth)
 - [ ] 3. Request builder for the chosen API; validate_request.py prints OK
-- [ ] 4. Persist request IDs as PENDING before/at send time
+- [ ] 4. Payments and events tables; persist request IDs before/at send time (daraja-payment-design)
 - [ ] 5. Callback receiver: ack fast, store raw, process async, idempotent (daraja-callbacks)
 - [ ] 6. Reconciliation: query anything PENDING too long (daraja-account-ops / stk query)
 - [ ] 7. Test failure paths in sandbox (cancel, timeout, wrong PIN)
-- [ ] 8. Go-live checklist (daraja-sandbox-setup)
+- [ ] 8. `check_integration.py` clean, then the go-live checklist (daraja-payment-design, daraja-sandbox-setup)
 ```
 
 ## MCP tools
 
-If the `mpesa-daraja-mcp` server is connected (tool names start with `mpesa_`; some clients prefix them with the server name), call Daraja directly instead of writing throwaway scripts. For example:
+If the `mpesa-daraja` server is connected (tool names start with `mpesa_`; some clients prefix them with the server name), call Daraja directly instead of writing throwaway scripts. For example:
 - `mpesa_check_credentials` checks the configured keys.
 - `mpesa_stk_push` and `mpesa_stk_query` run M-Pesa Express.
 - `mpesa_parse_callback` parses a callback payload.

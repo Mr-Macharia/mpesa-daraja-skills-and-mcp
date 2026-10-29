@@ -4,7 +4,7 @@ Precedence (highest first):
   1. Real environment variables (e.g. set by the MCP client's config)
   2. A project `.env` in the directory the client starts the server in
      (or the file named by DARAJA_DOTENV)
-  3. The user config file written by `mpesa-daraja-mcp setup`
+  3. The user config file written by `mpesa init`
 
 Only DARAJA_* keys are read from files, so a project's other secrets are never loaded.
 """
@@ -16,6 +16,7 @@ import re
 import sys
 from pathlib import Path
 
+# The config folder keeps the 0.1.4 name, so existing setups keep working.
 APP = "mpesa-daraja-mcp"
 
 # Variables that say where to look for config, rather than being config themselves.
@@ -81,7 +82,7 @@ def write_user_config(values: dict[str, str]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     existing = parse_env_file(path)
     existing.update({k: v for k, v in values.items() if v})
-    body = "# Written by `mpesa-daraja-mcp setup`. Edit freely; real environment variables override this file.\n"
+    body = "# Written by `mpesa init`. Edit freely; real environment variables override this file.\n"
     body += "".join(f'{k}="{v}"\n' for k, v in existing.items())
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -94,6 +95,6 @@ def write_user_config(values: dict[str, str]) -> Path:
 def missing_message(names: list[str]) -> str:
     return (
         f"Missing Daraja configuration: {', '.join(names)}. "
-        f"Run `uvx {APP} setup` in a terminal, or add the values to {user_config_file()} "
+        f"Run `mpesa init` (or `uvx mpesa-daraja-mcp init`) in a terminal, or add the values to {user_config_file()} "
         "(or a project .env), then restart the MCP server."
     )

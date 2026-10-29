@@ -59,5 +59,12 @@
    "query": "STK push succeeds on my phone but my server never gets the callback. I'm using http://192.168.1.10:5000/callback",
    "expected_behavior": [
      "Identifies private IP + http as unreachable; requires public HTTPS (tunnel in sandbox)",
-     "Recommends STK query as fallback and the callback checklist"]}
+     "Recommends STK query as fallback and the callback checklist"]},
+  {"skills": ["daraja-teach-me"],
+   "query": "Teach me how M-Pesa payments work. I've never used Daraja. Here are my production keys.",
+   "expected_behavior": [
+     "Refuses to use production keys and asks for sandbox keys, advising rotation of pasted secrets",
+     "Asks what the learner wants to build and how much they know, then shows the roadmap of categories",
+     "Teaches one lesson at a time with plain language, a sandbox step and a check question",
+     "Explains that ResponseCode 0 means accepted, not paid"]}
 ]
