@@ -11,16 +11,26 @@ if [ -n "${MPESA_DARAJA_VERSION:-}" ]; then
 fi
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
-    green=$(printf '\033[32m'); red=$(printf '\033[31m'); bold=$(printf '\033[1m')
-    dim=$(printf '\033[2m'); reset=$(printf '\033[0m')
+    esc=$(printf '\033')
+    # Gradient from amber to the site's accent (#e85d04) to deep red, in 256 colours so every terminal shows it.
+    c1="${esc}[38;5;220m"; c2="${esc}[38;5;214m"; c3="${esc}[38;5;208m"
+    c4="${esc}[38;5;202m"; c5="${esc}[38;5;166m"; c6="${esc}[38;5;124m"
+    orange="${esc}[38;5;208m"; green="${esc}[38;5;114m"; red="${esc}[38;5;196m"
+    bold="${esc}[1m"; dim="${esc}[2m"; reset="${esc}[0m"
 else
-    green=""; red=""; bold=""; dim=""; reset=""
+    c1=""; c2=""; c3=""; c4=""; c5=""; c6=""; orange=""; green=""; red=""; bold=""; dim=""; reset=""
 fi
 
 say() { printf '%s\n' "$*"; }
-ok() { printf '  %s✓%s %s\n' "$green" "$reset" "$*"; }
-step() { printf '  %s%s%s %s\n' "$dim" "$1" "$reset" "$2"; }
-fail() { printf '  %s✗ %s%s\n' "$red" "$*" "$reset" >&2; }
+ok() { printf '  %s│%s  %s✓%s %s\n' "$orange" "$reset" "$green" "$reset" "$*"; }
+step() { printf '  %s│%s  %s›%s %s\n' "$orange" "$reset" "$orange" "$reset" "$*"; }
+line() { printf '  %s│%s  %s\n' "$orange" "$reset" "$*"; }
+fail() { printf '  %s│%s  %s✗ %s%s\n' "$orange" "$reset" "$red" "$*" "$reset" >&2; }
+top() {
+    fill=$(printf '%*s' $((59 - ${#1})) '' | sed 's/ /─/g')
+    printf '  %s╭─ %s%s%s %s%s╮%s\n' "$orange" "$bold" "$1" "$reset" "$orange" "$fill" "$reset"
+}
+bottom() { printf '  %s╰──────────────────────────────────────────────────────────────╯%s\n' "$orange" "$reset"; }
 
 # Runs a command quietly; shows its output only if it fails.
 quiet() {
@@ -36,14 +46,20 @@ quiet() {
 }
 
 say ""
-say "  ${green}${bold}M-Pesa Daraja${reset} ${bold}agent kit${reset}"
-say "  ${dim}CLI, MCP server and agent tools for Safaricom Daraja${reset}"
+say "  ${c1}███╗   ███╗      ██████╗ ███████╗███████╗ █████╗ ${reset}"
+say "  ${c2}████╗ ████║      ██╔══██╗██╔════╝██╔════╝██╔══██╗${reset}"
+say "  ${c3}██╔████╔██║█████╗██████╔╝█████╗  ███████╗███████║${reset}"
+say "  ${c4}██║╚██╔╝██║╚════╝██╔═══╝ ██╔══╝  ╚════██║██╔══██║${reset}"
+say "  ${c5}██║ ╚═╝ ██║      ██║     ███████╗███████║██║  ██║${reset}"
+say "  ${c6}╚═╝     ╚═╝      ╚═╝     ╚══════╝╚══════╝╚═╝  ╚═╝${reset}"
 say ""
-
+say "  ${bold}Daraja agent kit${reset}  ${dim}Skills • MCP server • CLI • Node • n8n${reset}"
+say ""
+top "Installer"
 if command -v uv >/dev/null 2>&1; then
     ok "uv found"
 else
-    step "→" "Installing uv (https://docs.astral.sh/uv/)..."
+    step "Installing uv (https://docs.astral.sh/uv/)..."
     if command -v curl >/dev/null 2>&1; then
         quiet sh -c 'curl -LsSf https://astral.sh/uv/install.sh | sh' || { fail "could not install uv"; exit 1; }
     elif command -v wget >/dev/null 2>&1; then
@@ -58,7 +74,7 @@ else
     ok "Installed uv"
 fi
 
-step "→" "Installing ${pkg}..."
+step "Installing ${pkg}..."
 quiet uv tool install --upgrade "$pkg" || { fail "uv tool install failed (output above)"; exit 1; }
 uv tool update-shell >/dev/null 2>&1 || true
 
@@ -66,16 +82,19 @@ mpesa="$(uv tool dir --bin 2>/dev/null || printf '%s' "$HOME/.local/bin")/mpesa"
 version=$("$mpesa" --version 2>/dev/null | sed "s/^mpesa //" || true)
 ok "Installed ${bold}mpesa ${version}${reset}"
 
+bottom
 say ""
-say "  ${bold}Next:${reset} save your Daraja sandbox keys and add the MCP server to your agents"
-say "    ${green}mpesa init${reset}"
-say "  ${dim}If the command isn't found, open a new terminal first.${reset}"
+top "Next"
+line "Save your sandbox keys and add the MCP server to your agents:"
+line "  ${orange}${bold}mpesa init${reset}"
+line "${dim}If the command isn't found, open a new terminal first.${reset}"
+bottom
 say ""
 
 # Under `curl | sh` stdin is the script, so ask on the terminal itself.
 if [ -z "${MPESA_NO_INIT:-}" ] && [ -z "${CI:-}" ] && [ -t 1 ] && [ -x "$mpesa" ] \
     && { : </dev/tty; } 2>/dev/null; then
-    printf '  Run mpesa init now? [Y/n] '
+    printf '  %s›%s Run %smpesa init%s now? [Y/n] ' "$orange" "$reset" "$bold" "$reset"
     read -r answer </dev/tty || answer="n"
     case "$answer" in
         ""|y|Y|yes|Yes) say ""; exec "$mpesa" init </dev/tty ;;
