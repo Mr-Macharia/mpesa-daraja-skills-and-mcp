@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-10-29
+
 ### Added
 
 - Guardrails: `DARAJA_READ_ONLY`, `DARAJA_APPROVAL_THRESHOLD` (payouts above it ask for approval in the chat via MCP elicitation) and `DARAJA_ALLOWED_RECIPIENTS`. B2C takes `refund_of` for refunds.
@@ -102,7 +104,8 @@ First public release.
   - Rejected keys get a plain explanation instead of a bare `HTTP 400`.
   - `mpesa_stk_query` keeps Safaricom's reply while a payment is processing, and answers from recorded results (including a callback's receipt) when it has them.
 
-[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/compare/v0.1.1...v0.1.2

@@ -1,6 +1,6 @@
 {
   "name": "mpesa-daraja-skills",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "M-Pesa Daraja Agent Kit: 22 skills (use-case recipes, payment design, a sandbox tutor, STK Push, C2B, B2C, B2B, tax, status/balance/reversal, Dynamic QR, Ratiba, Bill Manager, callbacks, security, troubleshooting) plus the mpesa-daraja MCP server. Sandbox by default.",
   "author": {
     "name": "Mr-Macharia",

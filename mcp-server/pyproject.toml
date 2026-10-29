@@ -1,6 +1,6 @@
 [project]
 name = "mpesa-daraja-mcp"
-version = "0.1.4"
+version = "0.1.5"
 description = "M-Pesa Daraja toolkit: MCP server and `mpesa` CLI for STK Push, C2B, B2C, B2B, status, balance, reversal, QR, Ratiba, Bill Manager"
 readme = "README.md"
 license = "MIT"
