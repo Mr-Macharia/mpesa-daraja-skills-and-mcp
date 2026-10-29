@@ -218,3 +218,11 @@ def test_dev_screen_shows_the_url_a_log_and_the_latest_callback():
     c.print(commands._dev_screen(("https://x.trycloudflare.com", 8787, False), events))
     text = c.export_text()
     assert "1 success" in text and "1 failed" in text and "Latest · ws_CO_2" in text
+
+
+def test_setup_rail_marks_done_current_and_next():
+    from rich.console import Console
+
+    c = Console(width=120, record=True)
+    c.print(commands.setup_rail(2))
+    assert c.export_text().strip() == "● Keys ── ● Check ── ● Save ── ○ Agents ── ○ Done"

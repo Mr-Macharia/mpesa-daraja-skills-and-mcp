@@ -200,12 +200,58 @@ class TerminalApproval:
 # --------------------------------------------------------------------------- #
 
 
+def setup_rail(step: int) -> str:
+    """Progress through setup, e.g. ● Keys ── ● Check ── ○ Save ── ○ Agents ── ○ Done."""
+    parts = []
+    for i, name in enumerate(cli.SETUP_STEPS):
+        if i < step:
+            parts.append(f"[green]●[/] [dim]{name}[/]")
+        elif i == step:
+            parts.append(f"[bold {ui.ORANGE}]● {name}[/]")
+        else:
+            parts.append(f"[dim]○ {name}[/]")
+    return " [dim]──[/] ".join(parts)
+
+
+def _init_wizard(register: bool) -> int:
+    """`mpesa init` in a terminal: the same steps as cli.setup, with styled prompts and a progress rail."""
+    import questionary
+
+    from .launcher import STYLE
+
+    def answer(value: str | None) -> str:
+        if value is None:  # Ctrl+C in a questionary prompt
+            raise KeyboardInterrupt
+        return value
+
+    def ask(question: str) -> str:
+        return answer(questionary.text(question.rstrip(": ").rstrip(), style=STYLE, qmark="›").ask())
+
+    def ask_secret(question: str) -> str:
+        return answer(questionary.password(question.rstrip(": ").rstrip(), style=STYLE, qmark="›").ask())
+
+    def say(text: str) -> None:
+        text = text.replace("✓", "[green]✓[/]").replace("✗", "[red]✗[/]")
+        console.print(text, highlight=False)
+
+    def on_step(step: int) -> None:
+        console.print()
+        console.print(ui.panel(setup_rail(step), title=f"Step {step + 1} of {len(cli.SETUP_STEPS)}"))
+
+    console.print()
+    console.print(ui.banner())
+    return cli.setup(ask=ask, ask_secret=ask_secret, register=register, verify=cli.check_keys, say=say,
+                     on_step=on_step)
+
+
 @app.command(rich_help_panel="Setup")
 def init(
     no_register: Annotated[bool, typer.Option("--no-register", help="Only save the keys.")] = False,
 ) -> None:
     """Guided setup: keys, live check, save, and add the server to your agents."""
     try:
+        if _interactive() and console.is_terminal:
+            raise typer.Exit(_init_wizard(register=not no_register))
         raise typer.Exit(cli.setup(register=not no_register))
     except (KeyboardInterrupt, EOFError):
         err.print("\nCancelled; nothing changed.")

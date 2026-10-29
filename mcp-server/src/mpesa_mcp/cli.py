@@ -201,8 +201,16 @@ def agents(cmd: list[str]) -> list[Agent]:
 # --------------------------------------------------------------------------- #
 
 
+SETUP_STEPS = ("Keys", "Check", "Save", "Agents", "Done")
+
+
 def setup(ask: Callable[[str], str] = input, ask_secret: Callable[[str], str] = getpass.getpass,
-          register: bool = True, verify: Callable[[str, str, str], tuple[bool, str]] = check_keys) -> int:
+          register: bool = True, verify: Callable[[str, str, str], tuple[bool, str]] = check_keys,
+          say: Callable[[str], None] = print, on_step: Callable[[int], None] = lambda _: None) -> int:
+    """Asks for the keys, checks them live, saves them, then offers to register the server with each agent.
+
+    `say` and `on_step` let the terminal wizard restyle the output and show progress through SETUP_STEPS.
+    """
     current = {**settings.parse_env_file(settings.user_config_file())}
 
     def prompt(label: str, key: str, default: str = "", secret: bool = False) -> str:
@@ -211,7 +219,8 @@ def setup(ask: Callable[[str], str] = input, ask_secret: Callable[[str], str] = 
         answer = (ask_secret if secret else ask)(f"{label}{hint}: ").strip()
         return answer or have or default
 
-    print("M-Pesa Daraja MCP setup\n"
+    on_step(0)
+    say("M-Pesa Daraja MCP setup\n"
           "Get keys from https://developer.safaricom.co.ke/ → My Apps. Input for secrets is hidden.\n")
     env = ""
     while env not in ("sandbox", "production"):
@@ -221,17 +230,18 @@ def setup(ask: Callable[[str], str] = input, ask_secret: Callable[[str], str] = 
         values["DARAJA_CONSUMER_KEY"] = prompt("Consumer Key", "DARAJA_CONSUMER_KEY")
         values["DARAJA_CONSUMER_SECRET"] = prompt("Consumer Secret", "DARAJA_CONSUMER_SECRET", secret=True)
         if not (values["DARAJA_CONSUMER_KEY"] and values["DARAJA_CONSUMER_SECRET"]):
-            print("  Both the key and the secret are required.")
+            say("  Both the key and the secret are required.")
             continue
-        print("  Checking with Daraja…")
+        on_step(1)
+        say("  Checking with Daraja…")
         ok, message = verify(env, values["DARAJA_CONSUMER_KEY"], values["DARAJA_CONSUMER_SECRET"])
-        print(f"  {'✓' if ok else '✗'} {message}")
+        say(f"  {'✓' if ok else '✗'} {message}")
         if ok:
             break
         current.pop("DARAJA_CONSUMER_KEY", None)
         current.pop("DARAJA_CONSUMER_SECRET", None)
     else:
-        print("\nCould not verify the keys; nothing was saved. Check the app's keys and environment, then retry.")
+        say("\nCould not verify the keys; nothing was saved. Check the app's keys and environment, then retry.")
         return 1
 
     default_shortcode = SANDBOX_SHORTCODE if env == "sandbox" else ""
@@ -242,14 +252,16 @@ def setup(ask: Callable[[str], str] = input, ask_secret: Callable[[str], str] = 
         values["DARAJA_SECURITY_CREDENTIAL"] = prompt(
             "Security credential (encrypted initiator password)", "DARAJA_SECURITY_CREDENTIAL", secret=True)
 
+    on_step(2)
     path = settings.write_user_config(values)
-    print(f"\n✓ Saved to {path} (readable only by you).")
+    say(f"\n✓ Saved to {path} (readable only by you).")
 
     if register:
+        on_step(3)
         cmd = launch_command()
         found = [a for a in agents(cmd) if a[1]]
         if found:
-            print(f"\nRegister the server (runs `{' '.join(cmd)}`; your keys stay in the config file):")
+            say(f"\nRegister the server (runs `{' '.join(cmd)}`; your keys stay in the config file):")
             for agent in found:
                 if ask(f"  Add to {agent.name}? [Y/n]: ").strip().lower() not in ("", "y", "yes"):
                     continue
@@ -263,12 +275,13 @@ def setup(ask: Callable[[str], str] = input, ask_secret: Callable[[str], str] = 
                         result = "replaced" if result == "added" else result
                     else:
                         result = "kept the existing entry"
-                print(f"    {agent.name}: {result}")
+                say(f"    {agent.name}: {result}")
         else:
-            print("\nNo supported agent CLI found. Add the server in your client using the command:\n"
+            say("\nNo supported agent CLI found. Add the server in your client using the command:\n"
                   f"  {' '.join(cmd)}\n(examples: https://github.com/Mr-Macharia/mpesa-daraja-skills-and-mcp/blob/main/docs/clients.md)")
 
-    print("\nDone. Restart your agent, then try: \"Check my M-Pesa credentials.\"")
+    on_step(4)
+    say("\nDone. Restart your agent, then try: \"Check my M-Pesa credentials.\"")
     return 0
 
 
