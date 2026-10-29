@@ -112,17 +112,22 @@ if command -v uv >/dev/null 2>&1; then
     ok "uv found"
 else
     step "Installing uv (https://docs.astral.sh/uv/)..."
+    # Download first, then run: `curl … | sh` succeeds even when the download fails, leaving no uv.
+    uv_installer=$(mktemp)
     if command -v curl >/dev/null 2>&1; then
-        quiet sh -c 'curl -LsSf https://astral.sh/uv/install.sh | sh' || { fail "could not install uv"; exit 1; }
+        quiet curl -LsSf https://astral.sh/uv/install.sh -o "$uv_installer" || { fail "could not download uv"; exit 1; }
     elif command -v wget >/dev/null 2>&1; then
-        quiet sh -c 'wget -qO- https://astral.sh/uv/install.sh | sh' || { fail "could not install uv"; exit 1; }
+        quiet wget -qO "$uv_installer" https://astral.sh/uv/install.sh || { fail "could not download uv"; exit 1; }
     else
         fail "need curl or wget to install uv"
         exit 1
     fi
+    quiet sh "$uv_installer" || { rm -f "$uv_installer"; fail "could not install uv"; exit 1; }
+    rm -f "$uv_installer"
     # The uv installer puts uv here; it isn't on PATH until the shell restarts.
     PATH="${XDG_BIN_HOME:-$HOME/.local/bin}:$HOME/.cargo/bin:$PATH"
     export PATH
+    command -v uv >/dev/null 2>&1 || { fail "uv was installed but isn't on PATH; open a new terminal and rerun"; exit 1; }
     ok "Installed uv"
 fi
 
