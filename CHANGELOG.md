@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `mpesa` with no command, in a terminal, opens a launcher: the icon, what is configured (environment, keys, callbacks, guardrails; no secrets) and an arrow-key menu of commands. Without a terminal it still prints the help.
+- `mpesa pay stk` shows the payment as a live screen: sent, accepted by Daraja (marked "accepted is not paid"), waiting for the PIN with a timer, then the result and receipt. `--json` and non-terminal output are unchanged.
+- `mpesa dev` is a live dashboard: the public URL, a callback log with success/failed/unknown totals, and the latest callback in full.
+- `mpesa init` in a terminal is a styled wizard with a progress rail (Keys, Check, Save, Agents, Done) and hidden secret prompts.
+- One look across the CLI and installers: the site's orange (`#e85d04`), the plugin icon drawn in the terminal, and rounded panels.
+
+### Changed
+
+- The one-line installers show the icon, quiet uv output (shown only on failure) and offer to run `mpesa init` (skip with `MPESA_NO_INIT=1`; never asked in CI).
+- New dependency: `questionary` (arrow-key menus and prompts).
+
 ## [0.1.5] - 2026-10-29
 
 ### Added
