@@ -35,7 +35,6 @@ function Quiet([scriptblock]$cmd, [string]$what) {
 # The plugin icon (.claude-plugin/icon.png) as a grid: o = orange, g = grey, . = empty.
 # Two grid rows per line with half blocks, with the name beside it.
 $icon = @(
-    "",
     "...................ooo............",
     "..................oooo............",
     ".................oo..oo...........",
