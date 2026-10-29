@@ -146,3 +146,27 @@ def test_legacy_entry_point_maps_setup_to_init(monkeypatch):
     with pytest.raises(SystemExit) as exit_:
         cli.main(["setup", "--no-register"])
     assert exit_.value.code == 0 and called == [False]
+
+
+def test_no_command_without_a_terminal_prints_help():
+    res = runner.invoke(commands.app, [])
+    assert res.exit_code == 0
+    assert "Usage" in res.output and "init" in res.output
+
+
+def test_launcher_puts_setup_first_until_keys_are_saved():
+    from mpesa_mcp import launcher
+
+    assert launcher.menu(configured=False)[0][0] == "init"
+    assert launcher.menu(configured=True)[0][0] == "status"
+
+
+def test_launcher_status_line_never_shows_secrets(monkeypatch):
+    from mpesa_mcp import launcher
+
+    monkeypatch.setenv("DARAJA_CONSUMER_KEY", "supersecretkey123")
+    monkeypatch.setenv("DARAJA_CONSUMER_SECRET", "supersecretvalue456")
+    monkeypatch.setenv("DARAJA_APPROVAL_THRESHOLD", "1000")
+    line = launcher.status_line().plain
+    assert "keys ✓" in line and "approval" in line
+    assert "supersecret" not in line

@@ -38,7 +38,7 @@ REPO = "Mr-Macharia/mpesa-daraja-skills-and-mcp"
 app = typer.Typer(
     name="mpesa",
     help="[bold green]M-Pesa Daraja[/] from your terminal: set up, test callbacks, take payments, self-host.",
-    no_args_is_help=True,
+    invoke_without_command=True,
     rich_markup_mode="rich",
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -76,6 +76,7 @@ def _version_callback(value: bool) -> None:
 
 @app.callback()
 def _root(
+    ctx: typer.Context,
     show_version: Annotated[bool, typer.Option("--version", "-V", callback=_version_callback, is_eager=True,
                                                help="Show the version.")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Log each HTTP request to Daraja.")] = False,
@@ -83,6 +84,43 @@ def _root(
     settings.load()
     if not verbose:
         logging.getLogger("httpx").setLevel(logging.WARNING)
+    if ctx.invoked_subcommand is None:
+        # No command: the launcher in a terminal, the help everywhere else (pipes, scripts, CI).
+        if _interactive() and sys.stdout.isatty():
+            _launch(ctx)
+        else:
+            console.print(ctx.get_help())
+        raise typer.Exit()
+
+
+def _launch(ctx: typer.Context) -> None:
+    from . import launcher
+
+    def pay() -> None:
+        phone = launcher.ask_text("Phone to send the prompt to (2547XXXXXXXX or 07…):")
+        amount = phone and launcher.ask_text("Amount in shillings:", "1", lambda v: v.isdigit() and int(v) > 0
+                                             or "Whole shillings, 1 or more")
+        if phone and amount:
+            pay_stk(phone, int(amount))
+
+    def lookup() -> None:
+        if key := launcher.ask_text("Idempotency key or Daraja ID:"):
+            result(key)
+
+    def code() -> None:
+        if value := launcher.ask_text("Result code (e.g. 1032):"):
+            explain(value)
+
+    launcher.run(console, {
+        "init": lambda: init(),
+        "status": lambda: status(),
+        "stk": pay,
+        "dev": lambda: dev(),
+        "result": lookup,
+        "explain": code,
+        "skills": lambda: skills_install(),
+        "help": lambda: console.print(ctx.get_help()),
+    })
 
 
 # --------------------------------------------------------------------------- #
