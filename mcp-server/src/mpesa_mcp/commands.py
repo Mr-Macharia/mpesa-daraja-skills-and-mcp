@@ -166,7 +166,9 @@ def _show_outcome(out: Any, as_json: bool) -> None:
     grid.add_row("next", out.message)
     if out.status == "FAILED" and out.idempotency_key:
         grid.add_row("retry", f"run the same command with --key {out.idempotency_key}")
-    console.print(ui.panel(grid, title="Result", style=style))
+    if out.status in ("ACCEPTED", "UNKNOWN") and out.idempotency_key:
+        grid.add_row("check", f"mpesa result {out.idempotency_key}")
+    console.print(ui.panel(grid, title="Result", style=style, width=min(console.width, 100)))
 
 
 def _run_tool(coro, as_json: bool):
@@ -541,7 +543,10 @@ def _stk_screen(stage: int, elapsed: float, out: Any = None, phone: str = "", am
     grid.add_column(style="dim")
     for i, label in enumerate(STK_STAGES):
         note = ""
-        if i < stage:
+        if i == 2 and stage == 3 and out is not None and out.status != "SUCCESS":
+            # Only a success proves the customer finished; otherwise say what is known about the PIN step.
+            mark, note = ("[red]✗[/]", "") if out.status == "FAILED" else ("[magenta]?[/]", "no answer in time")
+        elif i < stage:
             mark: Any = "[green]✓[/]"
             note = "accepted is not paid" if i == 1 else ""
         elif i == stage and out is None:

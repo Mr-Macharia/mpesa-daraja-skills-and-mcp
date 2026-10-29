@@ -226,3 +226,15 @@ def test_setup_rail_marks_done_current_and_next():
     c = Console(width=120, record=True)
     c.print(commands.setup_rail(2))
     assert c.export_text().strip() == "● Keys ── ● Check ── ● Save ── ○ Agents ── ○ Done"
+
+
+def test_stk_screen_does_not_tick_the_pin_step_when_the_outcome_is_unknown():
+    from types import SimpleNamespace
+
+    from rich.console import Console
+
+    c = Console(width=100, record=True)
+    unknown = SimpleNamespace(status="UNKNOWN", receipt=None, explanation=None)
+    c.print(commands._stk_screen(3, 90, unknown, phone="254708374149", amount=1))
+    pin_line = next(line for line in c.export_text().splitlines() if "Customer enters PIN" in line)
+    assert "✓" not in pin_line and "no answer in time" in pin_line

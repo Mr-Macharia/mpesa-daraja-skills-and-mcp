@@ -92,6 +92,8 @@ def banner(*lines: RenderableType) -> Table:
     return grid
 
 
-def panel(body: RenderableType, title: str = "", style: str = ORANGE, subtitle: str = "") -> Panel:
+def panel(body: RenderableType, title: str = "", style: str = ORANGE, subtitle: str = "",
+          width: int | None = None) -> Panel:
     return Panel(body, title=f"[bold]{title}[/]" if title else None, title_align="left", border_style=style,
-                 box=ROUNDED, subtitle=subtitle or None, subtitle_align="right", expand=False, padding=(0, 2))
+                 box=ROUNDED, subtitle=subtitle or None, subtitle_align="right", expand=False, padding=(0, 2),
+                 width=width)
