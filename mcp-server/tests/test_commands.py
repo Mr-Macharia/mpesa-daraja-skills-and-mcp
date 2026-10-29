@@ -170,3 +170,22 @@ def test_launcher_status_line_never_shows_secrets(monkeypatch):
     line = launcher.status_line().plain
     assert "keys ✓" in line and "approval" in line
     assert "supersecret" not in line
+
+
+def test_stk_screen_marks_accepted_as_not_paid_and_shows_the_receipt():
+    from types import SimpleNamespace
+
+    from rich.console import Console
+
+    def show(*args, **kw):
+        c = Console(width=100, record=True)
+        c.print(commands._stk_screen(*args, phone="254708374149", amount=10, **kw))
+        return c.export_text()
+
+    waiting = show(2, 12)
+    assert "accepted is not paid" in waiting and "12s of up to" in waiting
+    paid = SimpleNamespace(status="SUCCESS", receipt="NLJ7RT61SV", explanation=None)
+    assert "NLJ7RT61SV" in show(3, 30, paid) and "Paid / completed" in show(3, 30, paid)
+    rejected = SimpleNamespace(status="FAILED", receipt=None, explanation="Invalid phone")
+    text = show(1, 1, rejected)
+    assert "Invalid phone" in text and "accepted is not paid" not in text

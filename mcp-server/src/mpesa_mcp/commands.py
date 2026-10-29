@@ -30,7 +30,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from . import cli, settings
+from . import cli, settings, ui
 
 PACKAGE = "mpesa-daraja-mcp"
 REPO = "Mr-Macharia/mpesa-daraja-skills-and-mcp"
@@ -164,7 +164,7 @@ def _show_outcome(out: Any, as_json: bool) -> None:
     grid.add_row("next", out.message)
     if out.status == "FAILED" and out.idempotency_key:
         grid.add_row("retry", f"run the same command with --key {out.idempotency_key}")
-    console.print(Panel(grid, border_style=style, expand=False))
+    console.print(ui.panel(grid, title="Result", style=style))
 
 
 def _run_tool(coro, as_json: bool):
@@ -456,6 +456,57 @@ def up(
 # --------------------------------------------------------------------------- #
 
 
+STK_STAGES = ("Sent to Safaricom", "Accepted by Daraja", "Customer enters PIN", "Result")
+
+
+def _stk_screen(stage: int, elapsed: float, out: Any = None, phone: str = "", amount: int = 0) -> Panel:
+    """The STK Push as four stages that light up as they happen. Stage 1 (accepted) is not paid."""
+    from rich.spinner import Spinner
+
+    from . import server
+
+    grid = Table.grid(padding=(0, 2))
+    grid.add_column(width=2)
+    grid.add_column()
+    grid.add_column(style="dim")
+    for i, label in enumerate(STK_STAGES):
+        note = ""
+        if i < stage:
+            mark: Any = "[green]✓[/]"
+            note = "accepted is not paid" if i == 1 else ""
+        elif i == stage and out is None:
+            mark = Spinner("dots", style=ui.ORANGE)
+            note = f"{int(elapsed)}s of up to {server.STK_WAIT_DEFAULT_S}s" if i == 2 else ""
+        elif i == stage:
+            style = ui.STATUS_STYLE.get(out.status, "white")
+            mark = {"SUCCESS": "[green]✓[/]", "FAILED": "[red]✗[/]"}.get(out.status, f"[{style}]?[/]")
+            label = f"[bold {style}]{STATUS_NOTE.get(out.status, out.status).capitalize()}[/]"
+            note = out.receipt or out.explanation or ""
+        else:
+            mark, label = "[dim]○[/]", f"[dim]{label}[/]"
+        grid.add_row(mark, label, note)
+    return ui.panel(grid, title=f"STK Push · KES {amount:,} → {phone}", subtitle="Ctrl+C stops waiting, not the payment")
+
+
+async def _stk_live(phone: str, amount: int, reference: str, key: str):
+    from rich.live import Live
+
+    from . import server
+
+    started = time.monotonic()
+    task = asyncio.create_task(server.stk_push_and_wait(phone, amount, reference, idempotency_key=key))
+    with Live(_stk_screen(0, 0, phone=phone, amount=amount), console=console, refresh_per_second=10) as live:
+        while not task.done():
+            rec = server.state().get_request(key)
+            stage = 2 if rec and rec.status == "ACCEPTED" else 0
+            live.update(_stk_screen(stage, time.monotonic() - started, phone=phone, amount=amount))
+            await asyncio.sleep(0.1)
+        out = task.result()
+        accepted = bool(out.ids.get("checkout_request_id"))  # Daraja took it; otherwise it stopped at stage 1
+        live.update(_stk_screen(3 if accepted else 1, time.monotonic() - started, out, phone=phone, amount=amount))
+    return out
+
+
 @pay_app.command("stk")
 def pay_stk(
     phone: Annotated[str, typer.Argument(help="Customer phone, e.g. 0712345678.")],
@@ -468,9 +519,11 @@ def pay_stk(
     """Send an STK Push PIN prompt to a customer's phone."""
     from . import server
 
-    if wait:
-        with console.status("Waiting for the customer to enter their PIN…") if not as_json else _nothing():
-            out = _run_tool(server.stk_push_and_wait(phone, amount, reference, idempotency_key=key), as_json)
+    if wait and not as_json and console.is_terminal:
+        key = key or f"cli-stk-{secrets.token_hex(4)}"  # so the screen can follow the request in the store
+        out = _run_tool(_stk_live(phone, amount, reference, key), as_json)
+    elif wait:
+        out = _run_tool(server.stk_push_and_wait(phone, amount, reference, idempotency_key=key), as_json)
     else:
         out = _run_tool(server.stk_push(phone, amount, reference, idempotency_key=key), as_json)
     _show_outcome(out, as_json)
