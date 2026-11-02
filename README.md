@@ -8,8 +8,6 @@
 [![npm mpesa-daraja](https://img.shields.io/npm/v/mpesa-daraja?label=npm%20mpesa-daraja&color=ff5a14&cacheSeconds=3600)](https://www.npmjs.com/package/mpesa-daraja) [![n8n nodes](https://img.shields.io/npm/v/n8n-nodes-daraja-mpesa?label=n8n%20nodes&color=ff5a14&cacheSeconds=3600)](https://www.npmjs.com/package/n8n-nodes-daraja-mpesa) [![Docs](https://img.shields.io/badge/docs-agent--kit.gichogumacharia.tech-1c1b38)](https://agent-kit.gichogumacharia.tech/)
 [![M8ven Score](https://m8ven.ai/badge/mcp/mr-macharia/mpesa-daraja-skills-and-mcp)](https://m8ven.ai/mcp/mr-macharia/mpesa-daraja-skills-and-mcp?s=readme)
 
-[![M-Pesa Daraja MCP server](https://mcprush.com/badge/m-pesa-daraja-mcp/card.svg)](https://mcprush.com/to/m-pesa-daraja-mcp?ref=badge)
-
 
 <img src=".claude-plugin/icon.png" alt="M-Pesa Daraja Agent Kit logo" width="120">
 
@@ -291,6 +289,8 @@ Run <code>uvx mpesa-daraja-mcp status</code>. It lists missing settings and re-t
 | [skills/README.md](skills/README.md) | The skill catalogue, and why each skill is built the way it is |
 | [docs/](docs/README.md) | How Daraja works: transaction types, callbacks, OAuth, credentials, sandbox |
 | [AGENTS.md](AGENTS.md) | Rules for AI agents working on M-Pesa code or on this repo |
+
+[![M-Pesa Daraja MCP server](https://mcprush.com/badge/m-pesa-daraja-mcp/card.svg)](https://mcprush.com/to/m-pesa-daraja-mcp?ref=badge)
 
 ## Contributing
 
